@@ -1,0 +1,29 @@
+[tool.poetry]
+name = "easyprotocol"
+version = "0.0.1"
+description = "A library for quick protocol prototyping and parsing."
+authors = ["joeferg425"]
+license = "MIT"
+packages = [
+    { include = "easyprotocol", from = "src" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+
+[tool.poetry.dev-dependencies]
+black = "^22.1"
+flake8 = "^4.0"
+pytest = "^7.1"
+
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["tests/test_*.py"]

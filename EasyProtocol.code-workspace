@@ -1,0 +1,90 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"python.linting.flake8Enabled": true,
+		"python.terminal.activateEnvInCurrentTerminal": true,
+		"autoDocstring.guessTypes": false,
+		"python.formatting.provider": "black",
+		"cSpell.words": [
+			"easyprotocol",
+			"pytest"
+		],
+		"editor.gotoLocation.multipleDeclarations": "goto",
+		"editor.gotoLocation.multipleDefinitions": "goto",
+		"editor.gotoLocation.multipleImplementations": "goto",
+		"editor.gotoLocation.multipleReferences": "goto",
+		"editor.gotoLocation.multipleTypeDefinitions": "goto",
+		"references.preferredLocation": "view",
+		"python.testing.pytestArgs": [
+			"tests"
+		],
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true
+	},
+	"tasks": {
+		"version": "2.0.0",
+		"tasks": [
+			{
+				"label": "install editable",
+				"type": "shell",
+				"command": "python",
+				"args": [
+					"-m",
+					"pip",
+					"install",
+					".[dev]"
+				],
+				"dependsOn": [
+					"update"
+				],
+				"problemMatcher": [],
+				"group": {
+					"kind": "build",
+					"isDefault": true
+				}
+			},
+			{
+				"label": "update",
+				"type": "shell",
+				"command": "poetry",
+				"args": [
+					"update"
+				],
+				"problemMatcher": [],
+			},
+			{
+				"label": "coverage",
+				"type": "shell",
+				"command": "${command:python.interpreterPath}",
+				"args": [
+					"-m",
+					"coverage",
+					"run",
+					"-m",
+					"pytest"
+				],
+				"problemMatcher": []
+			},
+			{
+				"label": "coverage run, report",
+				"type": "shell",
+				"command": "${command:python.interpreterPath}",
+				"args": [
+					"-m",
+					"coverage",
+					"html",
+					"--omit",
+					"./tests/*"
+				],
+				"problemMatcher": [],
+				"dependsOn": [
+					"coverage"
+				],
+			}
+		]
+	}
+}

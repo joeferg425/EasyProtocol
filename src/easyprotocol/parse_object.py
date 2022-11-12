@@ -1,5 +1,6 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
+from collections import OrderedDict
 from typing import SupportsBytes, Generic, TypeVar, Any
 
 T = TypeVar("T", Any, Any)
@@ -13,6 +14,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         name: str,
         data: bytes | None = None,
         value: T | None = None,
+        parent: ParseObject[Any] = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -20,10 +22,13 @@ class ParseObject(SupportsBytes, Generic[T]):
             name: name of parsed object
             data: optional bytes to be parsed
             value: optional value to assign to object
+            parent: an optional containing object for nesting layers of parsed objects
         """
         self._name = name
         self._data: bytes | None = None
         self._value: T | None = None
+        self._parent: ParseObject[Any] | None = None
+        self._children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
 
         if data is not None:
             self.parse(data)
@@ -50,6 +55,10 @@ class ParseObject(SupportsBytes, Generic[T]):
         """
         return self._name
 
+    @name.setter
+    def name(self, name: str) -> None:
+        self._name = name
+
     @property
     def value(self) -> T:
         """Get the parsed value of the field.
@@ -62,6 +71,29 @@ class ParseObject(SupportsBytes, Generic[T]):
     @value.setter
     def value(self, value: T) -> None:
         raise NotImplementedError()
+
+    @property
+    def parent(self) -> ParseObject[Any]:
+        """Get the parent of the field.
+
+        Returns:
+            the parent of the field
+        """
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent: ParseObject[Any]) -> None:
+        self._parent = parent
+
+    @property
+    def children(self) -> OrderedDict[str, ParseObject[Any]]:
+        return self._children
+
+    @children.setter
+    def children(self, children: OrderedDict[str, ParseObject[Any]]) -> None:
+        for key, value in children.items():
+            self._children[key] = value
+            value.parent = self
 
     @property
     def data(self) -> bytes:

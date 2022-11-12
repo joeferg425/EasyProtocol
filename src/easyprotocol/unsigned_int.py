@@ -33,7 +33,7 @@ class UInt8(ParseObject[int]):
 
     @property
     def value(self) -> int:
-        return super().value
+        return self._value
 
     @value.setter
     def value(self, value: int) -> None:

@@ -1,17 +1,19 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
+from collections import OrderedDict
 from typing import Any, MutableSequence
 from easyprotocol.parse_object import ParseObject
 
 
-class ParseList(MutableSequence[ParseObject[Any]]):
+class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
         data: bytes | None = None,
-        value: list[Any] | None = None,
+        parent: ParseObject[Any] | None = None,
+        children: list[ParseObject[Any]] | OrderedDict[str, ParseObject[Any]] | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -20,13 +22,20 @@ class ParseList(MutableSequence[ParseObject[Any]]):
             data: optional bytes to be parsed
             value: optional value to assign to object
         """
-        self._name = name
-        self._list: list[ParseObject[Any]] = list()
+        super().__init__(
+            name=name,
+            data=None,
+            value=None,
+            parent=parent,
+        )
 
+        if children is not None:
+            if isinstance(children, dict):
+                self.children = children
+            else:
+                self.children = OrderedDict({val.name: val for val in children})
         if data is not None:
             self.parse(data)
-        elif value is not None:
-            self.value = value
 
     def parse(self, data: bytes) -> bytes:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -37,7 +46,7 @@ class ParseList(MutableSequence[ParseObject[Any]]):
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        for field in self._list:
+        for name, field in self._children.items():
             data = field.parse(data=data)
         return data
 
@@ -50,14 +59,18 @@ class ParseList(MutableSequence[ParseObject[Any]]):
         """
         return self._name
 
+    @name.setter
+    def name(self, name: str) -> None:
+        self._name = name
+
     @property
-    def value(self) -> list[ParseObject[Any]] | list[Any]:
+    def value(self) -> list[Any]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return list(self._list)
+        return list([v.value for f, v in self._children.items()])
 
     @value.setter
     def value(self, value: list[ParseObject[Any]] | list[Any]) -> None:
@@ -65,12 +78,13 @@ class ParseList(MutableSequence[ParseObject[Any]]):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         for index, item in enumerate(value):
             if isinstance(item, ParseObject):
-                if index < len(self._list):
+                if index < len(self._children):
                     self[index] = item
                 else:
                     self.append(item)
             else:
-                self[index].value = item
+                parse_object = self[index]
+                parse_object.value = item
 
     @property
     def data(self) -> bytes:
@@ -80,7 +94,7 @@ class ParseList(MutableSequence[ParseObject[Any]]):
             the bytes value of the field
         """
         data = b""
-        for value in self._list:
+        for name, value in self._children.items():
             data += bytes(value)
         return data
 
@@ -91,7 +105,7 @@ class ParseList(MutableSequence[ParseObject[Any]]):
         Returns:
             the value of the field with custom formatting
         """
-        return f'[{",".join([str(value) for value in self._list])}]'
+        return f'[{",".join([str(value) for key,value in self._children .items()])}]'
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -118,19 +132,36 @@ class ParseList(MutableSequence[ParseObject[Any]]):
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
     def __getitem__(self, index: int | slice) -> ParseObject[Any]:
-        return self._list[index]
+        return list(self._children.values())[index]
 
     def __delitem__(self, index: int | slice) -> None:
-        del self._list[index]
+        p_o = list(self._children.values())[index]
+        p_o.parent = None
+        self._children.popitem(p_o)
 
     def __setitem__(self, index: int | slice, val: ParseObject[Any]):
-        self._list[index] = val
+        index_key = list(self._children.keys())[index]
+        c = OrderedDict()
+        for key in self._children:
+            if key != index_key:
+                c[key] = self._children[key]
+            else:
+                c[key] = val
+                val.parent = self
+        self._children = c
 
     def insert(self, index: int | slice, val: ParseObject[Any]):
-        self._list.insert(index, val)
+        c = OrderedDict()
+        for i, value in enumerate(self._children.values()):
+            if index == i:
+                c[val.name] = val
+                val.parent = self
+            c[value.name] = self._children[value.name]
+        self._children = c
 
     def append(self, val: ParseObject[Any]):
-        self.insert(len(self._list), val)
+        self._children[val.name] = val
+        val.parent = self
 
     def __len__(self) -> int:
-        return len(self._list)
+        return len(self._children)

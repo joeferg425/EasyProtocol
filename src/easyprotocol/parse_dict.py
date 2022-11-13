@@ -2,6 +2,7 @@
 from __future__ import annotations
 from typing import Any, OrderedDict
 from easyprotocol.parse_object import ParseObject
+from bitarray import bitarray
 
 
 class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]]):
@@ -10,7 +11,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
     def __init__(
         self,
         name: str,
-        data: bytes | None = None,
+        data: bytes | bitarray | None = None,
         children: OrderedDict[str, Any] | None = None,
         parent: ParseObject[Any] | None = None,
     ) -> None:
@@ -33,7 +34,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         if data is not None:
             self.parse(data)
 
-    def parse(self, data: bytes) -> bytes:
+    def parse(self, data: bytes | bitarray) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -82,18 +83,19 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
                 self.__setitem__(key, item)
                 item.parent = self
             else:
-                self.__getitem__(key).value = item
+                obj = self.__getitem__(key)
+                obj.value = item
 
     @property
-    def data(self) -> bytes:
+    def bits(self) -> bitarray:
         """Get the bytes value of the field.
 
         Returns:
             the bytes value of the field
         """
-        data = b""
+        data = bitarray()
         for key, value in self._children.items():
-            data += bytes(value)
+            data += value.bits
         return data
 
     @property
@@ -111,7 +113,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         Returns:
             the bytes of this field
         """
-        return self.data
+        return self.bits.tobytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.

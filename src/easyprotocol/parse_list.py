@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, MutableSequence
 from easyprotocol.parse_object import ParseObject
+from bitarray import bitarray
 
 
 class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]):
@@ -11,7 +12,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
     def __init__(
         self,
         name: str,
-        data: bytes | None = None,
+        data: bytes | bitarray | None = None,
         parent: ParseObject[Any] | None = None,
         children: list[ParseObject[Any]] | OrderedDict[str, ParseObject[Any]] | None = None,
     ) -> None:
@@ -37,7 +38,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
         if data is not None:
             self.parse(data)
 
-    def parse(self, data: bytes) -> bytes:
+    def parse(self, data: bytes | bitarray) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -87,15 +88,15 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
                 parse_object.value = item
 
     @property
-    def data(self) -> bytes:
+    def bits(self) -> bitarray:
         """Get the bytes value of the field.
 
         Returns:
             the bytes value of the field
         """
-        data = b""
+        data = bitarray()
         for name, value in self._children.items():
-            data += bytes(value)
+            data += value.bits
         return data
 
     @property
@@ -113,7 +114,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
         Returns:
             the bytes of this field
         """
-        return self.data
+        return self.bits.tobytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.

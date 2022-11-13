@@ -2,6 +2,7 @@
 from __future__ import annotations
 from collections import OrderedDict
 from typing import SupportsBytes, Generic, TypeVar, Any
+from bitarray import bitarray
 
 T = TypeVar("T", Any, Any)
 
@@ -12,7 +13,7 @@ class ParseObject(SupportsBytes, Generic[T]):
     def __init__(
         self,
         name: str,
-        data: bytes | None = None,
+        data: bytes | bitarray | None = None,
         value: T | None = None,
         parent: ParseObject[Any] = None,
     ) -> None:
@@ -25,21 +26,21 @@ class ParseObject(SupportsBytes, Generic[T]):
             parent: an optional containing object for nesting layers of parsed objects
         """
         self._name = name
-        self._data: bytes | None = None
+        self._bits: bitarray = bitarray()
         self._value: T | None = None
         self._parent: ParseObject[Any] | None = None
         self._children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
 
         if data is not None:
-            self.parse(data)
+            self.parse(data=data)
         elif value is not None:
             self.value = value
 
-    def parse(self, data: bytes) -> bytes:
-        """Parse bytes that make of this protocol field into meaningful data.
+    def parse(self, data: bytes | bitarray) -> bitarray:
+        """Parse bits or bytes that make of this protocol field into meaningful data.
 
         Args:
-            data: bytes to be parsed
+            data: bits or bytes to be parsed
 
         Raises:
             NotImplementedError: if not implemented for this field
@@ -96,13 +97,13 @@ class ParseObject(SupportsBytes, Generic[T]):
             value.parent = self
 
     @property
-    def data(self) -> bytes:
-        """Get the bytes value of the field.
+    def bits(self) -> bitarray:
+        """Get the bit value of the field.
 
         Returns:
-            the bytes value of the field
+            the bit value of the field
         """
-        return self._data
+        return self._bits
 
     @property
     def formatted_value(self) -> str:
@@ -119,10 +120,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         Returns:
             the bytes of this field
         """
-        if self._data is not None:
-            return self._data
-        else:
-            return b""
+        return self._bits.tobytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.

@@ -10,11 +10,14 @@
 		"autoDocstring.guessTypes": false,
 		"python.formatting.provider": "black",
 		"cSpell.words": [
+			"bitarray",
 			"easyprotocol",
+			"frombytes",
 			"parsedict",
 			"parselist",
 			"parseobject",
-			"pytest"
+			"pytest",
+			"tobytes"
 		],
 		"editor.gotoLocation.multipleDeclarations": "goto",
 		"editor.gotoLocation.multipleDefinitions": "goto",

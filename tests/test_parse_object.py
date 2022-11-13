@@ -2,6 +2,7 @@ from collections import OrderedDict
 from typing import Any
 import pytest
 from easyprotocol.parse_object import ParseObject
+from bitarray import bitarray
 
 
 class TestParseObject:
@@ -12,7 +13,8 @@ class TestParseObject:
         assert po is not None
         assert po.name == name
         assert po.value is None
-        assert po.data is None
+        assert po.bits is not None
+        assert po.bits == bitarray()
         assert po.parent is None
         assert po.children is not None
         assert po.children == children
@@ -54,15 +56,17 @@ class TestParseObject:
         with pytest.raises(NotImplementedError):
             po.value = value
 
-    def test_parseobject_data(self) -> None:
+    def test_parseobject_bits(self) -> None:
         name = "test"
         data = b"\x01"
+        bits = bitarray()
+        bits.frombytes(data)
         po = ParseObject(name=name)
-        assert po.data is None
-        po._data = data
-        assert po.data == data
+        assert po.bits is not None
+        po._bits = bits
+        assert po.bits == bits
         with pytest.raises(AttributeError):
-            po.data = data
+            po.bits = data  # type:ignore
 
     def test_parseobject_parent(self) -> None:
         name = "test"

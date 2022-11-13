@@ -4,13 +4,15 @@ from typing import Any
 import pytest
 from easyprotocol.parse_list import ParseList
 from easyprotocol.parse_object import ParseObject
-from easyprotocol.unsigned_int import UInt8
+from easyprotocol.fields import UInt8
+from bitarray import bitarray
 
 
 class TestParseList:
     def test_parselist_create_empty(self) -> None:
         name = "test"
         data = b""
+        bits = bitarray()
         value: list[Any] = []
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         po = ParseList(name=name)
@@ -22,8 +24,9 @@ class TestParseList:
         assert po.children is not None
         assert len(po.children) == 0
         assert po.children == children
-        assert po.data is not None
-        assert po.data == data
+        assert po.bits is not None
+        assert po.bits == bits
+        assert bytes(po) == data
         assert isinstance(po.formatted_value, str)
         assert isinstance(bytes(po), bytes)
         assert isinstance(str(po), str)
@@ -43,7 +46,7 @@ class TestParseList:
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
         children_list: list[ParseObject[Any]] = [f1, f2]
         value: list[Any] = [f1.value, f2.value]
-        data = f1.data + f2.data
+        data = f1.bits + f2.bits
         po = ParseList(name=name, children=children_list)
         assert po is not None
         assert po.name == name
@@ -55,8 +58,8 @@ class TestParseList:
         assert po.children == children
         assert f1.parent == po
         assert f2.parent == po
-        assert po.data is not None
-        assert po.data == data
+        assert po.bits is not None
+        assert po.bits == data
         assert isinstance(po.formatted_value, str)
         assert isinstance(bytes(po), bytes)
         assert isinstance(str(po), str)
@@ -75,7 +78,7 @@ class TestParseList:
         assert f2.parent is None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
         value: list[Any] = [f1.value, f2.value]
-        data = f1.data + f2.data
+        data = f1.bits + f2.bits
         po = ParseList(name=name, children=children)
         assert po is not None
         assert po.name == name
@@ -87,8 +90,8 @@ class TestParseList:
         assert po.children == children
         assert f1.parent == po
         assert f2.parent == po
-        assert po.data is not None
-        assert po.data == data
+        assert po.bits is not None
+        assert po.bits == data
         assert isinstance(po.formatted_value, str)
         assert isinstance(bytes(po), bytes)
         assert isinstance(str(po), str)
@@ -100,9 +103,13 @@ class TestParseList:
     def test_parselist_create_parse_single_field(self) -> None:
         p_name = "test"
         p_data = b"\xff"
+        p_bits = bitarray()
+        p_bits.frombytes(p_data)
         f1_name = "f1"
         f1_value = 255
         f1_data = b"\xff"
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
         left_over = b""
         f1 = UInt8(name=f1_name)
         assert f1.parent is None
@@ -111,8 +118,9 @@ class TestParseList:
         remainder = b""
 
         assert f1.name == f1_name
-        assert f1.data is not None
-        assert f1.data == f1_data
+        assert f1.bits is not None
+        assert f1.bits == f1_bits
+        assert bytes(f1) == f1_data
         assert f1.value is not None
         assert f1.value == f1_value
         assert f1.parent == po
@@ -120,8 +128,9 @@ class TestParseList:
         assert remainder == left_over
         assert po is not None
         assert po.name == p_name
-        assert po.data is not None
-        assert po.data == p_data
+        assert po.bits is not None
+        assert po.bits == p_bits
+        assert bytes(po) == p_data
         assert po.value is not None
         assert po.value == p_value
         assert isinstance(po.formatted_value, str)
@@ -137,49 +146,58 @@ class TestParseList:
     def test_parselist_create_parse_multi_field(self) -> None:
         p_name = "test"
         p_data = b"\xaa\xbb\xcc"
+        p_bits = bitarray()
+        p_bits.frombytes(p_data)
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
         f1 = UInt8(name=f1_name)
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
+        f2_bits = bitarray()
+        f2_bits.frombytes(f2_data)
         f2 = UInt8(name=f2_name)
         f3_name = "f3"
         f3_value = 204
         f3_data = b"\xcc"
+        f3_bits = bitarray()
+        f3_bits.frombytes(f3_data)
         f3 = UInt8(name=f3_name)
-        left_over = b""
-        remainder = b""
         p_value = [f1_value, f2_value, f3_value]
         p = ParseList(name=p_name, children=[f1, f2, f3], data=p_data)
 
         assert f1.name == f1_name
-        assert f1.data is not None
-        assert f1.data == f1_data
+        assert f1.bits is not None
+        assert f1.bits == f1_bits
+        assert bytes(f1) == f1_data
         assert f1.value is not None
         assert f1.value == f1_value
         assert f1.parent == p
 
         assert f2.name == f2_name
-        assert f2.data is not None
-        assert f2.data == f2_data
+        assert f2.bits is not None
+        assert f2.bits == f2_bits
+        assert bytes(f2) == f2_data
         assert f2.value is not None
         assert f2.value == f2_value
         assert f2.parent == p
 
         assert f3.name == f3_name
-        assert f3.data is not None
-        assert f3.data == f3_data
+        assert f3.bits is not None
+        assert f3.bits == f3_bits
+        assert bytes(f3) == f3_data
         assert f3.value is not None
         assert f3.value == f3_value
         assert f3.parent == p
 
-        assert remainder == left_over
         assert p is not None
         assert p.name == p_name
-        assert p.data is not None
-        assert p.data == p_data
+        assert p.bits is not None
+        assert p.bits == p_bits
+        assert bytes(p) == p_data
         assert p.value is not None
         assert p.value == p_value
         assert isinstance(p.formatted_value, str)
@@ -208,45 +226,47 @@ class TestParseList:
     def test_parselist_value(self) -> None:
         name = "test"
         po = ParseList(name=name)
+        d1 = b"\x00"
+        b1 = bitarray()
+        b1.frombytes(d1)
+        d2 = b"\x02"
+        b2 = bitarray()
+        b2.frombytes(d2)
         f1_name = "f1"
         f2_name = "f2"
         f1 = UInt8(name=f1_name)
         f2 = UInt8(name=f2_name)
 
-        assert po.data is not None
-        assert po.data == b""
+        assert po.bits is not None
+        assert po.bits == bitarray()
+        assert bytes(po) == b""
         assert po.value is not None
         assert po.value == []
 
         po.value = [f1]
-
-        assert po.data is not None
-        assert po.data == b"\x00"
-        assert po.value is not None
+        assert po.bits == b1
+        assert bytes(po) == d1
         assert po.value == [f1.value]
         assert f1.parent == po
 
         po.value = [f2]
-
-        assert po.data is not None
-        assert po.data == b"\x00"
-        assert po.value is not None
+        assert po.bits == b1
+        assert bytes(po) == d1
         assert po.value == [f2.value]
+        assert f2.parent == po
 
         assert f2.name == f2_name
-        assert f2.data is not None
-        assert f2.data == b"\x00"
-        assert f2.value is not None
+        assert f2.bits == b1
+        assert bytes(f2) == d1
         assert f2.value == 0
         assert f2.parent == po
 
         po.value = [2]
-
         assert f2.name == f2_name
-        assert f2.data is not None
-        assert f2.data == b"\x02"
-        assert f2.value is not None
+        assert f2.bits == b2
+        assert bytes(f2) == d2
         assert f2.value == 2
+        assert f2.parent == po
 
         value = 1
         with pytest.raises(TypeError):

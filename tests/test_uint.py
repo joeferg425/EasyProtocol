@@ -2,7 +2,7 @@ from collections import OrderedDict
 from typing import Any
 import pytest
 from easyprotocol.fields.unsigned_int import UInt8Field, UInt16Field, UInt32Field, UInt64Field, UInt24Field
-from easyprotocol.parse_object import ParseObject
+from easyprotocol.base.parse_object import ParseObject
 from bitarray import bitarray
 from test_parse_object import parseobject_tests
 
@@ -139,7 +139,8 @@ class TestUInt16:
         value = 1
         format = "{:04X}"
         byte_count = 2
-        byte_data = int.to_bytes(value, length=byte_count, byteorder="big", signed=False)
+        byte_data = bytearray(int.to_bytes(value, length=byte_count, byteorder="big", signed=False))
+        byte_data.reverse()
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         parent = None
@@ -259,7 +260,8 @@ class TestUInt32:
         value = 1
         format = "{:08X}"
         byte_count = 4
-        byte_data = int.to_bytes(value, length=byte_count, byteorder="big", signed=False)
+        byte_data = bytearray(int.to_bytes(value, length=byte_count, byteorder="big", signed=False))
+        byte_data.reverse()
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         parent = None
@@ -319,7 +321,8 @@ class TestUInt64:
         value = 0
         format = "{:016X}"
         byte_count = 8
-        byte_data = int.to_bytes(value, length=byte_count, byteorder="big", signed=False)
+        byte_data = bytearray(int.to_bytes(value, length=byte_count, byteorder="big", signed=False))
+        byte_data.reverse()
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         parent = None
@@ -336,12 +339,13 @@ class TestUInt64:
             children=children,
         )
 
-    def test_uint64_parse(self) -> None:
+    def test_uint64_create_parse(self) -> None:
         name = "test"
         value = 1
         format = "{:016X}"
         byte_count = 8
-        byte_data = int.to_bytes(value, length=byte_count, byteorder="big", signed=False)
+        byte_data = bytearray(int.to_bytes(value, length=byte_count, byteorder="big", signed=False))
+        byte_data.reverse()
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         parent = None
@@ -358,7 +362,7 @@ class TestUInt64:
             children=children,
         )
 
-    def test_uint64_init_value(self) -> None:
+    def test_uint64_create_init_value(self) -> None:
         name = "test"
         value = 1
         format = "{:016X}"

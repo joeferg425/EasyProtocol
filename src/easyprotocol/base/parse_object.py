@@ -1,7 +1,7 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
 from collections import OrderedDict
-from typing import SupportsBytes, Generic, TypeVar, Any
+from typing import Literal, SupportsBytes, Generic, TypeVar, Any
 from bitarray import bitarray
 
 T = TypeVar("T", Any, Any)
@@ -17,6 +17,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         value: T | None = None,
         format: str | None = None,
         parent: ParseObject[Any] = None,
+        endian: Literal["little", "big"] = "big",
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -27,10 +28,11 @@ class ParseObject(SupportsBytes, Generic[T]):
             parent: an optional containing object for nesting layers of parsed objects
         """
         self._name = name
-        self._bits: bitarray = bitarray()
+        self._endian = endian
+        self._bits: bitarray = bitarray(endian=self._endian)
         self._value: T | None = None
         self._format = format
-        self._parent: ParseObject[Any] | None = None
+        self._parent: ParseObject[Any] | None = parent
         self._children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
 
         if self._format is None:
@@ -63,6 +65,10 @@ class ParseObject(SupportsBytes, Generic[T]):
     @name.setter
     def name(self, name: str) -> None:
         self._name = name
+
+    @property
+    def endian(self) -> Literal["little", "big"]:
+        return self._endian
 
     @property
     def format(self) -> str:

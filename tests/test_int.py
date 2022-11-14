@@ -4,7 +4,7 @@ import pytest
 from easyprotocol.fields.signed_int import Int8Field, Int16Field, Int32Field, Int64Field, Int24Field
 from bitarray import bitarray
 from test_parse_object import parseobject_tests
-from easyprotocol.parse_object import ParseObject
+from easyprotocol.base.parse_object import ParseObject
 
 
 class TestInt08:

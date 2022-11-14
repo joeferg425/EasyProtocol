@@ -1,19 +1,20 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
-from typing import Any, OrderedDict
-from easyprotocol.parse_object import ParseObject
+from collections import OrderedDict
+from typing import Any, MutableSequence
+from easyprotocol.base.parse_object import ParseObject
 from bitarray import bitarray
 
 
-class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]]):
+class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
         data: bytes | bitarray | None = None,
-        children: OrderedDict[str, Any] | None = None,
         parent: ParseObject[Any] | None = None,
+        children: list[ParseObject[Any]] | OrderedDict[str, ParseObject[Any]] | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -30,7 +31,10 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         )
 
         if children is not None:
-            self.children = children
+            if isinstance(children, dict):
+                self.children = children
+            else:
+                self.children = OrderedDict({val.name: val for val in children})
         if data is not None:
             self.parse(data)
 
@@ -43,7 +47,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        for key, field in self._children.items():
+        for name, field in self._children.items():
             data = field.parse(data=data)
         return data
 
@@ -61,30 +65,27 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         self._name = name
 
     @property
-    def value(
-        self,
-    ) -> OrderedDict[str, Any]:
+    def value(self) -> list[Any]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return {k: v.value for k, v in self._children.items()}
+        return list([v.value for f, v in self._children.items()])
 
     @value.setter
-    def value(
-        self,
-        value: OrderedDict[str, ParseObject[Any]] | OrderedDict[str, Any],
-    ) -> None:
-        if not isinstance(value, dict):
+    def value(self, value: list[ParseObject[Any]] | list[Any]) -> None:
+        if not isinstance(value, list):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
-        for key, item in value.items():
+        for index, item in enumerate(value):
             if isinstance(item, ParseObject):
-                self.__setitem__(key, item)
-                item.parent = self
+                if index < len(self._children):
+                    self[index] = item
+                else:
+                    self.append(item)
             else:
-                obj = self.__getitem__(key)
-                obj.value = item
+                parse_object = self[index]
+                parse_object.value = item
 
     @property
     def bits(self) -> bitarray:
@@ -95,7 +96,6 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         """
         data = bitarray()
         values = list(self._children.values())
-        values.reverse()
         for value in values:
             data += value.bits
         return data
@@ -107,7 +107,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         Returns:
             the value of the field with custom formatting
         """
-        return f'[{",".join([str(value) for key,value in self._children.items()])}]'
+        return f'[{",".join([str(value) for key,value in self._children .items()])}]'
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -133,25 +133,37 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, __key: str, __value: ParseObject[Any]) -> None:
-        if not isinstance(__value, ParseObject):
-            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {__value} of type {type(__value)}")
-        __value.parent = self
-        return self._children.__setitem__(__key, __value)
+    def __getitem__(self, index: int | slice) -> ParseObject[Any]:
+        return list(self._children.values())[index]
 
-    def __getitem__(self, __key: str) -> ParseObject[Any]:
-        return self._children.__getitem__(__key)
+    def __delitem__(self, index: int | slice) -> None:
+        p_o = list(self._children.values())[index]
+        p_o.parent = None
+        self._children.popitem(p_o)
 
-    def __delitem__(self, __key: str) -> None:
-        return self._children.__delitem__(__key)
+    def __setitem__(self, index: int | slice, val: ParseObject[Any]):
+        index_key = list(self._children.keys())[index]
+        c = OrderedDict()
+        for key in self._children:
+            if key != index_key:
+                c[key] = self._children[key]
+            else:
+                c[val.name] = val
+                val.parent = self
+        self._children = c
 
-    def popitem(self, last: bool) -> tuple[str, ParseObject[Any]]:
-        self.children.popitem(last=last)
+    def insert(self, index: int | slice, val: ParseObject[Any]):
+        c = OrderedDict()
+        for i, value in enumerate(self._children.values()):
+            if index == i:
+                c[val.name] = val
+                val.parent = self
+            c[value.name] = self._children[value.name]
+        self._children = c
 
-    def pop(self, key: str) -> ParseObject[Any]:
-        p = self.children.pop(key)
-        p.parent = None
-        return p
+    def append(self, val: ParseObject[Any]):
+        self._children[val.name] = val
+        val.parent = self
 
     def __len__(self) -> int:
         return len(self._children)

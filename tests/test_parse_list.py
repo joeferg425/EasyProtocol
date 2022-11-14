@@ -2,8 +2,8 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any
 import pytest
-from easyprotocol.parse_list import ParseList
-from easyprotocol.parse_object import ParseObject
+from easyprotocol.base.parse_list import ParseList
+from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.fields import UInt8Field
 from bitarray import bitarray
 from test_parse_object import parseobject_properties, parseobject_children

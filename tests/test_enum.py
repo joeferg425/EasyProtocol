@@ -49,4 +49,4 @@ class TestEnums:
 
         name = "enum"
         with pytest.raises(ValueError):
-            obj = EnumField(name=name, bit_count=4, enum_type=TestEnum, data=b"\x0f")
+            EnumField(name=name, bit_count=4, enum_type=TestEnum, data=b"\x0f")

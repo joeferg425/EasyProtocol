@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any
 import pytest
-from easyprotocol.parse_object import ParseObject
+from easyprotocol.base.parse_object import ParseObject
 from bitarray import bitarray
 
 

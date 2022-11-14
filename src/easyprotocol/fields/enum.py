@@ -1,15 +1,15 @@
 from __future__ import annotations
 import math
 
-from easyprotocol.fields.unsigned_int import UintField
-from typing import TypeVar, Generic
+from easyprotocol.fields.unsigned_int import UIntField
+from typing import Literal, TypeVar, Generic
 from enum import IntEnum
 from bitarray import bitarray
 
 T = TypeVar("T", IntEnum, IntEnum)
 
 
-class EnumField(UintField, Generic[T]):
+class EnumField(UIntField, Generic[T]):
     def __init__(
         self,
         name: str,
@@ -17,13 +17,15 @@ class EnumField(UintField, Generic[T]):
         enum_type: type[T],
         data: bytes | bitarray | None = None,
         value: int | None = None,
+        endian: Literal["little", "big"] = "big",
     ) -> None:
         self.enum_type = enum_type
         super().__init__(
-            name,
-            bit_count,
-            data,
-            value,
+            name=name,
+            bit_count=bit_count,
+            data=data,
+            value=value,
+            endian=endian,
         )
 
     @property
@@ -39,6 +41,82 @@ class EnumField(UintField, Generic[T]):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
         bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)
-        bits.frombytes(int.to_bytes(value, length=byte_count, byteorder="big", signed=False))
+        bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=False))
         self._bits = bits
         self._value = value
+
+
+class UInt8EnumField(EnumField):
+    def __init__(
+        self,
+        name: str,
+        enum_type: type[T],
+        data: bytes | bitarray | None = None,
+        value: int | None = None,
+        endian: Literal["little", "big"] = "big",
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=8,
+            enum_type=enum_type,
+            data=data,
+            value=value,
+            endian=endian,
+        )
+
+
+class UInt16EnumField(EnumField):
+    def __init__(
+        self,
+        name: str,
+        enum_type: type[T],
+        data: bytes | bitarray | None = None,
+        value: int | None = None,
+        endian: Literal["little", "big"] = "big",
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=16,
+            enum_type=enum_type,
+            data=data,
+            value=value,
+            endian=endian,
+        )
+
+
+class UInt24EnumField(EnumField):
+    def __init__(
+        self,
+        name: str,
+        enum_type: type[T],
+        data: bytes | bitarray | None = None,
+        value: int | None = None,
+        endian: Literal["little", "big"] = "big",
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=24,
+            enum_type=enum_type,
+            data=data,
+            value=value,
+            endian=endian,
+        )
+
+
+class UInt32EnumField(EnumField):
+    def __init__(
+        self,
+        name: str,
+        enum_type: type[T],
+        data: bytes | bitarray | None = None,
+        value: int | None = None,
+        endian: Literal["little", "big"] = "big",
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=32,
+            enum_type=enum_type,
+            data=data,
+            value=value,
+            endian=endian,
+        )

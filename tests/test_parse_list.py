@@ -4,8 +4,54 @@ from typing import Any
 import pytest
 from easyprotocol.parse_list import ParseList
 from easyprotocol.parse_object import ParseObject
-from easyprotocol.fields import UInt8
+from easyprotocol.fields import UInt8Field
 from bitarray import bitarray
+from test_parse_object import parseobject_properties, parseobject_children
+
+
+def parselist_value(
+    obj: ParseList,
+    values: list[Any],
+) -> None:
+    assert len(obj.value) == len(values), (
+        f"{obj}: len(obj.value) is not the expected value " + f"({len(obj.value)} != expected value: {len(values)})"
+    )
+    for i in range(len(values)):
+        assert obj.value[i] == values[i], (
+            f"{obj}: obj.value[{i}] is not the expected value " + f"({obj.value[i]} != expected value: {values[i]})"
+        )
+        assert obj[i].format.format(obj.value[i]) in obj.formatted_value
+        assert obj[i].format.format(obj.value[i]) in str(obj)
+        assert obj[i].format.format(obj.value[i]) in repr(obj)
+
+
+def parselist_tests(
+    obj: ParseList,
+    name: str,
+    values: list[Any],
+    bits_data: bitarray,
+    byte_data: bytes,
+    parent: ParseObject[Any] | None,
+    children: OrderedDict[str, ParseObject[Any]],
+) -> None:
+    parseobject_properties(
+        obj=obj,
+        name=name,
+        format="{}",
+        bits_data=bits_data,
+        byte_data=byte_data,
+        parent=parent,
+    )
+    parseobject_children(
+        obj=obj,
+        name=name,
+        children=children,
+        parent=parent,
+    )
+    parselist_value(
+        obj=obj,
+        values=values,
+    )
 
 
 class TestParseList:
@@ -13,278 +59,265 @@ class TestParseList:
         name = "test"
         data = b""
         bits = bitarray()
-        value: list[Any] = []
+        values: list[Any] = []
+        parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        po = ParseList(name=name)
-        assert po is not None
-        assert po.name == name
-        assert po.value is not None
-        assert len(po.value) == 0
-        assert po.value == value
-        assert po.children is not None
-        assert len(po.children) == 0
-        assert po.children == children
-        assert po.bits is not None
-        assert po.bits == bits
-        assert bytes(po) == data
-        assert isinstance(po.formatted_value, str)
-        assert isinstance(bytes(po), bytes)
-        assert isinstance(str(po), str)
-        assert name in str(po)
-        assert isinstance(repr(po), str)
-        assert name in repr(po)
-        assert ParseList.__name__ in repr(po)
+        obj = ParseList(name=name)
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values,
+            bits_data=bits,
+            byte_data=data,
+            parent=parent,
+            children=children,
+        )
 
     def test_parselist_create_children_list(self) -> None:
         name = "test"
+        f1_value = 0
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
         f1_name = "f1"
+        f1 = UInt8Field(name=f1_name)
+        f2_value = 0
+        f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f2_bits = bitarray()
+        f2_bits.frombytes(f2_data)
         f2_name = "f2"
-        f1 = UInt8(name=f1_name)
-        assert f1.parent is None
-        f2 = UInt8(name=f2_name)
-        assert f2.parent is None
+        f2 = UInt8Field(name=f2_name)
+        bits_data = f2.bits + f1.bits
+        byte_data = bytes(f2) + bytes(f1)
+        values: list[Any] = [f1.value, f2.value]
+        parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
         children_list: list[ParseObject[Any]] = [f1, f2]
-        value: list[Any] = [f1.value, f2.value]
-        data = f1.bits + f2.bits
-        po = ParseList(name=name, children=children_list)
-        assert po is not None
-        assert po.name == name
-        assert po.value is not None
-        assert len(po.value) == 2
-        assert po.value == value
-        assert po.children is not None
-        assert len(po.children) == 2
-        assert po.children == children
-        assert f1.parent == po
-        assert f2.parent == po
-        assert po.bits is not None
-        assert po.bits == data
-        assert isinstance(po.formatted_value, str)
-        assert isinstance(bytes(po), bytes)
-        assert isinstance(str(po), str)
-        assert name in str(po)
-        assert isinstance(repr(po), str)
-        assert name in repr(po)
-        assert ParseList.__name__ in repr(po)
+        obj = ParseList(name=name, children=children_list)
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=parent,
+            children=children,
+        )
 
     def test_parselist_create_children_dict(self) -> None:
         name = "test"
-        f1_name = "f1"
-        f2_name = "f2"
-        f1 = UInt8(name=f1_name)
-        assert f1.parent is None
-        f2 = UInt8(name=f2_name)
-        assert f2.parent is None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
-        value: list[Any] = [f1.value, f2.value]
-        data = f1.bits + f2.bits
-        po = ParseList(name=name, children=children)
-        assert po is not None
-        assert po.name == name
-        assert po.value is not None
-        assert len(po.value) == 2
-        assert po.value == value
-        assert po.children is not None
-        assert len(po.children) == 2
-        assert po.children == children
-        assert f1.parent == po
-        assert f2.parent == po
-        assert po.bits is not None
-        assert po.bits == data
-        assert isinstance(po.formatted_value, str)
-        assert isinstance(bytes(po), bytes)
-        assert isinstance(str(po), str)
-        assert name in str(po)
-        assert isinstance(repr(po), str)
-        assert name in repr(po)
-        assert ParseList.__name__ in repr(po)
-
-    def test_parselist_create_parse_single_field(self) -> None:
-        p_name = "test"
-        p_data = b"\xff"
-        p_bits = bitarray()
-        p_bits.frombytes(p_data)
-        f1_name = "f1"
-        f1_value = 255
-        f1_data = b"\xff"
+        f1_value = 0
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
         f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
-        left_over = b""
-        f1 = UInt8(name=f1_name)
-        assert f1.parent is None
-        p_value = [f1_value]
-        po = ParseList(name=p_name, children=[f1], data=p_data)
-        remainder = b""
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name)
+        f2_value = 0
+        f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f2_bits = bitarray()
+        f2_bits.frombytes(f2_data)
+        f2_name = "f2"
+        f2 = UInt8Field(name=f2_name)
+        bits_data = f2.bits + f1.bits
+        byte_data = bytes(f2) + bytes(f1)
+        values: list[Any] = [f1.value, f2.value]
+        parent = None
+        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
+        obj = ParseList(name=name, children=children)
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=parent,
+            children=children,
+        )
 
-        assert f1.name == f1_name
-        assert f1.bits is not None
-        assert f1.bits == f1_bits
-        assert bytes(f1) == f1_data
-        assert f1.value is not None
-        assert f1.value == f1_value
-        assert f1.parent == po
-
-        assert remainder == left_over
-        assert po is not None
-        assert po.name == p_name
-        assert po.bits is not None
-        assert po.bits == p_bits
-        assert bytes(po) == p_data
-        assert po.value is not None
-        assert po.value == p_value
-        assert isinstance(po.formatted_value, str)
-        assert isinstance(bytes(po), bytes)
-        assert isinstance(str(po), str)
-        assert p_name in str(po)
-        assert f1_name in str(po)
-        assert isinstance(repr(po), str)
-        assert p_name in repr(po)
-        assert f1_name in repr(po)
-        assert ParseList.__name__ in repr(po)
+    def test_parselist_create_parse_single_field(self) -> None:
+        name = "test"
+        f1_value = 255
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name)
+        byte_data = f1_data
+        bits_data = f1_bits
+        values = [f1_value]
+        parent = None
+        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
+        obj = ParseList(name=name, children=[f1], data=byte_data)
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=parent,
+            children=children,
+        )
 
     def test_parselist_create_parse_multi_field(self) -> None:
-        p_name = "test"
-        p_data = b"\xaa\xbb\xcc"
-        p_bits = bitarray()
-        p_bits.frombytes(p_data)
+        name = "test"
+        init_value = 0
+        init_data = int.to_bytes(init_value, length=1, byteorder="big", signed=False)
+        init_bits = bitarray()
+        init_bits.frombytes(init_data)
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
         f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
-        f1 = UInt8(name=f1_name)
+        f1 = UInt8Field(name=f1_name)
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
         f2_bits = bitarray()
         f2_bits.frombytes(f2_data)
-        f2 = UInt8(name=f2_name)
+        f2 = UInt8Field(name=f2_name)
         f3_name = "f3"
         f3_value = 204
         f3_data = b"\xcc"
         f3_bits = bitarray()
         f3_bits.frombytes(f3_data)
-        f3 = UInt8(name=f3_name)
-        p_value = [f1_value, f2_value, f3_value]
-        p = ParseList(name=p_name, children=[f1, f2, f3], data=p_data)
+        f3 = UInt8Field(name=f3_name)
+        byte_data = f3_data + f2_data + f1_data
+        bits_data = f3_bits + f2_bits + f1_bits
+        values = [f1_value, f2_value, f3_value]
+        parent = None
+        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3})
+        obj = ParseList(name=name, children=[f1, f2, f3], data=byte_data)
 
-        assert f1.name == f1_name
-        assert f1.bits is not None
-        assert f1.bits == f1_bits
-        assert bytes(f1) == f1_data
-        assert f1.value is not None
-        assert f1.value == f1_value
-        assert f1.parent == p
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=parent,
+            children=children,
+        )
 
-        assert f2.name == f2_name
-        assert f2.bits is not None
-        assert f2.bits == f2_bits
-        assert bytes(f2) == f2_data
-        assert f2.value is not None
-        assert f2.value == f2_value
-        assert f2.parent == p
-
-        assert f3.name == f3_name
-        assert f3.bits is not None
-        assert f3.bits == f3_bits
-        assert bytes(f3) == f3_data
-        assert f3.value is not None
-        assert f3.value == f3_value
-        assert f3.parent == p
-
-        assert p is not None
-        assert p.name == p_name
-        assert p.bits is not None
-        assert p.bits == p_bits
-        assert bytes(p) == p_data
-        assert p.value is not None
-        assert p.value == p_value
-        assert isinstance(p.formatted_value, str)
-        assert isinstance(bytes(p), bytes)
-        assert isinstance(str(p), str)
-        assert p_name in str(p)
-        assert f1_name in str(p)
-        assert f2_name in str(p)
-        assert f3_name in str(p)
-        assert isinstance(repr(p), str)
-        assert p_name in repr(p)
-        assert f1_name in repr(p)
-        assert f2_name in repr(p)
-        assert f3_name in repr(p)
-        assert ParseList.__name__ in repr(p)
-
-    def test_parselist_name(self) -> None:
-        name = "test"
+    def test_parselist_set_name(self) -> None:
+        name1 = "test"
         name2 = "new_name"
-        po = ParseList(name=name)
-        assert po is not None
-        assert po.name == name
-        po.name = name2
-        assert po.name == name2
+        byte_data = b""
+        bits_data = bitarray()
+        values: list[Any] = []
+        parent = None
+        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        obj = ParseList(name=name1)
+        parselist_tests(
+            obj=obj,
+            name=name1,
+            values=values,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=parent,
+            children=children,
+        )
+        obj.name = name2
+        parselist_tests(
+            obj=obj,
+            name=name2,
+            values=values,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=parent,
+            children=children,
+        )
 
-    def test_parselist_value(self) -> None:
+    def test_parselist_set_value(self) -> None:
         name = "test"
-        po = ParseList(name=name)
-        d1 = b"\x00"
-        b1 = bitarray()
-        b1.frombytes(d1)
-        d2 = b"\x02"
-        b2 = bitarray()
-        b2.frombytes(d2)
+        f1_value = 0
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
+        f2_value = 2
+        f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f2_bits = bitarray()
+        f2_bits.frombytes(f2_data)
+        f3_value = 20
+        f3_data = int.to_bytes(f3_value, length=1, byteorder="big", signed=False)
+        f3_bits = bitarray()
+        f3_bits.frombytes(f3_data)
         f1_name = "f1"
         f2_name = "f2"
-        f1 = UInt8(name=f1_name)
-        f2 = UInt8(name=f2_name)
+        f1 = UInt8Field(name=f1_name, value=f1_value)
+        f2 = UInt8Field(name=f2_name, value=f2_value)
+        bits_data1 = bitarray()
+        bits_data2 = f1_bits
+        bits_data3 = f2_bits
+        bits_data4 = f3_bits
+        byte_data1 = b""
+        byte_data2 = f1_data
+        byte_data3 = f2_data
+        byte_data4 = f3_data
+        values1: list[Any] = []
+        values2: list[Any] = [f1_value]
+        values3: list[Any] = [f2_value]
+        values4: list[Any] = [f3_value]
+        parent = None
+        children1: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
+        children3: OrderedDict[str, ParseObject[Any]] = OrderedDict({f2.name: f2})
+        children4: OrderedDict[str, ParseObject[Any]] = OrderedDict({f2.name: f2})
+        obj = ParseList(name=name)
 
-        assert po.bits is not None
-        assert po.bits == bitarray()
-        assert bytes(po) == b""
-        assert po.value is not None
-        assert po.value == []
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values1,
+            bits_data=bits_data1,
+            byte_data=byte_data1,
+            parent=parent,
+            children=children1,
+        )
 
-        po.value = [f1]
-        assert po.bits == b1
-        assert bytes(po) == d1
-        assert po.value == [f1.value]
-        assert f1.parent == po
+        obj.value = [f1]
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values2,
+            bits_data=bits_data2,
+            byte_data=byte_data2,
+            parent=parent,
+            children=children2,
+        )
 
-        po.value = [f2]
-        assert po.bits == b1
-        assert bytes(po) == d1
-        assert po.value == [f2.value]
-        assert f2.parent == po
+        obj.value = [f2]
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values3,
+            bits_data=bits_data3,
+            byte_data=byte_data3,
+            parent=parent,
+            children=children3,
+        )
 
-        assert f2.name == f2_name
-        assert f2.bits == b1
-        assert bytes(f2) == d1
-        assert f2.value == 0
-        assert f2.parent == po
-
-        po.value = [2]
-        assert f2.name == f2_name
-        assert f2.bits == b2
-        assert bytes(f2) == d2
-        assert f2.value == 2
-        assert f2.parent == po
+        obj.value = [f3_value]
+        parselist_tests(
+            obj=obj,
+            name=name,
+            values=values4,
+            bits_data=bits_data4,
+            byte_data=byte_data4,
+            parent=parent,
+            children=children4,
+        )
 
         value = 1
         with pytest.raises(TypeError):
-            po.value = value  # type:ignore
-
-    def test_parselist_len(self) -> None:
-        name = "test"
-        f1_name = "f1"
-        f1 = UInt8(name=f1_name)
-        po = ParseList(name=name, children=[f1])
-        assert len(po) == 1
+            obj.value = value  # type:ignore
 
     def test_parselist_remove(self) -> None:
         name = "test"
         f1_name = "f1"
-        f1 = UInt8(name=f1_name)
+        f1 = UInt8Field(name=f1_name)
         f2_name = "f2"
-        f2 = UInt8(name=f2_name)
+        f2 = UInt8Field(name=f2_name)
         po = ParseList(name=name, children=[f1, f2])
 
         assert len(po) == 2
@@ -297,12 +330,12 @@ class TestParseList:
     def test_parselist_set_item(self) -> None:
         name = "test"
         f1_name = "f1"
-        f1 = UInt8(name=f1_name, value=1)
+        f1 = UInt8Field(name=f1_name, value=1)
         f2_name = "f2"
-        f2 = UInt8(name=f2_name, value=2)
+        f2 = UInt8Field(name=f2_name, value=2)
         f3_name = "f3"
-        f3 = UInt8(name=f3_name, value=3)
-        f3_also = UInt8(name=f3_name, value=17)
+        f3 = UInt8Field(name=f3_name, value=3)
+        f3_also = UInt8Field(name=f3_name, value=17)
         po = ParseList(name=name, children=[f1, f2, f3])
 
         assert f1.parent == po
@@ -321,11 +354,11 @@ class TestParseList:
     def test_parselist_insert(self) -> None:
         name = "test"
         f1_name = "f1"
-        f1 = UInt8(name=f1_name, value=1)
+        f1 = UInt8Field(name=f1_name, value=1)
         f2_name = "f2"
-        f2 = UInt8(name=f2_name, value=2)
+        f2 = UInt8Field(name=f2_name, value=2)
         f3_name = "f3"
-        f3 = UInt8(name=f3_name, value=3)
+        f3 = UInt8Field(name=f3_name, value=3)
         po = ParseList(name=name, children=[f1, f3])
 
         assert f1.parent == po

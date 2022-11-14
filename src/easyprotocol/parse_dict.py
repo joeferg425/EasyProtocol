@@ -94,7 +94,9 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
             the bytes value of the field
         """
         data = bitarray()
-        for key, value in self._children.items():
+        values = list(self._children.values())
+        values.reverse()
+        for value in values:
             data += value.bits
         return data
 
@@ -139,3 +141,17 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
 
     def __getitem__(self, __key: str) -> ParseObject[Any]:
         return self._children.__getitem__(__key)
+
+    def __delitem__(self, __key: str) -> None:
+        return self._children.__delitem__(__key)
+
+    def popitem(self, last: bool) -> tuple[str, ParseObject[Any]]:
+        self.children.popitem(last=last)
+
+    def pop(self, key: str) -> ParseObject[Any]:
+        p = self.children.pop(key)
+        p.parent = None
+        return p
+
+    def __len__(self) -> int:
+        return len(self._children)

@@ -95,7 +95,9 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
             the bytes value of the field
         """
         data = bitarray()
-        for name, value in self._children.items():
+        values = list(self._children.values())
+        values.reverse()
+        for value in values:
             data += value.bits
         return data
 
@@ -147,7 +149,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
             if key != index_key:
                 c[key] = self._children[key]
             else:
-                c[key] = val
+                c[val.name] = val
                 val.parent = self
         self._children = c
 

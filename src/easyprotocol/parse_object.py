@@ -15,6 +15,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         name: str,
         data: bytes | bitarray | None = None,
         value: T | None = None,
+        format: str | None = None,
         parent: ParseObject[Any] = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
@@ -28,9 +29,12 @@ class ParseObject(SupportsBytes, Generic[T]):
         self._name = name
         self._bits: bitarray = bitarray()
         self._value: T | None = None
+        self._format = format
         self._parent: ParseObject[Any] | None = None
         self._children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
 
+        if self._format is None:
+            self._format = "{}"
         if data is not None:
             self.parse(data=data)
         elif value is not None:
@@ -59,6 +63,19 @@ class ParseObject(SupportsBytes, Generic[T]):
     @name.setter
     def name(self, name: str) -> None:
         self._name = name
+
+    @property
+    def format(self) -> str:
+        """Get the format string of the field.
+
+        Returns:
+            the format string of the field
+        """
+        return self._format
+
+    @format.setter
+    def format(self, format: str) -> None:
+        self._format = format
 
     @property
     def value(self) -> T:
@@ -112,7 +129,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         Returns:
             the value of the field with custom formatting
         """
-        return str(self.value)
+        return self._format.format(self.value)
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.

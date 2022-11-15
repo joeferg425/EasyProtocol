@@ -1,4 +1,5 @@
 from __future__ import annotations
+import math
 from typing import Any, Literal
 from easyprotocol.fields import UInt8Field, BoolField, UIntField, UInt16Field, CRCField, UInt8EnumField, ArrayField
 from easyprotocol.base import ParseList, ParseObject, T, InputT, input_to_bytes
@@ -118,6 +119,25 @@ class CoilArray(ArrayField):
             self.append(f)
         return bit_data
 
+    @property
+    def bits(self) -> bitarray:
+        """Get the bytes value of the field.
+
+        Returns:
+            the bytes value of the field
+        """
+        data = bitarray()
+        values = list(self._children.values())
+        for value in values:
+            data = value.bits + data
+        b_big_endian = data.tobytes()
+        byte_count = math.ceil(len(data) / 8)
+        temp_int = int.from_bytes(b_big_endian, byteorder="big", signed=False)
+        b_little_endian = int.to_bytes(temp_int, length=byte_count, byteorder="little", signed=False)
+        data = bitarray()
+        data.frombytes(b_little_endian)
+        return data
+
 
 class Address(UInt16Field):
     def __init__(
@@ -167,11 +187,13 @@ def ReadCoils(check_crc: bool = False) -> None:
             ModbusCRC(),
         ],
     )
-    print(readCoilsResponseBytes)
+    print(bytes(readCoilsResponseBytes))
     readCoilsResponse.parse(readCoilsResponseBytes)
+    print(bytes(readCoilsResponse))
     print(readCoilsResponse)
     if check_crc is True:
         print(readCoilsResponse.children["crc"].calculate())
+        print(bytes(readCoilsResponse))
         print(readCoilsResponse)
 
 

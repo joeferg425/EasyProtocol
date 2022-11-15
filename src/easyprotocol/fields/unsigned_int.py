@@ -64,8 +64,10 @@ class UIntField(ParseObject[int]):
             self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=False)
         if len(self._bits) < self.bit_count:
             self._bits = bitarray("0" * (self.bit_count - len(self._bits))) + self._bits
+        if len(self._bits) > self.bit_count:
+            self._bits = self._bits[-self.bit_count :]  # noqa
 
-        if len(bits) > self.bit_count:
+        if len(bits) >= self.bit_count:
             return bits[: -self.bit_count]  # noqa
         else:
             return bitarray()

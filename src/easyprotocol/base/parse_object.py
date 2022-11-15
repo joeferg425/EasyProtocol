@@ -1,10 +1,9 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
 from collections import OrderedDict
-from typing import Literal, SupportsBytes, Generic, TypeVar, Any
+from typing import Literal, SupportsBytes, Generic, Any
 from bitarray import bitarray
-
-T = TypeVar("T", Any, Any)
+from easyprotocol.base.utils import T, InputT
 
 
 class ParseObject(SupportsBytes, Generic[T]):
@@ -13,7 +12,7 @@ class ParseObject(SupportsBytes, Generic[T]):
     def __init__(
         self,
         name: str,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: T | None = None,
         format: str | None = None,
         parent: ParseObject[Any] = None,
@@ -42,7 +41,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         elif value is not None:
             self.value = value
 
-    def parse(self, data: bytes | bitarray) -> bitarray:
+    def parse(self, data: InputT) -> bitarray:
         """Parse bits or bytes that make of this protocol field into meaningful data.
 
         Args:

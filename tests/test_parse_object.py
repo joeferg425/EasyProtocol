@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import OrderedDict
-from typing import Any
+from typing import Any, Literal
 import pytest
 from easyprotocol.base.parse_object import ParseObject
 from bitarray import bitarray
@@ -13,6 +13,7 @@ def parseobject_properties(
     bits_data: bitarray,
     byte_data: bytes,
     parent: ParseObject[Any] | None,
+    endian: Literal["little", "big"],
 ) -> None:
     assert obj is not None, "Object is None"
     assert obj.name == name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {name})"
@@ -28,6 +29,9 @@ def parseobject_properties(
     assert (
         bytes(obj) == byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {byte_data!r})"
+    assert (
+        obj.endian == endian
+    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {endian})"
 
 
 def parseobject_children(
@@ -66,7 +70,9 @@ def parseobject_value(
     obj: ParseObject[Any],
     value: Any | None,
 ) -> None:
-    assert obj.value == value, f"{obj}: obj.value is not the expected value ({obj.value} != expected value: {value})"
+    assert (
+        obj.value == value
+    ), f"{obj}: obj.value is not the expected value ({obj.value:X} != expected value: {value:X})"
 
 
 def parseobject_strings(
@@ -101,6 +107,7 @@ def parseobject_tests(
     byte_data: bytes,
     parent: ParseObject[Any] | None,
     children: OrderedDict[str, ParseObject[Any]],
+    endian: Literal["little", "big"],
 ) -> None:
     parseobject_properties(
         obj=obj,
@@ -109,6 +116,7 @@ def parseobject_tests(
         bits_data=bits_data,
         byte_data=byte_data,
         parent=parent,
+        endian=endian,
     )
     parseobject_children(
         obj=obj,
@@ -136,6 +144,7 @@ class TestParseObject:
         byte_data = b""
         bits_data = bitarray()
         parent = None
+        endian: Literal["big"] = "big"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         obj = ParseObject(name=name)
         parseobject_tests(
@@ -147,6 +156,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parseobject_create_parse(self) -> None:
@@ -169,6 +179,7 @@ class TestParseObject:
         byte_data = b""
         bits_data = bitarray()
         parent = None
+        endian: Literal["big"] = "big"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         obj = ParseObject(name=name1)
         parseobject_tests(
@@ -180,6 +191,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
         obj.name = name2
         parseobject_tests(
@@ -191,6 +203,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parseobject_set_value(self) -> None:
@@ -201,6 +214,7 @@ class TestParseObject:
         byte_data = b""
         bits_data = bitarray()
         parent = None
+        endian: Literal["big"] = "big"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         obj = ParseObject(name=name)
         parseobject_tests(
@@ -212,6 +226,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
         obj._value = value2
         parseobject_tests(
@@ -223,6 +238,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
         with pytest.raises(NotImplementedError):
             obj.value = value2
@@ -237,6 +253,7 @@ class TestParseObject:
         bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
         parent = None
+        endian: Literal["big"] = "big"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         obj = ParseObject(name=name)
         parseobject_tests(
@@ -248,6 +265,7 @@ class TestParseObject:
             byte_data=byte_data1,
             parent=parent,
             children=children,
+            endian=endian,
         )
         obj._bits = bits_data2
         parseobject_tests(
@@ -259,6 +277,7 @@ class TestParseObject:
             byte_data=byte_data2,
             parent=parent,
             children=children,
+            endian=endian,
         )
         with pytest.raises(AttributeError):
             obj.bits = byte_data2  # type:ignore
@@ -272,6 +291,7 @@ class TestParseObject:
         parent1 = None
         parent2 = ParseObject(name="parent")
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        endian: Literal["big"] = "big"
         obj = ParseObject(name=name)
         parseobject_tests(
             obj=obj,
@@ -282,6 +302,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent1,
             children=children,
+            endian=endian,
         )
         obj.parent = parent2
         parseobject_tests(
@@ -293,6 +314,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent2,
             children=children,
+            endian=endian,
         )
 
     def test_parseobject_set_children(self) -> None:
@@ -303,6 +325,7 @@ class TestParseObject:
         bits_data = bitarray()
         parent = None
         child = ParseObject(name="child")
+        endian: Literal["big"] = "big"
         children1: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({child.name: child})
         obj = ParseObject(name=name)
@@ -315,6 +338,7 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children1,
+            endian=endian,
         )
         obj.children = children2
         parseobject_tests(
@@ -326,4 +350,5 @@ class TestParseObject:
             byte_data=byte_data,
             parent=parent,
             children=children2,
+            endian=endian,
         )

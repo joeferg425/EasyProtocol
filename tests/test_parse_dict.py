@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import OrderedDict
-from typing import Any
+from typing import Any, Literal
 import pytest
 from easyprotocol.base.parse_dict import ParseDict
 from easyprotocol.base.parse_object import ParseObject
@@ -39,6 +39,7 @@ def parsedict_tests(
     byte_data: bytes,
     parent: ParseObject[Any] | None,
     children: OrderedDict[str, ParseObject[Any]],
+    endian: Literal["little", "big"],
 ) -> None:
     parseobject_properties(
         obj=obj,
@@ -47,6 +48,7 @@ def parsedict_tests(
         bits_data=bits_data,
         byte_data=byte_data,
         parent=parent,
+        endian=endian,
     )
     parseobject_children(
         obj=obj,
@@ -69,6 +71,7 @@ class TestParseDict:
         bits_data.frombytes(byte_data)
         parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name)
         parsedict_tests(
             obj=obj,
@@ -78,6 +81,7 @@ class TestParseDict:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parsedict_create_parse(self) -> None:
@@ -93,6 +97,7 @@ class TestParseDict:
         bits_data = f1_bits
         parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name, children=children, data=byte_data)
         obj[f1.name] = f1
         parsedict_tests(
@@ -103,6 +108,7 @@ class TestParseDict:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parsedict_create_children(self) -> None:
@@ -119,6 +125,7 @@ class TestParseDict:
         parent = None
         values: OrderedDict[str, Any] = OrderedDict({f1_name: f1_value})
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name, children=children)
         parsedict_tests(
             obj=obj,
@@ -128,6 +135,7 @@ class TestParseDict:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parsedict_set_name(self) -> None:
@@ -138,6 +146,7 @@ class TestParseDict:
         parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         values: OrderedDict[str, Any] = OrderedDict()
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name1)
         parsedict_tests(
             obj=obj,
@@ -147,6 +156,7 @@ class TestParseDict:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
         obj.name = name2
         parsedict_tests(
@@ -157,6 +167,7 @@ class TestParseDict:
             byte_data=byte_data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parsedict_set_value(self) -> None:
@@ -180,6 +191,7 @@ class TestParseDict:
         children1: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
         children3: OrderedDict[str, ParseObject[Any]] = children2.copy()
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name)
         parsedict_tests(
             obj=obj,
@@ -189,6 +201,7 @@ class TestParseDict:
             byte_data=byte_data1,
             parent=parent,
             children=children1,
+            endian=endian,
         )
 
         obj.value = children2
@@ -200,6 +213,7 @@ class TestParseDict:
             byte_data=byte_data2,
             parent=parent,
             children=children2,
+            endian=endian,
         )
 
         obj.value = values3
@@ -211,6 +225,7 @@ class TestParseDict:
             byte_data=byte_data3,
             parent=parent,
             children=children3,
+            endian=endian,
         )
 
         value = 1
@@ -235,6 +250,7 @@ class TestParseDict:
         parent = None
         children1: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1_name: f1})
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name)
 
         parsedict_tests(
@@ -245,6 +261,7 @@ class TestParseDict:
             byte_data=byte_data1,
             parent=parent,
             children=children1,
+            endian=endian,
         )
 
         obj.children = children2
@@ -256,6 +273,7 @@ class TestParseDict:
             byte_data=byte_data2,
             parent=parent,
             children=children2,
+            endian=endian,
         )
 
     def test_parsedict_set_item(self) -> None:
@@ -301,6 +319,7 @@ class TestParseDict:
         values2: OrderedDict[str, Any] = OrderedDict({f1_name: 255})
         parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1_name: f1})
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name)
         obj[f1.name] = f1
 
@@ -312,6 +331,7 @@ class TestParseDict:
             byte_data=byte_data1,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
         remainder = obj.parse(byte_data2)
@@ -324,6 +344,7 @@ class TestParseDict:
             byte_data=byte_data2,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parsedict_parse_3(self) -> None:
@@ -358,15 +379,16 @@ class TestParseDict:
         f3 = UInt8Field(name=f3_name)
         left_over = bitarray()
         byte_data1 = init_data + init_data + init_data
-        byte_data2 = f3_data + f2_data + f1_data
+        byte_data2 = f1_data + f2_data + f3_data
         bits_data1 = init_bits + init_bits + init_bits
-        bits_data2 = f3_bits + f2_bits + f1_bits
+        bits_data2 = f1_bits + f2_bits + f3_bits
 
         values1: OrderedDict[str, Any] = OrderedDict({f1_name: 0, f2_name: 0, f3_name: 0})
         values2: OrderedDict[str, Any] = OrderedDict({f1_name: f1_value, f2_name: f2_value, f3_name: f3_value})
         parent = None
         children1: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1_name: f1, f2_name: f2, f3_name: f3})
         children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1_name: f1, f2_name: f2, f3_name: f3})
+        endian: Literal["little", "big"] = "big"
         obj = ParseDict(name=name)
         obj[f1.name] = f1
         obj[f2.name] = f2
@@ -381,6 +403,7 @@ class TestParseDict:
             byte_data=init_data,
             parent=obj,
             children=f_children,
+            endian=endian,
         )
         parseobject_tests(
             obj=f2,
@@ -391,6 +414,7 @@ class TestParseDict:
             byte_data=init_data,
             parent=obj,
             children=f_children,
+            endian=endian,
         )
         parseobject_tests(
             obj=f3,
@@ -401,6 +425,7 @@ class TestParseDict:
             byte_data=init_data,
             parent=obj,
             children=f_children,
+            endian=endian,
         )
         parsedict_tests(
             obj=obj,
@@ -410,6 +435,7 @@ class TestParseDict:
             byte_data=byte_data1,
             parent=parent,
             children=children1,
+            endian=endian,
         )
 
         remainder = obj.parse(byte_data2)
@@ -423,6 +449,7 @@ class TestParseDict:
             byte_data=f1_data,
             parent=obj,
             children=f_children,
+            endian=endian,
         )
         parseobject_tests(
             obj=f2,
@@ -433,6 +460,7 @@ class TestParseDict:
             byte_data=f2_data,
             parent=obj,
             children=f_children,
+            endian=endian,
         )
         parseobject_tests(
             obj=f3,
@@ -443,6 +471,7 @@ class TestParseDict:
             byte_data=f3_data,
             parent=obj,
             children=f_children,
+            endian=endian,
         )
         parsedict_tests(
             obj=obj,
@@ -452,4 +481,5 @@ class TestParseDict:
             byte_data=byte_data2,
             parent=parent,
             children=children2,
+            endian=endian,
         )

@@ -25,7 +25,7 @@ class TestArray:
         f1 = UInt8Field(name=f1_name)
         f2_name = "array"
         f2 = ArrayField(name=f2_name, count_field=f1, array_item_class=UInt8Field)
-        data = b"\x00\x01"
+        data = b"\x01\x00"
         obj = ParseList(name=name, children=[f1, f2])
         obj.parse(data=data)
 
@@ -38,7 +38,7 @@ class TestArray:
         f1 = UInt8Field(name=f1_name)
         f2_name = "array"
         f2 = ArrayField(name=f2_name, count_field=f1, array_item_class=UInt8Field)
-        data = b"\x02\x01\x00\x03"
+        data = b"\x03\x00\x01\x02"
         obj = ParseList(name=name, children=[f1, f2])
         obj.parse(data=data)
 

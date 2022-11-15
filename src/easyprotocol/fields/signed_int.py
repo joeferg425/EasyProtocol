@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Literal
 from bitarray import bitarray
 from easyprotocol.base.parse_object import ParseObject
-from bitarray.util import int2ba, ba2int
+from easyprotocol.base.utils import InputT, input_to_bytes
 import math
 
 
@@ -14,7 +14,7 @@ class IntField(ParseObject[int]):
         self,
         name: str,
         bit_count: int,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{}",
         endian: Literal["little", "big"] = "big",
@@ -30,39 +30,43 @@ class IntField(ParseObject[int]):
         if self.value is None:
             self.value = 0
 
-    def parse(self, data: bytes | bitarray) -> bitarray:
+    def parse(self, data: InputT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
             data: bytes to be parsed
         """
-        if isinstance(data, (bytes, bytearray)):
-            i = int.from_bytes(data, byteorder="big", signed=False)
-            bits = int2ba(i)
-            if len(bits) < (8 * len(data)):
-                bits = bitarray("0" * ((8 * len(data)) - len(bits))) + bits
-        else:
-            bits = bitarray(data)
-        if len(bits) < self.bit_count:
-            bits = bitarray("0" * (self.bit_count - len(bits))) + bits
+        bits = input_to_bytes(
+            data=data,
+            bit_count=self.bit_count,
+        )
         _bit_mask = (2**self.bit_count) - 1
         bit_mask = bitarray()
-        bit_mask.frombytes(
-            int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder=self._endian, signed=False)
-        )
+        bit_mask.frombytes(int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="big", signed=False))
         if len(bit_mask) < len(bits):
             bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
         if len(bits) < len(bit_mask):
             bits = bitarray("0" * (len(bit_mask) - len(bits))) + bits
-        self._bits = (bits & bit_mask)[-self.bit_count :]  # noqa
-        self._value = ba2int(self._bits, signed=False)
+        my_bits = (bits & bit_mask)[-self.bit_count :]  # noqa
+        temp_bits = bitarray(my_bits)
+        byte_count = math.ceil(self.bit_count / 8)
+        if len(temp_bits) < byte_count * 8:
+            temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
+        my_bytes = bytearray(temp_bits.tobytes())
         byte_length = math.ceil(self.bit_count / 8)
-        self._value = int.from_bytes(
-            int.to_bytes(self._value, length=byte_length, byteorder="big"), byteorder=self._endian, signed=True
+        self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=True)
+        my_bytes = int.to_bytes(
+            int.from_bytes(my_bytes, byteorder="big", signed=True), length=byte_length, byteorder="little", signed=True
         )
+        self._bits = bitarray()
+        self._bits.frombytes(my_bytes)
+        if self.endian == "big":
+            self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=True)
+        if len(self._bits) < self.bit_count:
+            self._bits = bitarray("0" * (self.bit_count - len(self._bits))) + self._bits
 
         if len(bits) > self.bit_count:
-            return bits[-self.bit_count :]  # noqa
+            return bits[: -self.bit_count]  # noqa
         else:
             return bitarray()
 
@@ -80,6 +84,21 @@ class IntField(ParseObject[int]):
         self._bits = bits
         self._value = value
 
+    def __bytes__(self) -> bytes:
+        """Get the bytes that make up this field.
+
+        Returns:
+            the bytes of this field
+        """
+        b = self._bits.tobytes()
+        byte_length = math.ceil(self.bit_count / 8)
+        if self.endian == "little":
+            return int.to_bytes(
+                int.from_bytes(b, byteorder="big", signed=True), length=byte_length, byteorder="little", signed=True
+            )
+        else:
+            return b
+
 
 class Int8Field(IntField):
     """The base parsing object for handling parsing in a convenient package."""
@@ -87,7 +106,7 @@ class Int8Field(IntField):
     def __init__(
         self,
         name: str,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{}",
         endian: Literal["little", "big"] = "big",
@@ -108,7 +127,7 @@ class Int16Field(IntField):
     def __init__(
         self,
         name: str,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{}",
         endian: Literal["little", "big"] = "big",
@@ -129,7 +148,7 @@ class Int24Field(IntField):
     def __init__(
         self,
         name: str,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{}",
         endian: Literal["little", "big"] = "big",
@@ -150,7 +169,7 @@ class Int32Field(IntField):
     def __init__(
         self,
         name: str,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{}",
         endian: Literal["little", "big"] = "big",
@@ -171,7 +190,7 @@ class Int64Field(IntField):
     def __init__(
         self,
         name: str,
-        data: bytes | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{}",
         endian: Literal["little", "big"] = "big",

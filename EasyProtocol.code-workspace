@@ -13,6 +13,7 @@
 			"bitarray",
 			"easyprotocol",
 			"frombytes",
+			"Modbus",
 			"parsedict",
 			"parselist",
 			"parseobject",
@@ -90,6 +91,19 @@
 				"dependsOn": [
 					"coverage"
 				],
+			}
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Modbus Example",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/examples/modbus.py",
+				"console": "integratedTerminal",
+				"justMyCode": false
 			}
 		]
 	}

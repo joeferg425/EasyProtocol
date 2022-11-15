@@ -1,5 +1,6 @@
 from __future__ import annotations
 import math
+from easyprotocol.base.parse_object import InputT
 
 from easyprotocol.fields.unsigned_int import UIntField
 from typing import Literal, TypeVar, Generic
@@ -15,7 +16,7 @@ class EnumField(UIntField, Generic[T]):
         name: str,
         bit_count: int,
         enum_type: type[T],
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
     ) -> None:
@@ -51,7 +52,7 @@ class UInt8EnumField(EnumField):
         self,
         name: str,
         enum_type: type[T],
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
     ) -> None:
@@ -70,7 +71,7 @@ class UInt16EnumField(EnumField):
         self,
         name: str,
         enum_type: type[T],
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
     ) -> None:
@@ -89,7 +90,7 @@ class UInt24EnumField(EnumField):
         self,
         name: str,
         enum_type: type[T],
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
     ) -> None:
@@ -108,7 +109,7 @@ class UInt32EnumField(EnumField):
         self,
         name: str,
         enum_type: type[T],
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
     ) -> None:

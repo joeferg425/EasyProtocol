@@ -16,3 +16,4 @@ from easyprotocol.fields.enum import UInt24EnumField as UInt24EnumField  # noqa
 from easyprotocol.fields.enum import UInt32EnumField as UInt32EnumField  # noqa
 from easyprotocol.fields.array import ArrayField as ArrayField  # noqa
 from easyprotocol.fields.crc import CRCField as CRCField  # noqa
+from easyprotocol.fields.unsigned_int import BoolField as BoolField  # noqa

@@ -1,6 +1,7 @@
 from __future__ import annotations
 import math
 from typing import Literal
+from easyprotocol.base.utils import InputT
 from easyprotocol.fields.unsigned_int import UIntField
 from crc import Configuration, CrcCalculator
 from bitarray import bitarray
@@ -13,7 +14,7 @@ class CRCField(UIntField):
         name: str,
         bit_count: int,
         crc_configuration: Configuration,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{:X}",
         endian: Literal["little", "big"] = "big",
@@ -30,7 +31,7 @@ class CRCField(UIntField):
             configuration=crc_configuration,
         )
 
-    def calculate(self, data: bytes | bitarray | None = None) -> tuple[int, bytes, bitarray]:
+    def calculate(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
         if data is None:
             byte_data = bytes(self.parent)
         else:
@@ -47,7 +48,7 @@ class CRCField(UIntField):
 class ModbusCRC(CRCField):
     def __init__(
         self,
-        data: bytes | bitarray | None = None,
+        data: InputT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -67,7 +68,7 @@ class ModbusCRC(CRCField):
             endian="little",
         )
 
-    def calculate(self, data: bytes | bitarray | None = None) -> tuple[int, bytes, bitarray]:
+    def calculate(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
         if data is None:
             byte_data = bytes(self.parent)
         else:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from collections import OrderedDict
-from typing import Any
+from typing import Any, Literal
 import pytest
 from easyprotocol.base.parse_list import ParseList
 from easyprotocol.base.parse_object import ParseObject
@@ -33,6 +33,7 @@ def parselist_tests(
     byte_data: bytes,
     parent: ParseObject[Any] | None,
     children: OrderedDict[str, ParseObject[Any]],
+    endian: Literal["little", "big"] = "big",
 ) -> None:
     parseobject_properties(
         obj=obj,
@@ -41,6 +42,7 @@ def parselist_tests(
         bits_data=bits_data,
         byte_data=byte_data,
         parent=parent,
+        endian=endian,
     )
     parseobject_children(
         obj=obj,
@@ -62,6 +64,7 @@ class TestParseList:
         values: list[Any] = []
         parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        endian: Literal["little", "big"] = "big"
         obj = ParseList(name=name)
         parselist_tests(
             obj=obj,
@@ -71,6 +74,7 @@ class TestParseList:
             byte_data=data,
             parent=parent,
             children=children,
+            endian=endian,
         )
 
     def test_parselist_create_children_list(self) -> None:
@@ -182,8 +186,8 @@ class TestParseList:
         f3_bits = bitarray()
         f3_bits.frombytes(f3_data)
         f3 = UInt8Field(name=f3_name)
-        byte_data = f3_data + f2_data + f1_data
-        bits_data = f3_bits + f2_bits + f1_bits
+        byte_data = f1_data + f2_data + f3_data
+        bits_data = f1_bits + f2_bits + f3_bits
         values = [f1_value, f2_value, f3_value]
         parent = None
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3})

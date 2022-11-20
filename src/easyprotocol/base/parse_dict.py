@@ -13,7 +13,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         self,
         name: str,
         data: InputT | None = None,
-        children: OrderedDict[str, Any] | None = None,
+        children: list[ParseObject[Any]] | OrderedDict[str, ParseObject[Any]] | None = None,
         parent: ParseObject[Any] | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
@@ -65,7 +65,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
     @property
     def value(
         self,
-    ) -> OrderedDict[str, Any]:
+    ) -> dict[str, Any] | OrderedDict[str, Any]:
         """Get the parsed value of the field.
 
         Returns:

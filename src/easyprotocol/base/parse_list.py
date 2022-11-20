@@ -83,8 +83,10 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
             if isinstance(item, ParseObject):
                 if index < len(self._children):
                     self[index] = item
+                    item.parent = self
                 else:
                     self.append(item)
+                    item.parent = self
             else:
                 parse_object = self[index]
                 parse_object.value = item

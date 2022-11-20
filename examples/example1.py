@@ -5,7 +5,7 @@ from easyprotocol.base import ParseList
 # Make an instance of the modified list type and add your fields as the list items.
 exampleParser = ParseList(
     # give the parser a name
-    name="ExampleParser",
+    name="ExampleParser1",
     # define your fields in order
     children=[
         # give each field a name, some standard types are defined for you.

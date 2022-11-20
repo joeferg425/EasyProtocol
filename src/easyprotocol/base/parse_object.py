@@ -113,10 +113,15 @@ class ParseObject(SupportsBytes, Generic[T]):
         return self._children
 
     @children.setter
-    def children(self, children: OrderedDict[str, ParseObject[Any]]) -> None:
-        for key, value in children.items():
-            self._children[key] = value
-            value.parent = self
+    def children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+        if isinstance(children, dict):
+            for key, value in children.items():
+                self._children[key] = value
+                value.parent = self
+        else:
+            for value in children:
+                self._children[value.name] = value
+                value.parent = self
 
     @property
     def bits(self) -> bitarray:

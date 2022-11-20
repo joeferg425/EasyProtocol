@@ -104,6 +104,14 @@
 				"program": "${workspaceFolder}/examples/modbus.py",
 				"console": "integratedTerminal",
 				"justMyCode": false
+			},
+			{
+				"name": "Example 1",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/examples/example1.py",
+				"console": "integratedTerminal",
+				"justMyCode": false
 			}
 		]
 	}

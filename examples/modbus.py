@@ -1,7 +1,7 @@
 from __future__ import annotations
 import math
-from typing import Any, Literal
-from easyprotocol.fields import UInt8Field, BoolField, UIntField, UInt16Field, CRCField, UInt8EnumField, ArrayField
+from typing import Any, cast
+from easyprotocol.fields import UInt8Field, BoolField, UIntField, UInt16Field, ChecksumField, UInt8EnumField, ArrayField
 from easyprotocol.base import ParseList, ParseObject, T, InputT, input_to_bytes
 from enum import IntEnum
 import crc
@@ -20,7 +20,6 @@ class DeviceId(UInt8Field):
             name="device id",
             data=data,
             value=value,
-            format="{:02X}",
             endian="big",
         )
 
@@ -44,7 +43,7 @@ class Function(UInt8EnumField):
         value: int | None = None,
     ) -> None:
         super().__init__(
-            name="function code",
+            name="functionCode",
             enum_type=FunctionEnum,
             data=data,
             value=value,
@@ -52,7 +51,7 @@ class Function(UInt8EnumField):
         )
 
 
-class ModbusCRC(CRCField):
+class ModbusCRC(ChecksumField):
     def __init__(
         self,
         data: InputT | None = None,
@@ -71,11 +70,11 @@ class ModbusCRC(CRCField):
             ),
             data=data,
             value=value,
-            format="{:04X}",
+            format="{:04X}(hex)",
             endian="little",
         )
 
-    def calculate(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
+    def update(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
         byte_data = bytes(self.parent)
         crc_int = self.crc_calculator.calculate_checksum(byte_data[:-2])
         crc_bytes = int.to_bytes(crc_int, length=2, byteorder=self.endian)
@@ -138,6 +137,21 @@ class CoilArray(ArrayField):
         data.frombytes(b_little_endian)
         return data
 
+    @property
+    def formatted_value(self) -> str:
+        """Get a formatted value for the field (for any custom formatting).
+
+        Returns:
+            the value of the field with custom formatting
+        """
+        chunks = {}
+        keys = list(self._children.keys())
+        for i in range(0, len(keys), 8):
+            chunk_key = keys[i]
+            vals = "".join(["1" if self._children[keys[j]].value else "0" for j in range(i, i + 8)])
+            chunks[chunk_key] = vals
+        return f"[{', '.join([key+':'+value for key, value in chunks.items()])}]"
+
 
 class Address(UInt16Field):
     def __init__(
@@ -149,8 +163,92 @@ class Address(UInt16Field):
             name="address",
             data=data,
             value=value,
-            format="{:04X}",
             endian="little",
+        )
+
+
+class ModbusHeader(ParseList):
+    def __init__(
+        self,
+        name: str = "modbusHeader",
+        data: InputT | None = None,
+        children: list[ParseObject[Any]]
+        | OrderedDict[str, ParseObject[Any]] = [
+            DeviceId(),
+            Function(),
+            Address(),
+            ModbusCRC(),
+        ],
+    ) -> None:
+        super().__init__(
+            name=name,
+            data=data,
+            parent=None,
+            children=children,
+        )
+
+    @property
+    def deviceId(self) -> DeviceId:
+        return cast(DeviceId, self._children["deviceId"])
+
+    @deviceId.setter
+    def deviceId(self, value: DeviceId | int) -> None:
+        if isinstance(value, DeviceId):
+            self._children["deviceId"] = value
+        else:
+            self._children["deviceId"].value = value
+
+    @property
+    def functionCode(self) -> Function:
+        return cast(Function, self._children["functionCode"])
+
+    @functionCode.setter
+    def functionCode(self, value: Function | int | FunctionEnum) -> None:
+        if isinstance(value, Function):
+            self._children["functionCode"] = value
+        else:
+            self._children["functionCode"].value = value
+
+    @property
+    def address(self) -> Address:
+        return cast(Address, self._children["address"])
+
+    @address.setter
+    def address(self, value: Address | int) -> None:
+        if isinstance(value, Address):
+            self._children["address"] = value
+        else:
+            self._children["address"].value = value
+
+    @property
+    def crc(self) -> ModbusCRC:
+        return cast(ModbusCRC, self._children["crc"])
+
+    @crc.setter
+    def crc(self, value: ModbusCRC | int) -> None:
+        if isinstance(value, ModbusCRC):
+            self._children["crc"] = value
+        else:
+            self._children["crc"].value = value
+
+
+class ModbusReadCoilsRequest(ModbusHeader):
+    def __init__(
+        self,
+        data: InputT | None = None,
+        children: list[ParseObject[Any]]
+        | OrderedDict[str, ParseObject[Any]] = [
+            DeviceId(),
+            Function(),
+            Address(),
+            UInt16Field(name="data count", endian="little"),
+            ModbusCRC(),
+        ],
+    ) -> None:
+        super().__init__(
+            name=FunctionEnum.ReadCoils.name + "Request",
+            data=data,
+            children=children,
         )
 
 
@@ -167,13 +265,37 @@ def ReadCoils(check_crc: bool = False) -> None:
     )
     readCoilsRequestBytes = bytearray(b"\x11\x01\x00\x13\x00\x25\x0E\x84")
     readCoilsRequest.parse(readCoilsRequestBytes)
+    readCoilsRequest2 = ModbusReadCoilsRequest()
+    readCoilsRequest2.parse(readCoilsRequestBytes)
     print(bytes(readCoilsRequestBytes))
     print(readCoilsRequest)
     print(bytes(readCoilsRequest))
+    print(readCoilsRequest2)
+    print(bytes(readCoilsRequest2))
     if check_crc is True:
-        print(readCoilsRequest.children["crc"].calculate())
+        readCoilsRequest.children["crc"].update()
+        readCoilsRequest2.crc.update()
         print(readCoilsRequest)
         print(bytes(readCoilsRequest))
+        print(readCoilsRequest2)
+        print(bytes(readCoilsRequest2))
+
+    readCoilsRequest.value = [
+        17,
+        1,
+        19,
+        37,
+    ]
+    readCoilsRequest.value = [
+        17,
+        1,
+        19,
+        37,
+    ]
+    print(readCoilsRequest)
+    print(bytes(readCoilsRequest))
+    print(readCoilsRequest2)
+    print(bytes(readCoilsRequest2))
 
     readCoilsResponseBytes = bytearray(b"\x11\x01\x05\xCD\x6B\xB2\x0E\x1B\x45\xE6")
     count_field = UInt8Field(name="byte count")
@@ -192,7 +314,7 @@ def ReadCoils(check_crc: bool = False) -> None:
     print(bytes(readCoilsResponse))
     print(readCoilsResponse)
     if check_crc is True:
-        print(readCoilsResponse.children["crc"].calculate())
+        print(readCoilsResponse.children["crc"].update())
         print(bytes(readCoilsResponse))
         print(readCoilsResponse)
 
@@ -212,8 +334,10 @@ def ReadDiscreteInputs(check_crc: bool = False) -> None:
     readDiscreteInputsRequest.parse(readDiscreteInputsRequestBytes)
     print(readDiscreteInputsRequest)
     if check_crc is True:
-        print(readDiscreteInputsRequest.children["crc"].calculate())
+        print(readDiscreteInputsRequest.children["crc"].update())
         print(readDiscreteInputsRequest)
+
+    readDiscreteInputsRequest.value = [11, 2, 0xC400, 16]
 
 
 if __name__ == "__main__":

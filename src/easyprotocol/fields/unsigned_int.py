@@ -16,7 +16,7 @@ class UIntField(ParseObject[int]):
         bit_count: int,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:X}",
+        format: str | None = "{:X}(hex)",
         endian: Literal["little", "big"] = "big",
     ) -> None:
         self.bit_count = bit_count
@@ -142,7 +142,7 @@ class UInt8Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:02X}",
+        format: str | None = "{:02X}(hex)",
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -163,7 +163,7 @@ class UInt16Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:04X}",
+        format: str | None = "{:04X}(hex)",
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -184,7 +184,7 @@ class UInt24Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:06X}",
+        format: str | None = "{:06X}(hex)",
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -205,7 +205,7 @@ class UInt32Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:08X}",
+        format: str | None = "{:08X}(hex)",
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -226,7 +226,7 @@ class UInt64Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:016X}",
+        format: str | None = "{:016X}(hex)",
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(

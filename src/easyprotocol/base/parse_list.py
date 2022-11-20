@@ -143,15 +143,15 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
         p_o.parent = None
         self._children.popitem(p_o)
 
-    def __setitem__(self, index: int | slice, val: ParseObject[Any]):
+    def __setitem__(self, index: int | slice, value: ParseObject[Any]):
         index_key = list(self._children.keys())[index]
         c = OrderedDict()
         for key in self._children:
             if key != index_key:
                 c[key] = self._children[key]
             else:
-                c[val.name] = val
-                val.parent = self
+                c[value.name] = value
+                value.parent = self
         self._children = c
 
     def insert(self, index: int | slice, val: ParseObject[Any]):

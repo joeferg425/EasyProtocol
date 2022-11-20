@@ -38,7 +38,7 @@ class EnumField(UIntField, Generic[T]):
 
     @value.setter
     def value(self, value: int | T) -> None:
-        if not isinstance(value, int, T):
+        if not isinstance(value, (int, T)):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
         bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)

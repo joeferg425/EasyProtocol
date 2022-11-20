@@ -136,6 +136,17 @@ class ParseObject(SupportsBytes, Generic[T]):
         """
         return self._format.format(self.value)
 
+    def update(self, data: InputT | None = None) -> Any:
+        """Placeholder function for calculating data based on a field or fields.
+
+        Args:
+            data:
+
+        Returns:
+            whatever is needed
+        """
+        return None
+
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
 

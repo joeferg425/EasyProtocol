@@ -84,7 +84,6 @@ python -m pip install easyprotocol
   bytes:  b'\x03\x01\x01\x7f'
   ```
 
-
 ### Example 2 - Making a Parser from a Dictionary of Fields
 
 - Demo Code

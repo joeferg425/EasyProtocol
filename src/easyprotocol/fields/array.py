@@ -41,7 +41,32 @@ class ArrayField(ParseList):
         bit_data = input_to_bytes(data=data)
         count = self.count_field.value
         for i in range(count):
-            f = self.array_item_class(f"f{i}")
+            f = self.array_item_class(f"#{i}")
             bit_data = f.parse(data=bit_data)
             self.append(f)
         return bit_data
+
+    @property
+    def value(self) -> list[T]:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return list([v.value for f, v in self._children.items()])
+
+    @value.setter
+    def value(self, value: list[ParseObject[Any]] | list[T]) -> None:
+        if not isinstance(value, list):
+            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
+        for index, item in enumerate(value):
+            if isinstance(item, ParseObject):
+                if index < len(self._children):
+                    self[index] = item
+                    item.parent = self
+                else:
+                    self.append(item)
+                    item.parent = self
+            else:
+                parse_object = self[index]
+                parse_object.value = item

@@ -12,7 +12,7 @@ class TestUInt08:
     def test_uint8_create_empty_big_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack(">B", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -38,7 +38,7 @@ class TestUInt08:
     def test_uint8_create_empty_little_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack("<B", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -73,7 +73,7 @@ class TestUInt08:
     )
     def test_uint8_create_parse_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack(">B", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -109,7 +109,7 @@ class TestUInt08:
     )
     def test_uint8_create_parse_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack("<B", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -144,7 +144,7 @@ class TestUInt08:
     )
     def test_uint8_create_parse_short_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack(">B", value)
         bits_data2 = bitarray()
         bits_data2.frombytes(byte_data)
@@ -180,7 +180,7 @@ class TestUInt08:
     )
     def test_uint8_create_parse_short_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack("<B", value)
         bits_data2 = bitarray()
         bits_data2.frombytes(byte_data)
@@ -217,7 +217,7 @@ class TestUInt08:
     )
     def test_uint8_create_init_value_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack(">B", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -253,7 +253,7 @@ class TestUInt08:
     )
     def test_uint8_create_init_value_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:02X}"
+        format = "{:02X}(hex)"
         byte_data = struct.pack("<B", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -300,7 +300,7 @@ class TestUInt16:
     def test_uint16_create_empty_big_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:04X}"
+        format = "{:04X}(hex)"
         byte_data = struct.pack(">H", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -326,7 +326,7 @@ class TestUInt16:
     def test_uint16_create_empty_little_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:04X}"
+        format = "{:04X}(hex)"
         byte_data = struct.pack("<H", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -366,7 +366,7 @@ class TestUInt16:
     )
     def test_uint16_create_parse_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:04X}"
+        format = "{:04X}(hex)"
         byte_data = struct.pack(">H", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -407,7 +407,7 @@ class TestUInt16:
     )
     def test_uint16_create_parse_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:04X}"
+        format = "{:04X}(hex)"
         byte_data = struct.pack("<H", value)
         check_int = struct.unpack(">H", byte_data)[0]
         check_bytes = struct.pack(">H", value)
@@ -450,11 +450,11 @@ class TestUInt16:
     )
     def test_uint16_create_init_value_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:04X}"
+        format = "{:04X}(hex)"
         byte_data = struct.pack("<H", value)
         check_data = struct.pack(">H", value)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+        bits_data.frombytes(check_data)
         parent = None
         endian: Literal["little", "big"] = "little"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
@@ -469,7 +469,7 @@ class TestUInt16:
             value=value,
             format=format,
             bits_data=bits_data,
-            byte_data=check_data,
+            byte_data=byte_data,
             parent=parent,
             children=children,
             endian=endian,
@@ -492,7 +492,7 @@ class TestUInt16:
     )
     def test_uint16_create_init_value_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:04X}"
+        format = "{:04X}(hex)"
         byte_data = struct.pack(">H", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -539,7 +539,7 @@ class TestUInt24:
     def test_uint24_create_empty_big_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:06X}"
+        format = "{:06X}(hex)"
         byte_data = struct.pack(">I", value)[1:]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -565,7 +565,7 @@ class TestUInt24:
     def test_uint24_create_empty_little_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:06X}"
+        format = "{:06X}(hex)"
         byte_data = struct.pack("<I", value)[:-1]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -608,7 +608,7 @@ class TestUInt24:
     )
     def test_uint24_create_parse_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:06X}"
+        format = "{:06X}(hex)"
         byte_data = struct.pack(">I", value)[1:]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -652,7 +652,7 @@ class TestUInt24:
     )
     def test_uint24_create_parse_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:06X}"
+        format = "{:06X}(hex)"
         byte_data = struct.pack("<I", value)
         check_data = struct.pack(">I", value)[1:]
         temp_int = int(struct.unpack(">I", byte_data)[0] / 256)
@@ -699,7 +699,7 @@ class TestUInt24:
     )
     def test_uint24_create_init_value_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:06X}"
+        format = "{:06X}(hex)"
         byte_data = struct.pack(">I", value)[1:]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -743,11 +743,11 @@ class TestUInt24:
     )
     def test_uint24_create_init_value_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:06X}"
+        format = "{:06X}(hex)"
         byte_data = struct.pack("<I", value)[:-1]
         check_data = struct.pack(">I", value)[1:]
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+        bits_data.frombytes(check_data)
         parent = None
         endian: Literal["little", "big"] = "little"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
@@ -762,7 +762,7 @@ class TestUInt24:
             value=value,
             format=format,
             bits_data=bits_data,
-            byte_data=check_data,
+            byte_data=byte_data,
             parent=parent,
             children=children,
             endian=endian,
@@ -791,7 +791,7 @@ class TestUInt32:
     def test_uint32_create_empty_big_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:08X}"
+        format = "{:08X}(hex)"
         byte_data = struct.pack(">I", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -817,7 +817,7 @@ class TestUInt32:
     def test_uint32_create_empty_little_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:08X}"
+        format = "{:08X}(hex)"
         byte_data = struct.pack("<I", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -864,7 +864,7 @@ class TestUInt32:
     )
     def test_uint32_create_parse_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:08X}"
+        format = "{:08X}(hex)"
         byte_data = struct.pack(">I", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -912,7 +912,7 @@ class TestUInt32:
     )
     def test_uint32_create_parse_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:08X}"
+        format = "{:08X}(hex)"
         byte_data = struct.pack("<I", value)
         check_data = struct.pack(">I", value)
         temp_int = struct.unpack(">I", byte_data)[0]
@@ -962,7 +962,7 @@ class TestUInt32:
     )
     def test_uint32_create_init_value_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:08X}"
+        format = "{:08X}(hex)"
         byte_data = struct.pack(">I", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -1010,11 +1010,11 @@ class TestUInt32:
     )
     def test_uint32_create_init_value_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:08X}"
+        format = "{:08X}(hex)"
         byte_data = struct.pack("<I", value)
         check_data = struct.pack(">I", value)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+        bits_data.frombytes(check_data)
         parent = None
         endian: Literal["little", "big"] = "little"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
@@ -1029,7 +1029,7 @@ class TestUInt32:
             value=value,
             format=format,
             bits_data=bits_data,
-            byte_data=check_data,
+            byte_data=byte_data,
             parent=parent,
             children=children,
             endian=endian,
@@ -1058,7 +1058,7 @@ class TestUInt64:
     def test_uint64_create_empty_big_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:016X}"
+        format = "{:016X}(hex)"
         byte_data = struct.pack(">Q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -1084,7 +1084,7 @@ class TestUInt64:
     def test_uint64_create_empty_little_endian(self) -> None:
         name = "test"
         value = 0
-        format = "{:016X}"
+        format = "{:016X}(hex)"
         byte_data = struct.pack("<Q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -1148,7 +1148,7 @@ class TestUInt64:
     )
     def test_uint64_create_parse_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:016X}"
+        format = "{:016X}(hex)"
         byte_data = struct.pack(">Q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -1213,7 +1213,7 @@ class TestUInt64:
     )
     def test_uint64_create_parse_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:016X}"
+        format = "{:016X}(hex)"
         byte_data = struct.pack("<Q", value)
         check_data = struct.pack(">Q", value)
         temp_int = struct.unpack(">Q", byte_data)[0]
@@ -1280,7 +1280,7 @@ class TestUInt64:
     )
     def test_uint64_create_init_value_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{:016X}"
+        format = "{:016X}(hex)"
         byte_data = struct.pack(">Q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
@@ -1345,11 +1345,11 @@ class TestUInt64:
     )
     def test_uint64_create_init_value_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{:016X}"
+        format = "{:016X}(hex)"
         byte_data = struct.pack("<Q", value)
         check_data = struct.pack(">Q", value)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+        bits_data.frombytes(check_data)
         parent = None
         endian: Literal["little", "big"] = "little"
         children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
@@ -1364,7 +1364,7 @@ class TestUInt64:
             value=value,
             format=format,
             bits_data=bits_data,
-            byte_data=check_data,
+            byte_data=byte_data,
             parent=parent,
             children=children,
             endian=endian,

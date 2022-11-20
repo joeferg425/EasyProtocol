@@ -4,6 +4,7 @@ from typing import Any, OrderedDict
 from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 from bitarray import bitarray
+from enum import Enum
 
 
 class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]]):
@@ -134,23 +135,35 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, __key: str, __value: ParseObject[Any]) -> None:
-        if not isinstance(__value, ParseObject):
-            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {__value} of type {type(__value)}")
-        __value.parent = self
-        return self._children.__setitem__(__key, __value)
+    def __setitem__(self, name: str | Enum, value: ParseObject[Any]) -> None:
+        if not isinstance(value, ParseObject):
+            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
+        value.parent = self
+        if isinstance(name, Enum):
+            return self._children.__setitem__(name.name, value)
+        else:
+            return self._children.__setitem__(name, value)
 
-    def __getitem__(self, __key: str) -> ParseObject[Any]:
-        return self._children.__getitem__(__key)
+    def __getitem__(self, name: str | Enum) -> ParseObject[Any]:
+        if isinstance(name, Enum):
+            return self._children.__getitem__(name.name)
+        else:
+            return self._children.__getitem__(name)
 
-    def __delitem__(self, __key: str) -> None:
-        return self._children.__delitem__(__key)
+    def __delitem__(self, name: str | Enum) -> None:
+        if isinstance(name, Enum):
+            return self._children.__delitem__(name.name)
+        else:
+            return self._children.__delitem__(name)
 
     def popitem(self, last: bool) -> tuple[str, ParseObject[Any]]:
         self.children.popitem(last=last)
 
-    def pop(self, key: str) -> ParseObject[Any]:
-        p = self.children.pop(key)
+    def pop(self, name: str | Enum) -> ParseObject[Any]:
+        if isinstance(name, Enum):
+            p = self.children.pop(name.name)
+        else:
+            p = self.children.pop(name)
         p.parent = None
         return p
 

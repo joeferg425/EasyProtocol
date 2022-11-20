@@ -4,6 +4,7 @@ from collections import OrderedDict
 from typing import Literal, SupportsBytes, Generic, Any
 from bitarray import bitarray
 from easyprotocol.base.utils import T, InputT
+from enum import Enum
 
 
 class ParseObject(SupportsBytes, Generic[T]):
@@ -11,7 +12,7 @@ class ParseObject(SupportsBytes, Generic[T]):
 
     def __init__(
         self,
-        name: str,
+        name: str | Enum,
         data: InputT | None = None,
         value: T | None = None,
         format: str | None = None,
@@ -26,7 +27,10 @@ class ParseObject(SupportsBytes, Generic[T]):
             value: optional value to assign to object
             parent: an optional containing object for nesting layers of parsed objects
         """
-        self._name = name
+        if isinstance(name, Enum):
+            self._name = name.name
+        else:
+            self._name = str(name)
         self._endian = endian
         self._bits: bitarray = bitarray(endian=self._endian)
         self._value: T | None = None
@@ -131,6 +135,10 @@ class ParseObject(SupportsBytes, Generic[T]):
             the bit value of the field
         """
         return self._bits
+
+    @property
+    def bytes(self) -> bytes:
+        return self.__bytes__()
 
     @property
     def formatted_value(self) -> str:

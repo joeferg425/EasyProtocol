@@ -82,7 +82,9 @@ class UIntField(ParseObject[int]):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
         bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)
-        bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=False))
+        bytes_val = int.to_bytes(value, length=byte_count, byteorder="big", signed=False)
+        int_val = int.from_bytes(bytes_val, byteorder=self._endian, signed=False)
+        bits.frombytes(int.to_bytes(int_val, length=byte_count, byteorder=self._endian, signed=False))
         self._bits = bits
         self._value = value
 
@@ -130,7 +132,7 @@ class BoolField(UIntField):
         bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)
         bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=False))
-        self._bits = bits
+        self._bits = bits[-self.bit_count :]  # noqa
         self._value = value
 
 

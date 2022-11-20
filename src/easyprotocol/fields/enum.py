@@ -46,6 +46,15 @@ class EnumField(UIntField, Generic[T]):
         self._bits = bits
         self._value = value
 
+    @property
+    def formatted_value(self) -> str:
+        """Get a formatted value for the field (for any custom formatting).
+
+        Returns:
+            the value of the field with custom formatting
+        """
+        return self.value.name
+
 
 class UInt8EnumField(EnumField):
     def __init__(

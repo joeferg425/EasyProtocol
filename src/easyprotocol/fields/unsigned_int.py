@@ -46,7 +46,7 @@ class UIntField(ParseObject[int]):
         if len(bit_mask) < len(bits):
             bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
         if len(bits) < len(bit_mask):
-            bits = bitarray("0" * (len(bit_mask) - len(bits))) + bits
+            raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[-self.bit_count :]  # noqa
         temp_bits = bitarray(my_bits)
         byte_count = math.ceil(self.bit_count / 8)

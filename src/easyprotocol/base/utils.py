@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, TypeVar, Any
+from typing import TypeVar, Any
 from bitarray import bitarray
 from bitarray.util import int2ba
 
@@ -21,6 +21,10 @@ def input_to_bytes(
     else:
         bits = bitarray(data)
     if bit_count is not None:
-        if len(bits) < bit_count:
+        if len(bits) < bit_count and isinstance(data, bytes):
             bits = bitarray("0" * (bit_count - len(bits))) + bits
     return bits
+
+
+def hex(bts: bytes) -> str:
+    return bytes.hex(bts, sep=" ").upper()

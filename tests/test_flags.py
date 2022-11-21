@@ -50,4 +50,4 @@ class TestFlags:
         name = "flags"
         ff = FlagsField(name=name, bit_count=4, enum_type=TestFlags, data=b"\x0f")
         with pytest.raises(TypeError):
-            ff.value = "pickles"
+            ff.value = "pickles"  # type:ignore

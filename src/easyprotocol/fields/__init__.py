@@ -17,3 +17,5 @@ from easyprotocol.fields.enum import UInt32EnumField as UInt32EnumField  # noqa
 from easyprotocol.fields.array import ArrayField as ArrayField  # noqa
 from easyprotocol.fields.checksum import ChecksumField as ChecksumField  # noqa
 from easyprotocol.fields.unsigned_int import BoolField as BoolField  # noqa
+from easyprotocol.fields.float import FloatField as FloatField  # noqa
+from easyprotocol.fields.float import Float32IEEField as Float32IEEField  # noqa

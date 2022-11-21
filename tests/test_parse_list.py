@@ -1,24 +1,24 @@
 from __future__ import annotations
 from collections import OrderedDict
-from typing import Any, Literal
+from typing import Any
 import pytest
 from easyprotocol.base.parse_list import ParseList
 from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.fields import UInt8Field
 from bitarray import bitarray
-from test_parse_object import parseobject_properties, parseobject_children
+from test_parse_object import parseobject_properties, parseobject_children, TestData
 
 
 def parselist_value(
     obj: ParseList,
-    values: list[Any],
+    tst: TestData,
 ) -> None:
-    assert len(obj.value) == len(values), (
-        f"{obj}: len(obj.value) is not the expected value " + f"({len(obj.value)} != expected value: {len(values)})"
+    assert len(obj.value) == len(tst.value), (
+        f"{obj}: len(obj.value) is not the expected value " + f"({len(obj.value)} != expected value: {len(tst.value)})"
     )
-    for i in range(len(values)):
-        assert obj.value[i] == values[i], (
-            f"{obj}: obj.value[{i}] is not the expected value " + f"({obj.value[i]} != expected value: {values[i]})"
+    for i in range(len(tst.value)):
+        assert obj.value[i] == tst.value[i], (
+            f"{obj}: obj.value[{i}] is not the expected value " + f"({obj.value[i]} != expected value: {tst.value[i]})"
         )
         assert obj[i].format.format(obj.value[i]) in obj.formatted_value
         assert obj[i].format.format(obj.value[i]) in str(obj)
@@ -27,58 +27,46 @@ def parselist_value(
 
 def parselist_tests(
     obj: ParseList,
-    name: str,
-    values: list[Any],
-    bits_data: bitarray,
-    byte_data: bytes,
-    parent: ParseObject[Any] | None,
-    children: OrderedDict[str, ParseObject[Any]],
-    endian: Literal["little", "big"] = "big",
+    tst: TestData,
 ) -> None:
     parseobject_properties(
         obj=obj,
-        name=name,
-        format="{}",
-        bits_data=bits_data,
-        byte_data=byte_data,
-        parent=parent,
-        endian=endian,
+        tst=tst,
     )
     parseobject_children(
         obj=obj,
-        name=name,
-        children=children,
-        parent=parent,
+        tst=tst,
     )
     parselist_value(
         obj=obj,
-        values=values,
+        tst=tst,
     )
 
 
 class TestParseList:
     def test_parselist_create_empty(self) -> None:
-        name = "test"
-        data = b""
-        bits = bitarray()
-        values: list[Any] = []
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
-        obj = ParseList(name=name)
+        value: list[Any] = []
+        byte_data = b""
+        bits_data = bitarray()
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
+        obj = ParseList(
+            name=tst.name,
+        )
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values,
-            bits_data=bits,
-            byte_data=data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_parselist_create_children_list(self) -> None:
-        name = "test"
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
         f1_bits = bitarray()
@@ -93,23 +81,28 @@ class TestParseList:
         f2 = UInt8Field(name=f2_name)
         bits_data = f2.bits + f1.bits
         byte_data = bytes(f2) + bytes(f1)
-        values: list[Any] = [f1.value, f2.value]
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
+        value: list[Any] = [f1.value, f2.value]
         children_list: list[ParseObject[Any]] = [f1, f2]
-        obj = ParseList(name=name, children=children_list)
+        tst = TestData(
+            name="test",
+            value=value,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            format="{}",
+            parent=None,
+            children=OrderedDict({f1.name: f1, f2.name: f2}),
+            endian="big",
+        )
+        obj = ParseList(
+            name=tst.name,
+            children=children_list,
+        )
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
+            tst=tst,
         )
 
     def test_parselist_create_children_dict(self) -> None:
-        name = "test"
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
         f1_bits = bitarray()
@@ -125,21 +118,26 @@ class TestParseList:
         bits_data = f2.bits + f1.bits
         byte_data = bytes(f2) + bytes(f1)
         values: list[Any] = [f1.value, f2.value]
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2})
-        obj = ParseList(name=name, children=children)
+        tst = TestData(
+            name="test",
+            value=values,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict({f1.name: f1, f2.name: f2}),
+            endian="big",
+        )
+        obj = ParseList(
+            name=tst.name,
+            children=tst.children,
+        )
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
+            tst=tst,
         )
 
     def test_parselist_create_parse_single_field(self) -> None:
-        name = "test"
         f1_value = 255
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
         f1_bits = bitarray()
@@ -149,21 +147,27 @@ class TestParseList:
         byte_data = f1_data
         bits_data = f1_bits
         values = [f1_value]
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
-        obj = ParseList(name=name, children=[f1], data=byte_data)
+        tst = TestData(
+            name="test",
+            value=values,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict({f1.name: f1}),
+            endian="big",
+        )
+        obj = ParseList(
+            name=tst.name,
+            children=[f1],
+            data=tst.byte_data,
+        )
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
+            tst=tst,
         )
 
     def test_parselist_create_parse_multi_field(self) -> None:
-        name = "test"
         init_value = 0
         init_data = int.to_bytes(init_value, length=1, byteorder="big", signed=False)
         init_bits = bitarray()
@@ -189,18 +193,25 @@ class TestParseList:
         byte_data = f1_data + f2_data + f3_data
         bits_data = f1_bits + f2_bits + f3_bits
         values = [f1_value, f2_value, f3_value]
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3})
-        obj = ParseList(name=name, children=[f1, f2, f3], data=byte_data)
+        tst = TestData(
+            name="test",
+            value=values,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
+            endian="big",
+        )
+        obj = ParseList(
+            name=tst.name,
+            children=[f1, f2, f3],
+            data=tst.byte_data,
+        )
 
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
+            tst=tst,
         )
 
     def test_parselist_set_name(self) -> None:
@@ -209,31 +220,31 @@ class TestParseList:
         byte_data = b""
         bits_data = bitarray()
         values: list[Any] = []
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        obj = ParseList(name=name1)
-        parselist_tests(
-            obj=obj,
+        tst = TestData(
             name=name1,
-            values=values,
-            bits_data=bits_data,
+            value=values,
+            format="{}",
             byte_data=byte_data,
-            parent=parent,
-            children=children,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
         )
-        obj.name = name2
+        obj = ParseList(
+            name=tst.name,
+        )
         parselist_tests(
             obj=obj,
-            name=name2,
-            values=values,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
+            tst=tst,
+        )
+        tst.name = name2
+        obj.name = tst.name
+        parselist_tests(
+            obj=obj,
+            tst=tst,
         )
 
     def test_parselist_set_value(self) -> None:
-        name = "test"
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
         f1_bits = bitarray()
@@ -262,54 +273,57 @@ class TestParseList:
         values2: list[Any] = [f1_value]
         values3: list[Any] = [f2_value]
         values4: list[Any] = [f3_value]
-        parent = None
         children1: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1.name: f1})
         children3: OrderedDict[str, ParseObject[Any]] = OrderedDict({f2.name: f2})
         children4: OrderedDict[str, ParseObject[Any]] = OrderedDict({f2.name: f2})
-        obj = ParseList(name=name)
+        tst = TestData(
+            name="test",
+            value=values1,
+            format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=children1,
+            endian="big",
+        )
 
+        obj = ParseList(
+            name=tst.name,
+        )
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values1,
-            bits_data=bits_data1,
-            byte_data=byte_data1,
-            parent=parent,
-            children=children1,
+            tst=tst,
         )
 
         obj.value = [f1]
+        tst.value = values2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        tst.children = children2
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values2,
-            bits_data=bits_data2,
-            byte_data=byte_data2,
-            parent=parent,
-            children=children2,
+            tst=tst,
         )
 
         obj.value = [f2]
+        tst.value = values3
+        tst.byte_data = byte_data3
+        tst.bits_data = bits_data3
+        tst.children = children3
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values3,
-            bits_data=bits_data3,
-            byte_data=byte_data3,
-            parent=parent,
-            children=children3,
+            tst=tst,
         )
 
         obj.value = [f3_value]
+        tst.value = values4
+        tst.byte_data = byte_data4
+        tst.bits_data = bits_data4
+        tst.children = children4
         parselist_tests(
             obj=obj,
-            name=name,
-            values=values4,
-            bits_data=bits_data4,
-            byte_data=byte_data4,
-            parent=parent,
-            children=children4,
+            tst=tst,
         )
 
         value = 1

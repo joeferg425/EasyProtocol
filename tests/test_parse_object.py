@@ -1,95 +1,99 @@
 from __future__ import annotations
 from collections import OrderedDict
+from dataclasses import dataclass
 from typing import Any, Literal
 import pytest
 from easyprotocol.base.parse_object import ParseObject
 from bitarray import bitarray
 
 
+@dataclass
+class TestData:
+    name: str
+    value: Any
+    endian: Literal["big", "little"]
+    format: str
+    bits_data: bitarray
+    byte_data: bytes | bytearray
+    parent: ParseObject[Any] | None
+    children: OrderedDict[str, ParseObject[Any]]
+
+
 def parseobject_properties(
     obj: ParseObject[Any],
-    name: str,
-    format: str,
-    bits_data: bitarray,
-    byte_data: bytes,
-    parent: ParseObject[Any] | None,
-    endian: Literal["little", "big"],
+    tst: TestData,
 ) -> None:
     assert obj is not None, "Object is None"
-    assert obj.name == name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {name})"
+    assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
     assert (
-        obj.format == format
-    ), f"{obj}: obj.format is not the expected value ({obj.format} != expected value: {format})"
+        obj.format == tst.format
+    ), f"{obj}: obj.format is not the expected value ({obj.format} != expected value: {tst.format})"
     assert (
-        obj.bits == bits_data
-    ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {bits_data})"
+        obj.bits == tst.bits_data
+    ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
     assert (
-        obj.parent == parent
-    ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {parent})"
+        obj.parent == tst.parent
+    ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
     assert (
-        bytes(obj) == byte_data
-    ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {byte_data!r})"
+        bytes(obj) == tst.byte_data
+    ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
-        obj.endian == endian
-    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {endian})"
+        obj.endian == tst.endian
+    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
 
 
 def parseobject_children(
     obj: ParseObject[Any],
-    name: str,
-    children: OrderedDict[str, ParseObject[Any]],
-    parent: ParseObject[Any] | None,
+    tst: TestData,
 ) -> None:
-    assert len(obj.children) == len(children), (
+    assert len(obj.children) == len(tst.children), (
         f"{obj}: len(obj.children) is not the expected value "
-        + f"({len(obj.children)} != expected value: {len(children)})"
+        + f"({len(obj.children)} != expected value: {len(tst.children)})"
     )
-    assert obj.children.keys() == children.keys(), (
+    assert obj.children.keys() == tst.children.keys(), (
         f"{obj}: obj.children.keys() is not the expected value "
-        + f"({obj.children.keys()} != expected value: {children.keys()})"
+        + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
     )
-    for key in children.keys():
-        assert obj.children[key] == children[key], (
+    for key in tst.children.keys():
+        assert obj.children[key] == tst.children[key], (
             f"{obj}: obj.children[key] is not the expected value "
-            + f"({obj.children[key]} != expected value: {children[key]})"
+            + f"({obj.children[key]} != expected value: {tst.children[key]})"
         )
         assert obj.children[key].parent == obj, (
             f"{obj}: obj.children[key].parent is not the expected value "
             + f"({obj.children[key].parent} != expected value: {obj})"
         )
 
-    for v in children.values():
+    for v in tst.children.values():
         assert v.formatted_value in obj.formatted_value
         assert v.formatted_value in str(obj)
         assert v.formatted_value in repr(obj)
-    assert name in str(obj)
-    assert name in repr(obj)
+    assert tst.name in str(obj)
+    assert tst.name in repr(obj)
 
 
 def parseobject_value(
     obj: ParseObject[Any],
-    value: Any | None,
+    tst: TestData,
 ) -> None:
     assert (
-        obj.value == value
-    ), f"{obj}: obj.value is not the expected value ({obj.value:X} != expected value: {value:X})"
+        obj.value == tst.value
+    ), f"{obj}: obj.value is not the expected value ({obj.value:X} != expected value: {tst.value:X})"
 
 
 def parseobject_strings(
     obj: ParseObject[Any],
-    name: str,
-    value: Any | None,
-    format: str,
+    tst: TestData,
 ) -> None:
-    assert format.format(value) == obj.formatted_value, (
+    assert tst.format.format(tst.value) == obj.formatted_value, (
         f"{obj}: obj.formatted_value is not the expected value "
-        + f"({format.format(value)} != expected value: {obj.formatted_value})"
+        + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
     )
-    assert name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
+    assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
     assert obj.formatted_value in str(
         obj
     ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
-    assert name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
+    assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
     assert obj.formatted_value in repr(
         obj
     ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
@@ -100,63 +104,42 @@ def parseobject_strings(
 
 def parseobject_tests(
     obj: ParseObject[Any],
-    name: str,
-    value: Any | None,
-    format: str,
-    bits_data: bitarray,
-    byte_data: bytes,
-    parent: ParseObject[Any] | None,
-    children: OrderedDict[str, ParseObject[Any]],
-    endian: Literal["little", "big"],
+    tst: TestData,
 ) -> None:
     parseobject_properties(
         obj=obj,
-        name=name,
-        format=format,
-        bits_data=bits_data,
-        byte_data=byte_data,
-        parent=parent,
-        endian=endian,
+        tst=tst,
     )
     parseobject_children(
         obj=obj,
-        name=name,
-        children=children,
-        parent=parent,
+        tst=tst,
     )
     parseobject_value(
         obj=obj,
-        value=value,
+        tst=tst,
     )
     parseobject_strings(
         obj=obj,
-        name=name,
-        value=value,
-        format=format,
+        tst=tst,
     )
 
 
 class TestParseObject:
     def test_parseobject_create_empty(self) -> None:
-        name = "test"
-        value = None
-        format = "{}"
-        byte_data = b""
-        bits_data = bitarray()
-        parent = None
-        endian: Literal["big"] = "big"
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        obj = ParseObject(name=name)
+        tst = TestData(
+            name="test",
+            value=None,
+            format="{}",
+            byte_data=b"",
+            bits_data=bitarray(),
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = ParseObject(name=tst.name)
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_parseobject_create_parse(self) -> None:
@@ -172,183 +155,124 @@ class TestParseObject:
             ParseObject(name=name, value=value)
 
     def test_parseobject_set_name(self) -> None:
-        name1 = "test"
-        name2 = "new_name"
-        value = None
-        format = "{}"
-        byte_data = b""
-        bits_data = bitarray()
-        parent = None
-        endian: Literal["big"] = "big"
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        obj = ParseObject(name=name1)
-        parseobject_tests(
-            obj=obj,
-            name=name1,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+        tst = TestData(
+            name="test",
+            value=None,
+            format="{}",
+            byte_data=b"",
+            bits_data=bitarray(),
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
         )
-        obj.name = name2
+        obj = ParseObject(name=tst.name)
         parseobject_tests(
             obj=obj,
-            name=name2,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
+        )
+        tst.name = "new_name"
+        obj.name = tst.name
+
+        parseobject_tests(
+            obj=obj,
+            tst=tst,
         )
 
     def test_parseobject_set_value(self) -> None:
-        name = "test"
-        value1 = None
-        value2 = 1
-        format = "{}"
-        byte_data = b""
-        bits_data = bitarray()
-        parent = None
-        endian: Literal["big"] = "big"
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        obj = ParseObject(name=name)
-        parseobject_tests(
-            obj=obj,
-            name=name,
-            value=value1,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+        tst = TestData(
+            name="test",
+            value=None,
+            format="{}",
+            byte_data=b"",
+            bits_data=bitarray(),
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
         )
-        obj._value = value2
+        obj = ParseObject(name=tst.name)
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value2,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
+        )
+        tst.value = 1
+        obj._value = tst.value
+        parseobject_tests(
+            obj=obj,
+            tst=tst,
         )
         with pytest.raises(NotImplementedError):
-            obj.value = value2
+            obj.value = tst.value
 
     def test_parseobject_set_bits(self) -> None:
-        name = "test"
-        format = "{}"
-        value = None
-        byte_data1 = b""
-        byte_data2 = b"\x01"
-        bits_data1 = bitarray()
-        bits_data2 = bitarray()
-        bits_data2.frombytes(byte_data2)
-        parent = None
-        endian: Literal["big"] = "big"
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        obj = ParseObject(name=name)
-        parseobject_tests(
-            obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data1,
-            byte_data=byte_data1,
-            parent=parent,
-            children=children,
-            endian=endian,
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=None,
+            byte_data=b"",
+            bits_data=bitarray(),
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
         )
-        obj._bits = bits_data2
+        obj = ParseObject(name=tst.name)
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data2,
-            byte_data=byte_data2,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
+        )
+        tst.byte_data = b"\x01"
+        tst.bits_data = bitarray()
+        tst.bits_data.frombytes(tst.byte_data)
+        obj._bits = tst.bits_data
+        parseobject_tests(
+            obj=obj,
+            tst=tst,
         )
         with pytest.raises(AttributeError):
-            obj.bits = byte_data2  # type:ignore
+            obj.bits = tst.byte_data  # type:ignore
 
     def test_parseobject_set_parent(self) -> None:
-        name = "test"
-        format = "{}"
-        value = None
-        byte_data = b""
-        bits_data = bitarray()
-        parent1 = None
-        parent2 = ParseObject(name="parent")
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["big"] = "big"
-        obj = ParseObject(name=name)
-        parseobject_tests(
-            obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent1,
-            children=children,
-            endian=endian,
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=None,
+            byte_data=b"",
+            bits_data=bitarray(),
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
         )
-        obj.parent = parent2
+        obj = ParseObject(name=tst.name)
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent2,
-            children=children,
-            endian=endian,
+            tst=tst,
+        )
+        tst.parent = ParseObject(name="parent")
+        obj.parent = tst.parent
+        parseobject_tests(
+            obj=obj,
+            tst=tst,
         )
 
     def test_parseobject_set_children(self) -> None:
-        name = "test"
-        format = "{}"
-        value = None
-        byte_data = b""
-        bits_data = bitarray()
-        parent = None
         child = ParseObject(name="child")
-        endian: Literal["big"] = "big"
-        children1: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({child.name: child})
-        obj = ParseObject(name=name)
-        parseobject_tests(
-            obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children1,
-            endian=endian,
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=None,
+            byte_data=b"",
+            bits_data=bitarray(),
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
         )
-        obj.children = children2
+        obj = ParseObject(name=tst.name)
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children2,
-            endian=endian,
+            tst=tst,
+        )
+        tst.children = OrderedDict({child.name: child})
+        obj.children = tst.children
+        parseobject_tests(
+            obj=obj,
+            tst=tst,
         )

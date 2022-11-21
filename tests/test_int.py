@@ -1,364 +1,274 @@
 from collections import OrderedDict
 import struct
-from typing import Any, Literal
+from typing import Literal
 import pytest
 from easyprotocol.fields.signed_int import Int8Field, Int16Field, Int32Field, Int64Field, Int24Field
 from bitarray import bitarray
-from test_parse_object import parseobject_tests
-from easyprotocol.base.parse_object import ParseObject
+from test_parse_object import parseobject_tests, TestData
+from test_uint import TEST_VALUES_08_BIT
 
 
 class TestInt08:
     def test_int8_create_empty_big_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack(">b", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=0,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int8Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int8_create_empty_little_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack("<b", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int8Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x10,
-            0x80,
-            0xFF,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_parse_bytes_big_endian(self, value: int) -> None:
-        name = "test"
-        format = "{}"
         byte_data = struct.pack(">B", value)
         value = struct.unpack(">b", byte_data)[0]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        data = bitarray()
-        data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=value,
+            bits_data=bits_data,
+            byte_data=byte_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int8Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.byte_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x10,
-            0x80,
-            0xFF,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_parse_bytes_little_endian(self, value: int) -> None:
-        name = "test"
-        format = "{}"
         byte_data = struct.pack("<B", value)
         value = struct.unpack("<b", byte_data)[0]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         data = bitarray()
         data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=value,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int8Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.byte_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x10,
-            0x80,
-            0xFF,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_parse_bits_big_endian(self, value: int) -> None:
-        name = "test"
-        format = "{}"
         byte_data = struct.pack(">B", value)
         value = struct.unpack(">b", byte_data)[0]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=value,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int8Field(
-            name=name,
-            data=bits_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.bits_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x10,
-            0x80,
-            0xFF,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_parse_bits_little_endian(self, value: int) -> None:
-        name = "test"
-        format = "{}"
         byte_data = struct.pack("<B", value)
         value = struct.unpack("<b", byte_data)[0]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            format="{}",
+            value=value,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int8Field(
-            name=name,
-            data=bits_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.bits_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x2,
-            0x03,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_parse_bits_short_big_endian(self, value: int) -> None:
         name = "test"
-        format = "{}"
         byte_data = struct.pack(">B", value)
         value = struct.unpack(">b", byte_data)[0]
-        bits_data2 = bitarray()
-        bits_data2.frombytes(byte_data)
-        bits_data1 = bits_data2[-3:]
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        bits_data_full = bitarray()
+        bits_data_full.frombytes(byte_data)
+        bits_data = bits_data_full[-3:]
         endian: Literal["little", "big"] = "big"
-        obj = Int8Field(
-            name=name,
-            data=bits_data1,
-            endian=endian,
-        )
-        parseobject_tests(
-            obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data2,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
-        )
+        with pytest.raises(IndexError):
+            Int8Field(
+                name=name,
+                data=bits_data,
+                endian=endian,
+            )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x2,
-            0x03,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_parse_bits_short_little_endian(self, value: int) -> None:
         name = "test"
-        format = "{}"
         byte_data = struct.pack("<B", value)
         value = struct.unpack("<b", byte_data)[0]
-        bits_data2 = bitarray()
-        bits_data2.frombytes(byte_data)
-        bits_data1 = bits_data2[-3:]
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+        bits_data_full = bitarray()
+        bits_data_full.frombytes(byte_data)
+        bits_data = bits_data_full[-3:]
         endian: Literal["little", "big"] = "little"
-        obj = Int8Field(
-            name=name,
-            data=bits_data1,
-            endian=endian,
-        )
-        parseobject_tests(
-            obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data2,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
-        )
+        with pytest.raises(IndexError):
+            Int8Field(
+                name=name,
+                data=bits_data,
+                endian=endian,
+            )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x10,
-            0x80,
-            0xFF,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_init_value_big_endian(self, value: int) -> None:
-        name = "test"
-        format = "{}"
         byte_data = struct.pack(">B", value)
         value = struct.unpack(">b", byte_data)[0]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
-        obj = Int8Field(
-            name=name,
+        tst = TestData(
+            name="test",
+            format="{}",
             value=value,
-            endian=endian,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
+        obj = Int8Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     @pytest.mark.parametrize(
         "value",
-        [
-            0x00,
-            0x01,
-            0x10,
-            0x80,
-            0xFF,
-        ],
+        TEST_VALUES_08_BIT,
     )
     def test_int8_create_init_value_little_endian(self, value: int) -> None:
-        name = "test"
-        format = "{}"
         byte_data = struct.pack("<B", value)
         value = struct.unpack("<b", byte_data)[0]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
-        obj = Int8Field(
-            name=name,
+        tst = TestData(
+            name="test",
+            format="{}",
             value=value,
-            endian=endian,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
+        obj = Int8Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int8_set_value_invalid_type(self) -> None:
@@ -382,166 +292,154 @@ class TestInt08:
 
 class TestInt16:
     def test_int16_create_empty_big_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack(">h", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int16Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int16_create_empty_little_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack("<h", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int16Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int16_create_parse_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">h", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int16Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.byte_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int16_create_parse_little_endian(self) -> None:
-        name = "test"
-        value = 1
-        format = "{}"
-        byte_data = struct.pack("<h", value)
-        check_int = struct.unpack(">h", byte_data)[0]
-        check_data = struct.pack(">h", value)
+        input_value = 1
+        input_data = struct.pack("<h", input_value)
+        value = struct.unpack(">h", input_data)[0]
+        byte_data = struct.pack(">h", input_value)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int16Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=input_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=check_int,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int16_create_init_value_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">h", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
-        obj = Int16Field(
-            name=name,
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
+        obj = Int16Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int16_create_init_value_little_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
-        byte_data = struct.pack("<h", value)
-        check_data = struct.pack(">h", value)
+        input_data = struct.pack("<h", value)
+        byte_data = struct.pack(">h", value)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
-        obj = Int16Field(
-            name=name,
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
+        obj = Int16Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int16_set_value_invalid_type(self) -> None:
@@ -565,167 +463,155 @@ class TestInt16:
 
 class TestInt24:
     def test_int24_create_empty_big_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack(">i", value)[1:]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int24Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int24_create_empty_little_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack("<i", value)[:-1]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int24Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int24_create_parse_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">i", value)[1:]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int24Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.byte_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int24_create_parse_little_endian(self) -> None:
-        name = "test"
-        value = 1
-        format = "{}"
-        byte_data = struct.pack("<i", value)
-        check_data = struct.pack(">i", value)[1:]
-        temp_int = int(struct.unpack(">i", byte_data)[0] / 256)
-        byte_data = byte_data[:-1]
+        temp = 1
+        input_data = struct.pack("<i", temp)
+        byte_data = struct.pack(">i", temp)[1:]
+        value = int(struct.unpack(">i", input_data)[0] / 256)
+        input_data = input_data[:-1]
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int24Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=input_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=temp_int,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int24_create_init_value_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">i", value)[1:]
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
-        obj = Int24Field(
-            name=name,
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
+        obj = Int24Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int24_create_init_value_little_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
-        byte_data = struct.pack("<i", value)[:-1]
-        check_data = struct.pack(">i", value)[1:]
+        input_data = struct.pack("<i", value)[:-1]
+        byte_data = struct.pack(">i", value)[1:]
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
-        obj = Int24Field(
-            name=name,
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
+        obj = Int24Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int24_set_value_invalid_type(self) -> None:
@@ -747,168 +633,156 @@ class TestInt24:
             obj.value = value
 
 
-class TestUInt32:
+class TestInt32:
     def test_int32_create_empty_big_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack(">i", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int32Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int32_create_empty_little_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack("<i", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int32Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int32_create_parse_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">i", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int32Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.byte_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int32_create_parse_little_endian(self) -> None:
-        name = "test"
-        value = 1
-        format = "{}"
-        byte_data = struct.pack("<i", value)
-        check_data = struct.pack(">i", value)
-        temp_int = struct.unpack(">i", byte_data)[0]
+        temp = 1
+        input_data = struct.pack("<i", temp)
+        byte_data = struct.pack(">i", temp)
+        value = struct.unpack(">i", input_data)[0]
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int32Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=input_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=temp_int,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int32_create_init_value_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">i", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
-        obj = Int32Field(
-            name=name,
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
+        obj = Int32Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int32_create_init_value_little_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
-        byte_data = struct.pack("<i", value)
-        check_data = struct.pack(">i", value)
+        input_data = struct.pack("<i", value)
+        byte_data = struct.pack(">i", value)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
-        obj = Int32Field(
-            name=name,
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
+        obj = Int32Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int32_set_value_invalid_type(self) -> None:
@@ -930,168 +804,156 @@ class TestUInt32:
             obj.value = value
 
 
-class TestUInt64:
+class TestInt64:
     def test_int64_create_empty_big_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack(">q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int64Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int64_create_empty_little_endian(self) -> None:
-        name = "test"
         value = 0
-        format = "{}"
         byte_data = struct.pack("<q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int64Field(
-            name=name,
-            endian=endian,
+            name=tst.name,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int64_create_parse_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
         obj = Int64Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=tst.byte_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int64_create_parse_little_endian(self) -> None:
-        name = "test"
-        value = 1
-        format = "{}"
-        byte_data = struct.pack("<q", value)
-        check_data = struct.pack(">q", value)
-        temp_int = struct.unpack(">q", byte_data)[0]
+        temp = 1
+        input_data = struct.pack("<q", temp)
+        byte_data = struct.pack(">q", temp)
+        value = struct.unpack(">q", input_data)[0]
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int64Field(
-            name=name,
-            data=byte_data,
-            endian=endian,
+            name=tst.name,
+            data=input_data,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=temp_int,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int64_create_init_value_big_endian(self) -> None:
-        name = "test"
         value = 1
-        format = "{}"
         byte_data = struct.pack(">q", value)
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "big"
-        obj = Int64Field(
-            name=name,
+        tst = TestData(
+            name="test",
             value=value,
-            endian=endian,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="big",
+        )
+        obj = Int64Field(
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=byte_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int64_create_init_value_little_endian(self) -> None:
-        name = "test"
-        value = 1
-        format = "{}"
-        byte_data = struct.pack("<q", value)
-        check_data = struct.pack(">q", value)
+        temp = 1
+        input_data = struct.pack("<q", temp)
+        byte_data = struct.pack(">q", temp)
         bits_data = bitarray()
-        bits_data.frombytes(byte_data)
-        parent = None
-        children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-        endian: Literal["little", "big"] = "little"
+        bits_data.frombytes(input_data)
+        tst = TestData(
+            name="test",
+            value=temp,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict(),
+            endian="little",
+        )
         obj = Int64Field(
-            name=name,
-            value=value,
-            endian=endian,
+            name=tst.name,
+            value=tst.value,
+            endian=tst.endian,
         )
         parseobject_tests(
             obj=obj,
-            name=name,
-            value=value,
-            format=format,
-            bits_data=bits_data,
-            byte_data=check_data,
-            parent=parent,
-            children=children,
-            endian=endian,
+            tst=tst,
         )
 
     def test_int64_set_value_invalid_type(self) -> None:

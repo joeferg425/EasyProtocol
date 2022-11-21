@@ -4,18 +4,18 @@ from easyprotocol.base.parse_object import InputT
 
 from easyprotocol.fields.unsigned_int import UIntField
 from typing import Literal, TypeVar, Generic
-from enum import IntEnum
+from enum import IntFlag
 from bitarray import bitarray
 
-E = TypeVar("E", IntEnum, IntEnum)
+F = TypeVar("F", IntFlag, IntFlag)
 
 
-class EnumField(UIntField, Generic[E]):
+class FlagsField(UIntField, Generic[F]):
     def __init__(
         self,
         name: str,
         bit_count: int,
-        enum_type: type[E],
+        enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
@@ -30,15 +30,15 @@ class EnumField(UIntField, Generic[E]):
         )
 
     @property
-    def value(self) -> E:
+    def value(self) -> F:
         if self._value is None:
             return self.enum_type(0)
         else:
             return self.enum_type(self._value)
 
     @value.setter
-    def value(self, value: int | E) -> None:
-        if not isinstance(value, (int, E)):
+    def value(self, value: int | F) -> None:
+        if not isinstance(value, (int, F)):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
         bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)
@@ -57,11 +57,11 @@ class EnumField(UIntField, Generic[E]):
         return self.value.name
 
 
-class UInt8EnumField(EnumField):
+class UInt8FlagsField(FlagsField):
     def __init__(
         self,
         name: str,
-        enum_type: type[E],
+        enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
@@ -76,11 +76,11 @@ class UInt8EnumField(EnumField):
         )
 
 
-class UInt16EnumField(EnumField):
+class UInt16EnumField(FlagsField):
     def __init__(
         self,
         name: str,
-        enum_type: type[E],
+        enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
@@ -95,11 +95,11 @@ class UInt16EnumField(EnumField):
         )
 
 
-class UInt24EnumField(EnumField):
+class UInt24EnumField(FlagsField):
     def __init__(
         self,
         name: str,
-        enum_type: type[E],
+        enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
@@ -114,11 +114,11 @@ class UInt24EnumField(EnumField):
         )
 
 
-class UInt32EnumField(EnumField):
+class UInt32EnumField(FlagsField):
     def __init__(
         self,
         name: str,
-        enum_type: type[E],
+        enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",

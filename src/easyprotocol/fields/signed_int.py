@@ -53,19 +53,14 @@ class IntField(ParseObject[int]):
         if len(temp_bits) < byte_count * 8:
             temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
         my_bytes = bytearray(temp_bits.tobytes())
-        byte_length = math.ceil(self.bit_count / 8)
-        self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=True)
-        my_bytes = int.to_bytes(
-            int.from_bytes(my_bytes, byteorder="big", signed=True), length=byte_length, byteorder="little", signed=True
-        )
-        self._bits = bitarray()
-        self._bits.frombytes(my_bytes)
+        self._value = int.from_bytes(my_bytes, byteorder="big", signed=True)
+        my_bytes = int.to_bytes(self._value, byte_count, byteorder="little", signed=True)
         if self.endian == "big":
             self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=True)
-        if len(self._bits) < self.bit_count:
-            self._bits = bitarray("0" * (self.bit_count - len(self._bits))) + self._bits
-
-        if len(bits) > self.bit_count:
+        my_bits = bitarray()
+        my_bits.frombytes(my_bytes)
+        self._bits = my_bits[-self.bit_count :]  # noqa
+        if len(bits) >= self.bit_count:
             return bits[: -self.bit_count]  # noqa
         else:
             return bitarray()
@@ -78,10 +73,11 @@ class IntField(ParseObject[int]):
     def value(self, value: int) -> None:
         if not isinstance(value, int):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)
-        bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=True))
-        self._bits = bits[-self.bit_count :]  # noqa
+        my_bytes = int.to_bytes(value, length=byte_count, byteorder=self.endian, signed=True)
+        bits = bitarray()
+        bits.frombytes(my_bytes)
+        self._bits = bits
         self._value = value
 
     def __bytes__(self) -> bytes:
@@ -90,14 +86,7 @@ class IntField(ParseObject[int]):
         Returns:
             the bytes of this field
         """
-        b = self._bits.tobytes()
-        byte_length = math.ceil(self.bit_count / 8)
-        if self.endian == "little":
-            return int.to_bytes(
-                int.from_bytes(b, byteorder="big", signed=True), length=byte_length, byteorder="little", signed=True
-            )
-        else:
-            return b
+        return self._bits.tobytes()
 
 
 class Int8Field(IntField):

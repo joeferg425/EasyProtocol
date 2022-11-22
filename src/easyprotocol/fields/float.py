@@ -1,10 +1,10 @@
 from __future__ import annotations
-import math
-import struct
-from easyprotocol.base.parse_object import ParseObject
 from typing import Literal
 from bitarray import bitarray
-from easyprotocol.base.utils import input_to_bytes, InputT
+from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.utils import InputT, input_to_bytes
+import math
+import struct
 
 
 class FloatField(ParseObject[float]):
@@ -65,27 +65,22 @@ class Float32IEEField(FloatField):
         if len(bit_mask) < len(bits):
             bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
         if len(bits) < len(bit_mask):
-            bits = bitarray("0" * (len(bit_mask) - len(bits))) + bits
+            raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[-self.bit_count :]  # noqa
-
         temp_bits = bitarray(my_bits)
         byte_count = math.ceil(self.bit_count / 8)
         if len(temp_bits) < byte_count * 8:
             temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
         my_bytes = bytearray(temp_bits.tobytes())
+        temp_value = int.from_bytes(my_bytes, byteorder="big", signed=False)
+        my_bytes = int.to_bytes(temp_value, byte_count, byteorder="little", signed=False)
         if self.endian == "big":
             self._value = struct.unpack(">f", my_bytes)[0]
-            my_bytes = struct.pack("<f", self._value)
         else:
             self._value = struct.unpack("<f", my_bytes)[0]
-            my_bytes = struct.pack(">f", self._value)
-        self._bits = bitarray()
-        self._bits.frombytes(my_bytes)
-        if len(self._bits) < self.bit_count:
-            self._bits = bitarray("0" * (self.bit_count - len(self._bits))) + self._bits
-        if len(self._bits) > self.bit_count:
-            self._bits = self._bits[-self.bit_count :]  # noqa
-
+        my_bits = bitarray()
+        my_bits.frombytes(my_bytes)
+        self._bits = my_bits[-self.bit_count :]  # noqa
         if len(bits) >= self.bit_count:
             return bits[: -self.bit_count]  # noqa
         else:
@@ -114,11 +109,7 @@ class Float32IEEField(FloatField):
         Returns:
             the bytes of this field
         """
-        b = self._bits.tobytes()
-        if self.endian == "little":
-            temp = struct.unpack(">f", b)[0]
-            b = struct.pack("<f", temp)
-        return b
+        return self._bits.tobytes()
 
 
 class Float32Field(Float32IEEField):

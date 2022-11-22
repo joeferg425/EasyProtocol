@@ -6,7 +6,7 @@ from easyprotocol.protocols.modbus import (
     ModbusReadDiscreteInputsRequest,
 )
 from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum
-from easyprotocol.utils import hex
+from easyprotocol.base.utils import hex
 
 
 def ReadCoils(check_crc: bool = False) -> None:

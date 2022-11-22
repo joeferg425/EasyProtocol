@@ -1,16 +1,16 @@
 from __future__ import annotations
-from dataclasses import dataclass
 import pytest
 import struct
 from bitarray import bitarray
 from collections import OrderedDict
 from easyprotocol.base.parse_object import ParseObject
-from typing import Any, Literal
+from typing import Any
 from easyprotocol.fields.float import Float32Field
 from test_parse_object import parseobject_children, parseobject_properties, parseobject_strings, TestData
 from test_uint import TEST_VALUES_32_BIT
 
-TEST_BYTES_32_BIT = [struct.pack(">I", v) for v in TEST_VALUES_32_BIT]
+TEST_VALUES_32_BIT_FLOAT_LE = [pytest.param(v, struct.unpack("<f", v)[0]) for v in TEST_VALUES_32_BIT]
+TEST_VALUES_32_BIT_FLOAT_BE = [pytest.param(v, struct.unpack(">f", v)[0]) for v in TEST_VALUES_32_BIT]
 
 
 def float_value(
@@ -94,13 +94,10 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        "byte_data",
-        TEST_BYTES_32_BIT,
+        ["byte_data", "value"],
+        TEST_VALUES_32_BIT_FLOAT_BE,
     )
-    def test_float32_create_parse_bytes_big_endian(self, byte_data: bytes) -> None:
-        temp = bytearray(byte_data)
-        temp.reverse()
-        value = struct.unpack(">f", temp)[0]
+    def test_float32_create_parse_bytes_big_endian(self, byte_data: bytes, value: float) -> None:
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         tst = TestData(
@@ -124,20 +121,17 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        "byte_data",
-        TEST_BYTES_32_BIT,
+        ["byte_data", "value"],
+        TEST_VALUES_32_BIT_FLOAT_LE,
     )
-    def test_float32_create_parse_bytes_little_endian(self, byte_data: bytes) -> None:
-        temp = bytearray(byte_data)
-        temp.reverse()
-        value = struct.unpack("<f", temp)[0]
+    def test_float32_create_parse_bytes_little_endian(self, byte_data: bytes, value: float) -> None:
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
             value=value,
             format="{:.3e}",
-            byte_data=temp,
+            byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
             children=OrderedDict(),
@@ -154,12 +148,10 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        "byte_data",
-        TEST_BYTES_32_BIT,
+        ["byte_data", "value"],
+        TEST_VALUES_32_BIT_FLOAT_BE,
     )
-    def test_float32_create_init_value_big_endian(self, byte_data: bytes) -> None:
-        temp = bytearray(byte_data)
-        value = struct.unpack(">f", temp)[0]
+    def test_float32_create_init_value_big_endian(self, byte_data: bytes, value: float) -> None:
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         tst = TestData(
@@ -183,20 +175,17 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        "byte_data",
-        TEST_BYTES_32_BIT,
+        ["byte_data", "value"],
+        TEST_VALUES_32_BIT_FLOAT_LE,
     )
-    def test_float32_create_init_value_little_endian(self, byte_data: bytes) -> None:
-        temp = bytearray(byte_data)
-        value = struct.unpack("<f", temp)[0]
-        temp_bytes = struct.pack(">f", value)
+    def test_float32_create_init_value_little_endian(self, byte_data: bytes, value: float) -> None:
         bits_data = bitarray()
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
             value=value,
             format="{:.3e}",
-            byte_data=temp_bytes,
+            byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
             children=OrderedDict(),

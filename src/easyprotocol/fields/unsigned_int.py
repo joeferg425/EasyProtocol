@@ -1,10 +1,10 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
+from typing import Literal
+from bitarray import bitarray
 from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 import math
-from bitarray import bitarray
-from typing import Literal
 
 
 class UIntField(ParseObject[int]):
@@ -53,20 +53,13 @@ class UIntField(ParseObject[int]):
         if len(temp_bits) < byte_count * 8:
             temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
         my_bytes = bytearray(temp_bits.tobytes())
-        byte_length = math.ceil(self.bit_count / 8)
-        self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=False)
-        my_bytes = int.to_bytes(
-            int.from_bytes(my_bytes, byteorder="big"), length=byte_length, byteorder="little", signed=False
-        )
-        self._bits = bitarray()
-        self._bits.frombytes(my_bytes)
+        self._value = int.from_bytes(my_bytes, byteorder="big", signed=False)
+        my_bytes = int.to_bytes(self._value, byte_count, byteorder="little", signed=False)
         if self.endian == "big":
             self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=False)
-        if len(self._bits) < self.bit_count:
-            self._bits = bitarray("0" * (self.bit_count - len(self._bits))) + self._bits
-        if len(self._bits) > self.bit_count:
-            self._bits = self._bits[-self.bit_count :]  # noqa
-
+        my_bits = bitarray()
+        my_bits.frombytes(my_bytes)
+        self._bits = my_bits[-self.bit_count :]  # noqa
         if len(bits) >= self.bit_count:
             return bits[: -self.bit_count]  # noqa
         else:
@@ -80,11 +73,10 @@ class UIntField(ParseObject[int]):
     def value(self, value: int) -> None:
         if not isinstance(value, int):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        bits = bitarray()
         byte_count = math.ceil(self.bit_count / 8)
-        bytes_val = int.to_bytes(value, length=byte_count, byteorder="big", signed=False)
-        int_val = int.from_bytes(bytes_val, byteorder=self._endian, signed=False)
-        bits.frombytes(int.to_bytes(int_val, length=byte_count, byteorder=self._endian, signed=False))
+        my_bytes = int.to_bytes(value, length=byte_count, byteorder=self.endian, signed=False)
+        bits = bitarray()
+        bits.frombytes(my_bytes)
         self._bits = bits
         self._value = value
 
@@ -94,14 +86,7 @@ class UIntField(ParseObject[int]):
         Returns:
             the bytes of this field
         """
-        b = self._bits.tobytes()
-        byte_length = math.ceil(self.bit_count / 8)
-        if self.endian == "little":
-            return int.to_bytes(
-                int.from_bytes(b, byteorder="big"), length=byte_length, byteorder="little", signed=False
-            )
-        else:
-            return b
+        return self._bits.tobytes()
 
 
 class BoolField(UIntField):

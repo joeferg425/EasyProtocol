@@ -106,15 +106,15 @@ def parseobject_tests(
     obj: ParseObject[Any],
     tst: TestData,
 ) -> None:
+    parseobject_value(
+        obj=obj,
+        tst=tst,
+    )
     parseobject_properties(
         obj=obj,
         tst=tst,
     )
     parseobject_children(
-        obj=obj,
-        tst=tst,
-    )
-    parseobject_value(
         obj=obj,
         tst=tst,
     )

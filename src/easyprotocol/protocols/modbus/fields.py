@@ -110,7 +110,6 @@ class ModbusCRC(ChecksumField):
         byte_data = bytes(self.parent)
         crc_int = self.crc_calculator.calculate_checksum(byte_data[:-2])
         crc_bytes = int.to_bytes(crc_int, length=2, byteorder=self.endian)
-        crc_int = int.from_bytes(crc_bytes, byteorder="big", signed=False)
         crc_bits = int2ba(crc_int, length=self.bit_count)
         self.value = crc_int
         return (crc_int, crc_bytes, crc_bits)

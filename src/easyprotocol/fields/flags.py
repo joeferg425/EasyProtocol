@@ -76,7 +76,7 @@ class UInt8FlagsField(FlagsField):
         )
 
 
-class UInt16EnumField(FlagsField):
+class UInt16FlagsField(FlagsField):
     def __init__(
         self,
         name: str,
@@ -95,7 +95,7 @@ class UInt16EnumField(FlagsField):
         )
 
 
-class UInt24EnumField(FlagsField):
+class UInt24FlagsField(FlagsField):
     def __init__(
         self,
         name: str,
@@ -114,7 +114,7 @@ class UInt24EnumField(FlagsField):
         )
 
 
-class UInt32EnumField(FlagsField):
+class UInt32FlagsField(FlagsField):
     def __init__(
         self,
         name: str,

@@ -11,7 +11,7 @@ class TestArray:
         f1_name = "count"
         f1 = UInt8Field(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(name=f2_name, count_field=f1, array_item_class=UInt8Field)
+        f2 = ArrayField(name=f2_name, count=f1, array_item_class=UInt8Field)
         data = b"\x00"
         obj = ParseList(name=name, children=[f1, f2])
         obj.parse(data=data)
@@ -24,7 +24,7 @@ class TestArray:
         f1_name = "count"
         f1 = UInt8Field(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(name=f2_name, count_field=f1, array_item_class=UInt8Field)
+        f2 = ArrayField(name=f2_name, count=f1, array_item_class=UInt8Field)
         data = b"\x01\x00"
         obj = ParseList(name=name, children=[f1, f2])
         obj.parse(data=data)
@@ -37,7 +37,7 @@ class TestArray:
         f1_name = "count"
         f1 = UInt8Field(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(name=f2_name, count_field=f1, array_item_class=UInt8Field)
+        f2 = ArrayField(name=f2_name, count=f1, array_item_class=UInt8Field)
         data = b"\x03\x00\x01\x02"
         obj = ParseList(name=name, children=[f1, f2])
         obj.parse(data=data)
@@ -50,7 +50,7 @@ class TestArray:
         f1_name = "count"
         f1 = ParseList(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(name=f2_name, count_field=f1, array_item_class=UInt8Field)  # type:ignore
+        f2 = ArrayField(name=f2_name, count=f1, array_item_class=UInt8Field)  # type:ignore
         data = b"\x02\x01\x00\x03"
         with pytest.raises(TypeError):
             obj = ParseList(name=name, children=[f1, f2])

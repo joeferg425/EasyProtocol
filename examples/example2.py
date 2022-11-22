@@ -6,7 +6,7 @@ from easyprotocol.base import ParseDict, ParseList
 # you can define your field classes before using them in a parser.
 id = Int8Field(name="id")
 count = UInt16Field(name="count")
-data_array = ArrayField(name="data", count_field=count, array_item_class=UInt8Field)
+data_array = ArrayField(name="data", count=count, array_item_class=UInt8Field)
 
 # Make an instance of the modified list type and add your fields as the list items.
 

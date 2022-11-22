@@ -14,7 +14,7 @@ class ArrayField(ParseList):
     def __init__(
         self,
         name: str,
-        count_field: UIntField,
+        count: UIntField | int,
         array_item_class: type[ParseObject[Any]],
         data: InputT | None = None,
         parent: ParseObject[Any] | None = None,
@@ -26,7 +26,7 @@ class ArrayField(ParseList):
             parent=parent,
             children=children,
         )
-        self.count_field = count_field
+        self._count = count
         self.array_item_class = array_item_class
 
     def parse(self, data: InputT) -> bitarray:
@@ -39,7 +39,10 @@ class ArrayField(ParseList):
             NotImplementedError: if not implemented for this field
         """
         bit_data = input_to_bytes(data=data)
-        count = self.count_field.value
+        if isinstance(self._count, UIntField):
+            count = self._count.value
+        else:
+            count = self._count
         for i in range(count):
             f = self.array_item_class(f"#{i}")
             bit_data = f.parse(data=bit_data)

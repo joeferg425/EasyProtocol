@@ -125,7 +125,7 @@ class ModbusCoilArray(ArrayField):
     ) -> None:
         super().__init__(
             name=ModbusFieldNames.CoilArray,
-            count_field=count_field,
+            count=count_field,
             array_item_class=BoolField,
             data=data,
             parent=parent,
@@ -142,7 +142,7 @@ class ModbusCoilArray(ArrayField):
             NotImplementedError: if not implemented for this field
         """
         bit_data = input_to_bytes(data=data)
-        count = self.count_field.value * 8
+        count = self._count.value * 8
         for i in range(count):
             f = self.array_item_class(f"+{i}")
             bit_data = f.parse(data=bit_data)

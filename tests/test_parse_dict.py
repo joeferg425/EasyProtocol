@@ -54,7 +54,7 @@ class TestParseDict:
     def test_parsedict_create_empty(self) -> None:
         values: OrderedDict[str, Any] = OrderedDict()
         byte_data = b""
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         tst = TestData(
             name="test",
             value=values,
@@ -77,7 +77,7 @@ class TestParseDict:
         f1_name = "child"
         f1_value = 0
         f1_bytes = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_bytes)
         f1 = UInt8Field(name=f1_name)
         values: OrderedDict[str, Any] = OrderedDict({f1_name: f1_value})
@@ -109,7 +109,7 @@ class TestParseDict:
         f1_value = 0
         f1_value = 0
         f1_bytes = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_bytes)
         f1 = UInt8Field(name=f1_name)
         bits_data = f1.bits
@@ -138,7 +138,7 @@ class TestParseDict:
         name1 = "test"
         name2 = "new_name"
         byte_data = b""
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         values: OrderedDict[str, Any] = OrderedDict()
         tst = TestData(
             name=name1,
@@ -172,9 +172,9 @@ class TestParseDict:
         byte_data1 = b""
         byte_data2 = int.to_bytes(v2, length=1, byteorder="big")
         byte_data3 = int.to_bytes(v3, length=1, byteorder="big")
-        bits_data1 = bitarray()
-        bits_data2 = bitarray()
-        bits_data3 = bitarray()
+        bits_data1 = bitarray(endian="little")
+        bits_data2 = bitarray(endian="little")
+        bits_data3 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
         bits_data3.frombytes(byte_data3)
         f1 = UInt8Field(name=f1_name, value=v2)
@@ -231,11 +231,11 @@ class TestParseDict:
     def test_parsedict_set_parent(self) -> None:
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big")
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(b"\x00")
         f1_name = "parent"
         byte_data1 = b""
-        bits_data1 = bitarray()
+        bits_data1 = bitarray(endian="little")
         byte_data2 = f1_data
         bits_data2 = f1_bits
         f1 = UInt8Field(name=f1_name)
@@ -296,20 +296,20 @@ class TestParseDict:
 
     def test_parsedict_parse_1(self) -> None:
         f1_data0 = b"\x00"
-        f1_bits0 = bitarray()
+        f1_bits0 = bitarray(endian="little")
         f1_bits0.frombytes(f1_data0)
         f1_name = "f1"
         f1_value = 255
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big")
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
         byte_data1 = int.to_bytes(0, length=1, byteorder="big")
         byte_data2 = f1_data
-        bits_data1 = bitarray()
+        bits_data1 = bitarray(endian="little")
         bits_data1.frombytes(byte_data1)
         bits_data2 = f1_bits
-        left_over = bitarray()
+        left_over = bitarray(endian="little")
         values1: OrderedDict[str, Any] = OrderedDict({f1_name: f1.value})
         values2: OrderedDict[str, Any] = OrderedDict({f1_name: 255})
         tst = TestData(
@@ -345,37 +345,37 @@ class TestParseDict:
     def test_parsedict_parse_3(self) -> None:
         endian: Literal["big", "little"] = "big"
         u_data = b"\x00"
-        u_bits = bitarray()
+        u_bits = bitarray(endian="little")
         u_bits.frombytes(u_data)
 
         init_value = 0
         init_data = int.to_bytes(init_value, length=1, byteorder="big")
-        init_bits = bitarray()
+        init_bits = bitarray(endian="little")
         init_bits.frombytes(init_data)
 
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
         f_children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
-        f2_bits = bitarray()
+        f2_bits = bitarray(endian="little")
         f2_bits.frombytes(f2_data)
         f2 = UInt8Field(name=f2_name)
         f3_name = "f3"
         f3_value = 204
         f3_data = b"\xcc"
-        f3_bits = bitarray()
+        f3_bits = bitarray(endian="little")
         f3_bits.frombytes(f3_data)
         f3 = UInt8Field(name=f3_name)
-        left_over = bitarray()
+        left_over = bitarray(endian="little")
         byte_data1 = init_data + init_data + init_data
         byte_data2 = f1_data + f2_data + f3_data
-        bits_data1 = init_bits + init_bits + init_bits
+        bits_data1 = u_bits + u_bits + u_bits
         bits_data2 = f1_bits + f2_bits + f3_bits
         values1: OrderedDict[str, Any] = OrderedDict({f1_name: 0, f2_name: 0, f3_name: 0})
         values2: OrderedDict[str, Any] = OrderedDict({f1_name: f1_value, f2_name: f2_value, f3_name: f3_value})

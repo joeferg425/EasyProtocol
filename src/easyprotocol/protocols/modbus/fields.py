@@ -156,7 +156,7 @@ class ModbusCoilArray(ArrayField):
         Returns:
             the bytes value of the field
         """
-        data = bitarray()
+        data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
             data = value.bits + data
@@ -164,7 +164,7 @@ class ModbusCoilArray(ArrayField):
         byte_count = math.ceil(len(data) / 8)
         temp_int = int.from_bytes(b_big_endian, byteorder="big", signed=False)
         b_little_endian = int.to_bytes(temp_int, length=byte_count, byteorder="little", signed=False)
-        data = bitarray()
+        data = bitarray(endian="little")
         data.frombytes(b_little_endian)
         return data
 

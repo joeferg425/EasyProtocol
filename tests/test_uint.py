@@ -6,6 +6,13 @@ from bitarray import bitarray
 from test_parse_object import parseobject_tests, TestData
 import struct
 
+
+def get_bitarray(b: bytes) -> bitarray:
+    bits = bitarray(endian="little")
+    bits.frombytes(b)
+    return bits
+
+
 TEST_VALUES_08_BIT = [
     b"\x00",
     b"\x01",
@@ -13,8 +20,22 @@ TEST_VALUES_08_BIT = [
     b"\x80",
     b"\xFF",
 ]
-TEST_VALUES_08_BIT_UINT_LE = [pytest.param(v, struct.unpack("<B", v)[0]) for v in TEST_VALUES_08_BIT]
-TEST_VALUES_08_BIT_UINT_BE = [pytest.param(v, struct.unpack(">B", v)[0]) for v in TEST_VALUES_08_BIT]
+TEST_VALUES_08_BIT_UINT_LE = [
+    pytest.param(
+        v,
+        struct.unpack("<B", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_08_BIT
+]
+TEST_VALUES_08_BIT_UINT_BE = [
+    pytest.param(
+        v,
+        struct.unpack(">B", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_08_BIT
+]
 TEST_VALUES_16_BIT = [
     b"\x00\x00",
     b"\x00\x01",
@@ -27,8 +48,22 @@ TEST_VALUES_16_BIT = [
     b"\x80\x00",
     b"\xFF\x00",
 ]
-TEST_VALUES_16_BIT_UINT_LE = [pytest.param(v, struct.unpack("<H", v)[0]) for v in TEST_VALUES_16_BIT]
-TEST_VALUES_16_BIT_UINT_BE = [pytest.param(v, struct.unpack(">H", v)[0]) for v in TEST_VALUES_16_BIT]
+TEST_VALUES_16_BIT_UINT_LE = [
+    pytest.param(
+        v,
+        struct.unpack("<H", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_16_BIT
+]
+TEST_VALUES_16_BIT_UINT_BE = [
+    pytest.param(
+        v,
+        struct.unpack(">H", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_16_BIT
+]
 TEST_VALUES_24_BIT = [
     b"\x00\x00\x00",
     b"\x00\x00\x01",
@@ -44,8 +79,22 @@ TEST_VALUES_24_BIT = [
     b"\x80\x00\x00",
     b"\xFF\x00\x00",
 ]
-TEST_VALUES_24_BIT_UINT_LE = [pytest.param(v, struct.unpack("<I", v + b"\x00")[0]) for v in TEST_VALUES_24_BIT]
-TEST_VALUES_24_BIT_UINT_BE = [pytest.param(v, struct.unpack(">I", b"\x00" + v)[0]) for v in TEST_VALUES_24_BIT]
+TEST_VALUES_24_BIT_UINT_LE = [
+    pytest.param(
+        v,
+        struct.unpack("<I", v + b"\x00")[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_24_BIT
+]
+TEST_VALUES_24_BIT_UINT_BE = [
+    pytest.param(
+        v,
+        struct.unpack(">I", b"\x00" + v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_24_BIT
+]
 TEST_VALUES_32_BIT = [
     b"\x00\x00\x00\x00",
     b"\x00\x00\x00\x01",
@@ -65,8 +114,22 @@ TEST_VALUES_32_BIT = [
     b"\x80\x00\x00\x00",
     b"\xFF\x00\x00\x00",
 ]
-TEST_VALUES_32_BIT_UINT_LE = [pytest.param(v, struct.unpack("<I", v)[0]) for v in TEST_VALUES_32_BIT]
-TEST_VALUES_32_BIT_UINT_BE = [pytest.param(v, struct.unpack(">I", v)[0]) for v in TEST_VALUES_32_BIT]
+TEST_VALUES_32_BIT_UINT_LE = [
+    pytest.param(
+        v,
+        struct.unpack("<I", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_32_BIT
+]
+TEST_VALUES_32_BIT_UINT_BE = [
+    pytest.param(
+        v,
+        struct.unpack(">I", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_32_BIT
+]
 TEST_VALUES_64_BIT = [
     b"\x00\x00\x00\x00\x00\x00\x00\x00",
     b"\x00\x00\x00\x00\x00\x00\x00\x01",
@@ -103,15 +166,29 @@ TEST_VALUES_64_BIT = [
     b"\x80\x00\x00\x00\x00\x00\x00\x00",
     b"\xFF\x00\x00\x00\x00\x00\x00\x00",
 ]
-TEST_VALUES_64_BIT_UINT_LE = [pytest.param(v, struct.unpack("<Q", v)[0]) for v in TEST_VALUES_64_BIT]
-TEST_VALUES_64_BIT_UINT_BE = [pytest.param(v, struct.unpack(">Q", v)[0]) for v in TEST_VALUES_64_BIT]
+TEST_VALUES_64_BIT_UINT_LE = [
+    pytest.param(
+        v,
+        struct.unpack("<Q", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_64_BIT
+]
+TEST_VALUES_64_BIT_UINT_BE = [
+    pytest.param(
+        v,
+        struct.unpack(">Q", v)[0],
+        get_bitarray(v),
+    )
+    for v in TEST_VALUES_64_BIT
+]
 
 
 class TestUInt08:
     def test_uint8_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">B", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -135,7 +212,7 @@ class TestUInt08:
     def test_uint8_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<B", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -157,12 +234,10 @@ class TestUInt08:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_BE,
     )
-    def test_uint8_create_parse_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint8_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -184,12 +259,10 @@ class TestUInt08:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_LE,
     )
-    def test_uint8_create_parse_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint8_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -212,7 +285,7 @@ class TestUInt08:
 
     def test_uint8_create_parse_short_big_endian(self) -> None:
         byte_data = b"\x00"
-        bits_data_full = bitarray()
+        bits_data_full = bitarray(endian="little")
         bits_data_full.frombytes(byte_data)
         bits_data = bits_data_full[-3:]
         name = "test"
@@ -227,7 +300,7 @@ class TestUInt08:
     def test_uint8_create_parse_short_little_endian(self) -> None:
         name = "test"
         byte_data = b"\x00"
-        bits_data_full = bitarray()
+        bits_data_full = bitarray(endian="little")
         bits_data_full.frombytes(byte_data)
         bits_data = bits_data_full[-3:]
         endian: Literal["little", "big"] = "little"
@@ -239,12 +312,10 @@ class TestUInt08:
             )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_BE,
     )
-    def test_uint8_create_init_value_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint8_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -266,12 +337,10 @@ class TestUInt08:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_LE,
     )
-    def test_uint8_create_init_value_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint8_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -315,7 +384,7 @@ class TestUInt16:
     def test_uint16_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">H", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -339,7 +408,7 @@ class TestUInt16:
     def test_uint16_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<H", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -361,12 +430,10 @@ class TestUInt16:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_BE,
     )
-    def test_uint16_create_parse_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint16_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -388,12 +455,10 @@ class TestUInt16:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_LE,
     )
-    def test_uint16_create_parse_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint16_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -415,12 +480,10 @@ class TestUInt16:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_LE,
     )
-    def test_uint16_create_init_value_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint16_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -442,12 +505,10 @@ class TestUInt16:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_BE,
     )
-    def test_uint16_create_init_value_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint16_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -491,7 +552,7 @@ class TestUInt24:
     def test_uint24_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">I", value)[1:]
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -515,7 +576,7 @@ class TestUInt24:
     def test_uint24_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<I", value)[:-1]
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -537,12 +598,10 @@ class TestUInt24:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_BE,
     )
-    def test_uint24_create_parse_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint24_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -564,12 +623,10 @@ class TestUInt24:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_LE,
     )
-    def test_uint24_create_parse_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint24_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -591,12 +648,10 @@ class TestUInt24:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_BE,
     )
-    def test_uint24_create_init_value_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint24_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -618,12 +673,10 @@ class TestUInt24:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_LE,
     )
-    def test_uint24_create_init_value_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint24_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -667,7 +720,7 @@ class TestUInt32:
     def test_uint32_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">I", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -691,7 +744,7 @@ class TestUInt32:
     def test_uint32_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<I", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -713,12 +766,10 @@ class TestUInt32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_BE,
     )
-    def test_uint32_create_parse_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint32_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -740,12 +791,10 @@ class TestUInt32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_LE,
     )
-    def test_uint32_create_parse_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint32_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -767,12 +816,10 @@ class TestUInt32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_BE,
     )
-    def test_uint32_create_init_value_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint32_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -794,13 +841,10 @@ class TestUInt32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_LE,
     )
-    def test_uint32_create_init_value_little_endian(self, byte_data: bytes, value: int) -> None:
-        value = struct.unpack("<I", byte_data)[0]
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint32_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -844,7 +888,7 @@ class TestUInt64:
     def test_uint64_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">Q", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -868,7 +912,7 @@ class TestUInt64:
     def test_uint64_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<Q", value)
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         tst = TestData(
             name="test",
@@ -890,12 +934,10 @@ class TestUInt64:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_BE,
     )
-    def test_uint64_create_parse_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint64_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -917,12 +959,10 @@ class TestUInt64:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_LE,
     )
-    def test_uint64_create_parse_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint64_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -944,12 +984,10 @@ class TestUInt64:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_BE,
     )
-    def test_uint64_create_init_value_big_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint64_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
@@ -971,12 +1009,10 @@ class TestUInt64:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value"],
+        ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_LE,
     )
-    def test_uint64_create_init_value_little_endian(self, byte_data: bytes, value: int) -> None:
-        bits_data = bitarray()
-        bits_data.frombytes(byte_data)
+    def test_uint64_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,

@@ -33,7 +33,6 @@ class ParseObject(SupportsBytes, Generic[T]):
             self._name = str(name)
         self._endian = endian
         self._bits: bitarray = bitarray(endian=self._endian)
-        self._value: T | None = None
         self._format = format
         self._parent: ParseObject[Any] | None = parent
         self._children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
@@ -86,18 +85,24 @@ class ParseObject(SupportsBytes, Generic[T]):
     def format(self, format: str) -> None:
         self._format = format
 
+    def _get_value(self) -> T | None:
+        return None
+
+    def _set_value(self, value: T) -> None:
+        raise NotImplementedError()
+
     @property
-    def value(self) -> T:
+    def value(self) -> T | None:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return self._value
+        return self._get_value()
 
     @value.setter
     def value(self, value: T) -> None:
-        raise NotImplementedError()
+        self._set_value(value)
 
     @property
     def parent(self) -> ParseObject[Any]:

@@ -13,16 +13,15 @@ def input_to_bytes(
 ) -> bitarray:
     if isinstance(data, (bytes, bytearray)):
         data = bytearray(data)
-        data.reverse()
-        i = int.from_bytes(data, byteorder="big", signed=False)
-        bits = int2ba(i)
+        bits = bitarray(endian="little")
+        bits.frombytes(data)
         if len(bits) < (8 * len(data)):
-            bits = bitarray("0" * ((8 * len(data)) - len(bits))) + bits
+            bits = bits + bitarray("0" * ((8 * len(data)) - len(bits)), endian="little")
     else:
-        bits = bitarray(data)
+        bits = bitarray(data, endian="little")
     if bit_count is not None:
         if len(bits) < bit_count and isinstance(data, bytes):
-            bits = bitarray("0" * (bit_count - len(bits))) + bits
+            bits = +bits + bitarray("0" * (bit_count - len(bits)), endian="little")
     return bits
 
 

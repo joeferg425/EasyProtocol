@@ -98,7 +98,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
         Returns:
             the bytes value of the field
         """
-        data = bitarray()
+        data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
             data += value.bits

@@ -41,44 +41,42 @@ class IntField(ParseObject[int]):
             bit_count=self.bit_count,
         )
         _bit_mask = (2**self.bit_count) - 1
-        bit_mask = bitarray()
+        bit_mask = bitarray(endian="little")
         bit_mask.frombytes(int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="big", signed=False))
         if len(bit_mask) < len(bits):
-            bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
+            bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
         if len(bits) < len(bit_mask):
             raise IndexError("Too little data to parse field.")
-        my_bits = (bits & bit_mask)[-self.bit_count :]  # noqa
-        temp_bits = bitarray(my_bits)
+        my_bits = (bits & bit_mask)[: self.bit_count]
+        temp_bits = bitarray(my_bits, endian="little")
         byte_count = math.ceil(self.bit_count / 8)
         if len(temp_bits) < byte_count * 8:
-            temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
+            temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
         my_bytes = bytearray(temp_bits.tobytes())
-        self._value = int.from_bytes(my_bytes, byteorder="big", signed=True)
-        my_bytes = int.to_bytes(self._value, byte_count, byteorder="little", signed=True)
-        if self.endian == "big":
-            self._value = int.from_bytes(my_bytes, byteorder=self.endian, signed=True)
-        my_bits = bitarray()
+        temp = int.from_bytes(my_bytes, byteorder="little", signed=True)
+        my_bytes = int.to_bytes(temp, byteorder="big", length=byte_count, signed=True)
+        my_bits = bitarray(endian="little")
         my_bits.frombytes(my_bytes)
-        self._bits = my_bits[-self.bit_count :]  # noqa
+        self._bits = my_bits[: self.bit_count]
         if len(bits) >= self.bit_count:
-            return bits[: -self.bit_count]  # noqa
+            return bits[self.bit_count :]
         else:
-            return bitarray()
+            return bitarray(endian="little")
 
-    @property
-    def value(self) -> int:
-        return self._value
+    def _get_value(self) -> int | None:
+        if len(self.bits) == 0:
+            return None
+        b = self.bits.tobytes()
+        return int.from_bytes(bytes=b, byteorder=self.endian, signed=True)
 
-    @value.setter
-    def value(self, value: int) -> None:
+    def _set_value(self, value: int) -> None:
         if not isinstance(value, int):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
         byte_count = math.ceil(self.bit_count / 8)
         my_bytes = int.to_bytes(value, length=byte_count, byteorder=self.endian, signed=True)
-        bits = bitarray()
+        bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
         self._bits = bits
-        self._value = value
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.

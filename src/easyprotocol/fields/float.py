@@ -60,7 +60,7 @@ class Float32IEEField(FloatField):
             bit_count=self.bit_count,
         )
         _bit_mask = (2**self.bit_count) - 1
-        bit_mask = bitarray()
+        bit_mask = bitarray(endian="little")
         bit_mask.frombytes(int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="big", signed=False))
         if len(bit_mask) < len(bits):
             bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
@@ -74,34 +74,33 @@ class Float32IEEField(FloatField):
         my_bytes = bytearray(temp_bits.tobytes())
         temp_value = int.from_bytes(my_bytes, byteorder="big", signed=False)
         my_bytes = int.to_bytes(temp_value, byte_count, byteorder="little", signed=False)
-        if self.endian == "big":
-            self._value = struct.unpack(">f", my_bytes)[0]
-        else:
-            self._value = struct.unpack("<f", my_bytes)[0]
-        my_bits = bitarray()
+        my_bits = bitarray(endian="little")
         my_bits.frombytes(my_bytes)
         self._bits = my_bits[-self.bit_count :]  # noqa
         if len(bits) >= self.bit_count:
             return bits[: -self.bit_count]  # noqa
         else:
-            return bitarray()
+            return bitarray(endian="little")
 
-    @property
-    def value(self) -> float:
-        return self._value
+    def _get_value(self) -> float | None:
+        if len(self.bits) == 0:
+            return None
+        b = self.bits.tobytes()
+        if self.endian == "little":
+            return struct.unpack("<f", b)[0]
+        else:
+            return struct.unpack(">f", b)[0]
 
-    @value.setter
-    def value(self, value: float) -> None:
+    def _set_value(self, value: float) -> None:
         if not isinstance(value, float):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        bits = bitarray()
+        bits = bitarray(endian="little")
         if self.endian == "little":
             bytes_val = struct.pack("<f", value)
         else:
             bytes_val = struct.pack(">f", value)
         bits.frombytes(bytes_val)
         self._bits = bits
-        self._value = value
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.

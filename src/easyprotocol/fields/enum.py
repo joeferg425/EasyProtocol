@@ -1,11 +1,9 @@
 from __future__ import annotations
-import math
 from easyprotocol.base.parse_object import InputT
 
 from easyprotocol.fields.unsigned_int import UIntField
 from typing import Literal, TypeVar, Generic
 from enum import IntEnum
-from bitarray import bitarray
 
 E = TypeVar("E", IntEnum, IntEnum)
 
@@ -29,23 +27,18 @@ class EnumField(UIntField, Generic[E]):
             endian=endian,
         )
 
-    @property
-    def value(self) -> E:
-        if self._value is None:
-            return self.enum_type(0)
-        else:
-            return self.enum_type(self._value)
+    def _get_value(self) -> int | None:
+        v = super()._get_value()
+        if v is None:
+            return None
+        return self.enum_type(v)
 
-    @value.setter
-    def value(self, value: int | E) -> None:
-        if not isinstance(value, (int, E)):
-            raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        bits = bitarray()
-        byte_count = math.ceil(self.bit_count / 8)
-        bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=False))
-        self._bits = bits[-self.bit_count :]  # noqa
-        mask = (2**self.bit_count) - 1
-        self._value = value & mask
+    def _set_value(self, value: E | int) -> None:
+        if isinstance(value, type(E)):
+            _value = value.value
+        else:
+            _value = value
+        super()._set_value(_value)
 
     @property
     def formatted_value(self) -> str:

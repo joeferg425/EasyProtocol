@@ -47,7 +47,7 @@ class TestParseList:
     def test_parselist_create_empty(self) -> None:
         value: list[Any] = []
         byte_data = b""
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         tst = TestData(
             name="test",
             value=value,
@@ -69,13 +69,13 @@ class TestParseList:
     def test_parselist_create_children_list(self) -> None:
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f1_name = "f1"
         f1 = UInt8Field(name=f1_name)
         f2_value = 0
         f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
-        f2_bits = bitarray()
+        f2_bits = bitarray(endian="little")
         f2_bits.frombytes(f2_data)
         f2_name = "f2"
         f2 = UInt8Field(name=f2_name)
@@ -105,13 +105,13 @@ class TestParseList:
     def test_parselist_create_children_dict(self) -> None:
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f1_name = "f1"
         f1 = UInt8Field(name=f1_name)
         f2_value = 0
         f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
-        f2_bits = bitarray()
+        f2_bits = bitarray(endian="little")
         f2_bits.frombytes(f2_data)
         f2_name = "f2"
         f2 = UInt8Field(name=f2_name)
@@ -140,7 +140,7 @@ class TestParseList:
     def test_parselist_create_parse_single_field(self) -> None:
         f1_value = 255
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f1_name = "f1"
         f1 = UInt8Field(name=f1_name)
@@ -170,24 +170,24 @@ class TestParseList:
     def test_parselist_create_parse_multi_field(self) -> None:
         init_value = 0
         init_data = int.to_bytes(init_value, length=1, byteorder="big", signed=False)
-        init_bits = bitarray()
+        init_bits = bitarray(endian="little")
         init_bits.frombytes(init_data)
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
-        f2_bits = bitarray()
+        f2_bits = bitarray(endian="little")
         f2_bits.frombytes(f2_data)
         f2 = UInt8Field(name=f2_name)
         f3_name = "f3"
         f3_value = 204
         f3_data = b"\xcc"
-        f3_bits = bitarray()
+        f3_bits = bitarray(endian="little")
         f3_bits.frombytes(f3_data)
         f3 = UInt8Field(name=f3_name)
         byte_data = f1_data + f2_data + f3_data
@@ -218,7 +218,7 @@ class TestParseList:
         name1 = "test"
         name2 = "new_name"
         byte_data = b""
-        bits_data = bitarray()
+        bits_data = bitarray(endian="little")
         values: list[Any] = []
         tst = TestData(
             name=name1,
@@ -247,21 +247,21 @@ class TestParseList:
     def test_parselist_set_value(self) -> None:
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray()
+        f1_bits = bitarray(endian="little")
         f1_bits.frombytes(f1_data)
         f2_value = 2
         f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
-        f2_bits = bitarray()
+        f2_bits = bitarray(endian="little")
         f2_bits.frombytes(f2_data)
         f3_value = 20
         f3_data = int.to_bytes(f3_value, length=1, byteorder="big", signed=False)
-        f3_bits = bitarray()
+        f3_bits = bitarray(endian="little")
         f3_bits.frombytes(f3_data)
         f1_name = "f1"
         f2_name = "f2"
         f1 = UInt8Field(name=f1_name, value=f1_value)
         f2 = UInt8Field(name=f2_name, value=f2_value)
-        bits_data1 = bitarray()
+        bits_data1 = bitarray(endian="little")
         bits_data2 = f1_bits
         bits_data3 = f2_bits
         bits_data4 = f3_bits

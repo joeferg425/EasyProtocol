@@ -46,7 +46,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
             NotImplementedError: if not implemented for this field
         """
         bit_data = input_to_bytes(data=data)
-        for key, field in self._children.items():
+        for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data
 
@@ -63,8 +63,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
     def name(self, name: str) -> None:
         self._name = name
 
-    @property
-    def value(
+    def _get_value(
         self,
     ) -> dict[str, Any] | OrderedDict[str, Any]:
         """Get the parsed value of the field.
@@ -74,8 +73,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         """
         return {k: v.value for k, v in self._children.items()}
 
-    @value.setter
-    def value(
+    def _set_value(
         self,
         value: OrderedDict[str, ParseObject[Any]] | OrderedDict[str, Any],
     ) -> None:
@@ -96,7 +94,7 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
         Returns:
             the bytes value of the field
         """
-        data = bitarray()
+        data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
             data += value.bits

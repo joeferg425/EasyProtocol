@@ -78,7 +78,7 @@ def parseobject_value(
 ) -> None:
     assert (
         obj.value == tst.value
-    ), f"{obj}: obj.value is not the expected value ({obj.value:X} != expected value: {tst.value:X})"
+    ), f"{obj}: obj.value is not the expected value ({obj.value} != expected value: {tst.value})"
 
 
 def parseobject_strings(
@@ -131,7 +131,7 @@ class TestParseObject:
             value=None,
             format="{}",
             byte_data=b"",
-            bits_data=bitarray(),
+            bits_data=bitarray(endian="little"),
             parent=None,
             endian="big",
             children=OrderedDict(),
@@ -160,7 +160,7 @@ class TestParseObject:
             value=None,
             format="{}",
             byte_data=b"",
-            bits_data=bitarray(),
+            bits_data=bitarray(endian="little"),
             parent=None,
             endian="big",
             children=OrderedDict(),
@@ -184,7 +184,7 @@ class TestParseObject:
             value=None,
             format="{}",
             byte_data=b"",
-            bits_data=bitarray(),
+            bits_data=bitarray(endian="little"),
             parent=None,
             endian="big",
             children=OrderedDict(),
@@ -194,14 +194,8 @@ class TestParseObject:
             obj=obj,
             tst=tst,
         )
-        tst.value = 1
-        obj._value = tst.value
-        parseobject_tests(
-            obj=obj,
-            tst=tst,
-        )
         with pytest.raises(NotImplementedError):
-            obj.value = tst.value
+            obj.value = 1
 
     def test_parseobject_set_bits(self) -> None:
         tst = TestData(
@@ -209,7 +203,7 @@ class TestParseObject:
             format="{}",
             value=None,
             byte_data=b"",
-            bits_data=bitarray(),
+            bits_data=bitarray(endian="little"),
             parent=None,
             endian="big",
             children=OrderedDict(),
@@ -220,7 +214,7 @@ class TestParseObject:
             tst=tst,
         )
         tst.byte_data = b"\x01"
-        tst.bits_data = bitarray()
+        tst.bits_data = bitarray(endian="little")
         tst.bits_data.frombytes(tst.byte_data)
         obj._bits = tst.bits_data
         parseobject_tests(
@@ -236,7 +230,7 @@ class TestParseObject:
             format="{}",
             value=None,
             byte_data=b"",
-            bits_data=bitarray(),
+            bits_data=bitarray(endian="little"),
             parent=None,
             children=OrderedDict(),
             endian="big",
@@ -260,7 +254,7 @@ class TestParseObject:
             format="{}",
             value=None,
             byte_data=b"",
-            bits_data=bitarray(),
+            bits_data=bitarray(endian="little"),
             parent=None,
             endian="big",
             children=OrderedDict(),

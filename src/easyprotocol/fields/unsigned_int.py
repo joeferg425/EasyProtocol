@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Literal
 from bitarray import bitarray
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 import math
 
@@ -25,7 +25,7 @@ class UIntField(ParseObject[int]):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = UINT_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
         init_to_zero: bool = True,
     ) -> None:
         self.bit_count = bit_count
@@ -51,9 +51,13 @@ class UIntField(ParseObject[int]):
         )
         _bit_mask = (2**self.bit_count) - 1
         bit_mask = bitarray(endian="little")
-        bit_mask.frombytes(int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="big", signed=False))
+        bit_mask.frombytes(
+            int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="little", signed=False)
+        )
         if len(bit_mask) < len(bits):
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
+        elif len(bit_mask) > len(bits):
+            bit_mask = bit_mask[: len(bits)]
         if len(bits) < len(bit_mask):
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self.bit_count]
@@ -124,6 +128,7 @@ class BoolField(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
+        init_to_false: bool = True,
     ) -> None:
         super().__init__(
             name=name,
@@ -131,8 +136,11 @@ class BoolField(UIntField):
             data=data,
             value=value,
             format="{}",
-            endian="big",
+            endian="little",
+            init_to_zero=False,
         )
+        if self.value is None and init_to_false is True:
+            self.value = False
 
     @property
     def value(self) -> bool | None:
@@ -161,7 +169,7 @@ class UInt8Field(UIntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = UINT8_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -182,7 +190,7 @@ class UInt16Field(UIntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = UINT16_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -203,7 +211,7 @@ class UInt24Field(UIntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = UINT24_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -224,7 +232,7 @@ class UInt32Field(UIntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = UINT32_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -245,7 +253,7 @@ class UInt64Field(UIntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = UINT64_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,

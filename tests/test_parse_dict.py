@@ -1,11 +1,13 @@
 from __future__ import annotations
 from collections import OrderedDict
-from typing import Any, Literal
+import struct
+from typing import Any
 import pytest
 from easyprotocol.base.parse_dict import ParseDict
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields import UInt8Field
 from bitarray import bitarray
+from easyprotocol.fields.unsigned_int import UIntField
 from test_parse_object import check_parseobject_properties, check_parseobject_children, check_parseobject, TestData
 
 
@@ -67,7 +69,7 @@ class TestParseDict:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict(),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -96,7 +98,7 @@ class TestParseDict:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict({f1.name: f1}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -125,7 +127,7 @@ class TestParseDict:
             format="{}",
             parent=None,
             children=OrderedDict({f1.name: f1}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -139,7 +141,6 @@ class TestParseDict:
         )
 
     def test_parsedict_create_parse_multi_field(self) -> None:
-        endian: Literal["big", "little"] = "big"
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
@@ -171,7 +172,7 @@ class TestParseDict:
             bits_data=bits_data,
             parent=None,
             children=children,
-            endian=endian,
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -188,7 +189,7 @@ class TestParseDict:
                 byte_data=f1_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parseobject(
@@ -201,7 +202,7 @@ class TestParseDict:
                 byte_data=f2_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parseobject(
@@ -214,7 +215,7 @@ class TestParseDict:
                 byte_data=f3_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parsedict(
@@ -248,7 +249,7 @@ class TestParseDict:
             bits_data=bits_data1,
             parent=None,
             children=OrderedDict({f1_name: f1}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -271,7 +272,6 @@ class TestParseDict:
         )
 
     def test_parsedict_parse_multi_field(self) -> None:
-        endian: Literal["big", "little"] = "big"
         u_data = b"\x00"
         u_bits = bitarray(endian="little")
         u_bits.frombytes(u_data)
@@ -317,7 +317,7 @@ class TestParseDict:
             bits_data=bits_data1,
             parent=None,
             children=children1,
-            endian=endian,
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -336,7 +336,7 @@ class TestParseDict:
                 byte_data=init_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parseobject(
@@ -349,7 +349,7 @@ class TestParseDict:
                 byte_data=init_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parseobject(
@@ -362,7 +362,7 @@ class TestParseDict:
                 byte_data=init_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parsedict(
@@ -386,7 +386,7 @@ class TestParseDict:
                 byte_data=f1_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parseobject(
@@ -399,7 +399,7 @@ class TestParseDict:
                 byte_data=f2_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parseobject(
@@ -412,7 +412,130 @@ class TestParseDict:
                 byte_data=f3_data,
                 parent=obj,
                 children=f_children,
-                endian=endian,
+                endian=DEFAULT_ENDIANNESS,
+            ),
+        )
+        check_parsedict(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_parsedict_parse_multi_bit_field_little_endian(self) -> None:
+        f1_bit_count = 2
+        f1_name = "f1"
+        f1_value = 0b11
+        f1_byte = struct.pack("B", f1_value)
+        f1_bits = bitarray(endian="little")
+        f1_bits.frombytes(f1_byte)
+        f1_bits = f1_bits[:f1_bit_count]
+        f1 = UIntField(
+            name=f1_name,
+            bit_count=f1_bit_count,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+        f2_bit_count = 5
+        f2_name = "f2"
+        f2_value = 0b00000
+        f2_data = struct.pack("B", f2_value)
+        f2_bits = bitarray(endian="little")
+        f2_bits.frombytes(f2_data)
+        f2_bits = f2_bits[:f2_bit_count]
+        f2 = UIntField(
+            name=f2_name,
+            bit_count=f2_bit_count,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+        f3_bit_count = 9
+        f3_name = "f3"
+        f3_value = 0b111111111
+        f3_data = struct.pack("<H", f3_value)
+        f3_bits = bitarray(endian="little")
+        f3_bits.frombytes(f3_data)
+        f3_bits = f3_bits[:f3_bit_count]
+        f3 = UIntField(
+            name=f3_name,
+            bit_count=f3_bit_count,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+        f_children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
+
+        left_over = bitarray(endian="little")
+        byte_data1 = b"\x00\x00"
+        byte_data2 = b"\x83\xFF"
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        values1: OrderedDict[str, Any] = OrderedDict({f1_name: 0, f2_name: 0, f3_name: 0})
+        values2: OrderedDict[str, Any] = OrderedDict({f1_name: f1_value, f2_name: f2_value, f3_name: f3_value})
+        children1: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1_name: f1, f2_name: f2, f3_name: f3})
+        children2: OrderedDict[str, ParseObject[Any]] = OrderedDict({f1_name: f1, f2_name: f2, f3_name: f3})
+        tst = TestData(
+            name="test",
+            value=values1,
+            format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=children1,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        obj = ParseDict(
+            name=tst.name,
+            children=OrderedDict(
+                {
+                    f1.name: f1,
+                    f2.name: f2,
+                    f3.name: f3,
+                }
+            ),
+        )
+        remainder = obj.parse(byte_data2)
+        assert remainder == left_over
+        tst.value = values2
+        tst.children = children2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        check_parseobject(
+            obj=f1,
+            tst=TestData(
+                name=f1_name,
+                value=f1_value,
+                format=f1.format,
+                bits_data=f1_bits,
+                byte_data=f1_byte,
+                parent=obj,
+                children=f_children,
+                endian=DEFAULT_ENDIANNESS,
+            ),
+        )
+        check_parseobject(
+            obj=f2,
+            tst=TestData(
+                name=f2_name,
+                value=f2_value,
+                format=f2.format,
+                bits_data=f2_bits,
+                byte_data=f2_data,
+                parent=obj,
+                children=f_children,
+                endian=DEFAULT_ENDIANNESS,
+            ),
+        )
+        check_parseobject(
+            obj=f3,
+            tst=TestData(
+                name=f3_name,
+                value=f3_value,
+                format=f3.format,
+                bits_data=f3_bits,
+                byte_data=f3_data,
+                parent=obj,
+                children=f_children,
+                endian=DEFAULT_ENDIANNESS,
             ),
         )
         check_parsedict(
@@ -434,7 +557,7 @@ class TestParseDict:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict(),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -478,7 +601,7 @@ class TestParseDict:
             bits_data=bits_data1,
             parent=None,
             children=children1,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
 
         obj = ParseDict(
@@ -537,7 +660,7 @@ class TestParseDict:
             bits_data=bits_data1,
             parent=None,
             children=children1,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseDict(
             name=tst.name,
@@ -580,7 +703,7 @@ class TestParseDict:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=children1,
         )
         obj = ParseDict(

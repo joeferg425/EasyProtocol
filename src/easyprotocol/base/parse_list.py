@@ -49,7 +49,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
             NotImplementedError: if not implemented for this field
         """
         bit_data = input_to_bytes(data=data)
-        for name, field in self._children.items():
+        for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data
 

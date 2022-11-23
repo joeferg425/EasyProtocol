@@ -1,6 +1,7 @@
 from __future__ import annotations
 import math
 from typing import Literal
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import InputT
 from easyprotocol.fields.unsigned_int import UIntField
 from crc import Configuration, CrcCalculator
@@ -17,7 +18,7 @@ class ChecksumField(UIntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = "{:X}(hex)",
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -38,7 +39,7 @@ class ChecksumField(UIntField):
             byte_data = data
         crc_int = self.crc_calculator.calculate_checksum(byte_data)
         byte_length = math.ceil(self.bit_count / 8)
-        crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="big")
+        crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")
         crc_int = int.from_bytes(crc_bytes, byteorder=self._endian, signed=False)
         crc_bits = int2ba(crc_int, length=self.bit_count)
         self.value = crc_int

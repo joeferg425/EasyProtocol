@@ -1,5 +1,5 @@
 import struct
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields.enum import EnumField
 from enum import IntEnum
 import pytest
@@ -66,7 +66,7 @@ class TestEnumerating(IntEnum):
 
 
 class TestEnums:
-    def test_enum_create_empty(self) -> None:
+    def test_enum_create_empty_big_endian(self) -> None:
         value = TestEnumerating.ZERO
         bit_count = 2
         byte_data = struct.pack("B", value.value)
@@ -80,7 +80,34 @@ class TestEnums:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = EnumField(
+            name=tst.name,
+            bit_count=bit_count,
+            enum_type=TestEnumerating,
+        )
+        check_enum(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_enum_create_empty_little_endian(self) -> None:
+        value = TestEnumerating.ZERO
+        bit_count = 2
+        byte_data = struct.pack("B", value.value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:bit_count]
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -107,7 +134,7 @@ class TestEnums:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -129,7 +156,6 @@ class TestEnums:
         bits_data1.frombytes(byte_data1)
         bits_data1 = bits_data1[:bit_count]
         value2 = TestEnumerating.THREE
-        bit_count2 = 2
         byte_data2 = struct.pack("B", value2.value)
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
@@ -141,7 +167,7 @@ class TestEnums:
             byte_data=byte_data2,
             bits_data=bits_data2,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -156,7 +182,6 @@ class TestEnums:
         )
 
     def test_enum_create_invalid(self) -> None:
-
         with pytest.raises(ValueError):
             EnumField(
                 name="enum",
@@ -179,7 +204,7 @@ class TestEnums:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -219,7 +244,7 @@ class TestEnums:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -261,7 +286,7 @@ class TestEnums:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -298,7 +323,7 @@ class TestEnums:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(
@@ -319,7 +344,7 @@ class TestEnums:
             tst=tst,
         )
 
-    def test_flags_set_children(self) -> None:
+    def test_enum_set_children(self) -> None:
         value = TestEnumerating.TWO
         bit_count = 4
         byte_data = struct.pack("B", value.value)
@@ -333,7 +358,7 @@ class TestEnums:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = EnumField(

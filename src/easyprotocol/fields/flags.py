@@ -1,5 +1,5 @@
 from __future__ import annotations
-from easyprotocol.base.parse_object import InputT
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, InputT
 
 from easyprotocol.fields.unsigned_int import UIntField
 from typing import Literal, TypeVar, Generic
@@ -17,7 +17,7 @@ class FlagsField(UIntField, Generic[F]):
         data: InputT | None = None,
         value: int | None = None,
         format: str = "{}",
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
         init_value: bool = True,
     ) -> None:
         self._flags_type = flags_type
@@ -77,7 +77,7 @@ class UInt8FlagsField(FlagsField):
         enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -96,7 +96,7 @@ class UInt16FlagsField(FlagsField):
         enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -115,7 +115,7 @@ class UInt24FlagsField(FlagsField):
         enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -134,7 +134,7 @@ class UInt32FlagsField(FlagsField):
         enum_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,

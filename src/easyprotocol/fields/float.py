@@ -2,7 +2,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Literal
 from bitarray import bitarray
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 import math
 import struct
@@ -20,7 +20,7 @@ class FloatField(ParseObject[float]):
         data: InputT | None = None,
         value: float | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         self.bit_count = bit_count
         super().__init__(
@@ -44,7 +44,7 @@ class Float32IEEField(FloatField):
         data: InputT | None = None,
         value: float | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name,
@@ -67,7 +67,9 @@ class Float32IEEField(FloatField):
         )
         _bit_mask = (2**self.bit_count) - 1
         bit_mask = bitarray(endian="little")
-        bit_mask.frombytes(int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="big", signed=False))
+        bit_mask.frombytes(
+            int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="little", signed=False)
+        )
         if len(bit_mask) < len(bits):
             bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
         if len(bits) < len(bit_mask):

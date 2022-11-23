@@ -6,6 +6,8 @@ from bitarray import bitarray
 from easyprotocol.base.utils import T, InputT
 from enum import Enum
 
+DEFAULT_ENDIANNESS: Literal["big", "little"] = "little"
+
 
 class ParseObject(SupportsBytes, Generic[T]):
     """The base parsing object for handling parsing in a convenient package."""
@@ -17,7 +19,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         value: T | None = None,
         format: str | None = None,
         parent: ParseObject[Any] = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 

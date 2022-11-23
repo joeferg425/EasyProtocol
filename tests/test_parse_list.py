@@ -1,11 +1,13 @@
 from __future__ import annotations
 from collections import OrderedDict
+import struct
 from typing import Any
 import pytest
 from easyprotocol.base.parse_list import ParseList
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields import UInt8Field
 from bitarray import bitarray
+from easyprotocol.fields.unsigned_int import UIntField
 from test_parse_object import check_parseobject_properties, check_parseobject_children, TestData
 
 
@@ -61,7 +63,7 @@ class TestParseList:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict(),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
@@ -96,7 +98,7 @@ class TestParseList:
             format="{}",
             parent=None,
             children=OrderedDict({f1.name: f1, f2.name: f2}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
@@ -131,7 +133,7 @@ class TestParseList:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict({f1.name: f1, f2.name: f2}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
@@ -160,7 +162,7 @@ class TestParseList:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict({f1.name: f1}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
@@ -206,11 +208,85 @@ class TestParseList:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
             children=[f1, f2, f3],
+            data=tst.byte_data,
+        )
+
+        parselist_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_parselist_create_parse_multi_bit_field(self) -> None:
+        f1_name = "f1"
+        f1_bit_count = 6
+        f1_value = 0x3F
+        f1_byte = struct.pack("B", f1_value)
+        f1_bits = bitarray(endian="little")
+        f1_bits.frombytes(f1_byte)
+        f1_bits = f1_bits[:f1_bit_count]
+        f1 = UIntField(
+            name=f1_name,
+            bit_count=f1_bit_count,
+        )
+
+        f2_bit_count = 6
+        f2_name = "f2"
+        f2_value = 0x00
+        f2_data = struct.pack("B", f2_value)
+        f2_bits = bitarray(endian="little")
+        f2_bits.frombytes(f2_data)
+        f2_bits = f2_bits[:f2_bit_count]
+        f2 = UIntField(
+            name=f2_name,
+            bit_count=f1_bit_count,
+        )
+
+        f3_bit_count = 6
+        f3_name = "f3"
+        f3_value = 0x3F
+        f3_data = struct.pack("B", f3_value)
+        f3_bits = bitarray(endian="little")
+        f3_bits.frombytes(f3_data)
+        f3_bits = f3_bits[:f3_bit_count]
+        f3 = UIntField(
+            name=f3_name,
+            bit_count=f1_bit_count,
+        )
+
+        f4_bit_count = 6
+        f4_name = "f4"
+        f4_value = 0x00
+        f4_data = struct.pack("B", f4_value)
+        f4_bits = bitarray(endian="little")
+        f4_bits.frombytes(f4_data)
+        f4_bits = f4_bits[:f4_bit_count]
+        f4 = UIntField(
+            name=f4_name,
+            bit_count=f1_bit_count,
+        )
+
+        byte_data = b"\x3F\xF0\x03"
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        values = [f1_value, f2_value, f3_value, f4_value]
+        tst = TestData(
+            name="test",
+            value=values,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3, f4.name: f4}),
+            endian=DEFAULT_ENDIANNESS,
+        )
+        obj = ParseList(
+            name=tst.name,
+            children=[f1, f2, f3, f4],
             data=tst.byte_data,
         )
 
@@ -241,7 +317,7 @@ class TestParseList:
             bits_data=bits_data1,
             parent=None,
             children=OrderedDict({f1.name: f1}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
@@ -299,7 +375,7 @@ class TestParseList:
             bits_data=bits_data1,
             parent=None,
             children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
 
         obj = ParseList(
@@ -334,7 +410,7 @@ class TestParseList:
             bits_data=bits_data,
             parent=None,
             children=OrderedDict(),
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseList(
             name=tst.name,
@@ -391,7 +467,7 @@ class TestParseList:
             bits_data=bits_data1,
             parent=None,
             children=children1,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
         )
 
         obj = ParseList(

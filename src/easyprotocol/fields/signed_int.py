@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, Literal
 from bitarray import bitarray
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 import math
 
@@ -26,7 +26,8 @@ class IntField(ParseObject[int]):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = INT_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        init_to_zero: bool = True,
     ) -> None:
         self.bit_count = bit_count
         super().__init__(
@@ -36,7 +37,7 @@ class IntField(ParseObject[int]):
             format=format,
             endian=endian,
         )
-        if self.value is None:
+        if self.value is None and init_to_zero is True:
             self.value = 0
 
     def parse(self, data: InputT) -> bitarray:
@@ -51,9 +52,13 @@ class IntField(ParseObject[int]):
         )
         _bit_mask = (2**self.bit_count) - 1
         bit_mask = bitarray(endian="little")
-        bit_mask.frombytes(int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="big", signed=False))
+        bit_mask.frombytes(
+            int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="little", signed=False)
+        )
         if len(bit_mask) < len(bits):
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
+        elif len(bit_mask) > len(bits):
+            bit_mask = bit_mask[: len(bits)]
         if len(bits) < len(bit_mask):
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self.bit_count]
@@ -80,7 +85,7 @@ class IntField(ParseObject[int]):
         my_bytes = int.to_bytes(value, length=byte_count, byteorder=self.endian, signed=True)
         bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
-        self._bits = bits
+        self._bits = bits[:self.bit_count]
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -127,7 +132,7 @@ class Int8Field(IntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = INT8_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -148,7 +153,7 @@ class Int16Field(IntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = INT16_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -169,7 +174,7 @@ class Int24Field(IntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = INT24_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -190,7 +195,7 @@ class Int32Field(IntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = INT32_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -211,7 +216,7 @@ class Int64Field(IntField):
         data: InputT | None = None,
         value: int | None = None,
         format: str | None = INT64_STRING_FORMAT,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,

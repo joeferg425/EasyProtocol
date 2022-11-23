@@ -1,5 +1,5 @@
 import struct
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields.flags import FlagsField
 from enum import IntFlag
 import pytest
@@ -61,10 +61,12 @@ class TestingFlags(IntFlag):
 
 class TestFlags:
     def test_flags_create_empty(self) -> None:
+        bit_count = 2
         value = TestingFlags.NONE
         byte_data = struct.pack("B", value.value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
+        bits_data = bits_data[:bit_count]
         tst = TestData(
             name="test",
             value=value,
@@ -72,12 +74,12 @@ class TestFlags:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
             name=tst.name,
-            bit_count=2,
+            bit_count=bit_count,
             flags_type=TestingFlags,
         )
         check_flags(
@@ -99,7 +101,7 @@ class TestFlags:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -127,7 +129,7 @@ class TestFlags:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -160,7 +162,7 @@ class TestFlags:
             byte_data=byte_data2,
             bits_data=bits_data2,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -197,7 +199,7 @@ class TestFlags:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -237,7 +239,7 @@ class TestFlags:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -279,7 +281,7 @@ class TestFlags:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -316,7 +318,7 @@ class TestFlags:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(
@@ -351,7 +353,7 @@ class TestFlags:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            endian="big",
+            endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
         obj = FlagsField(

@@ -78,7 +78,7 @@ class ModbusByteCount(UInt8Field):
             name=ModbusFieldNames.ByteCount,
             data=data,
             value=value,
-            endian="little",
+            endian="big",
             format="{}",
         )
 
@@ -148,25 +148,6 @@ class ModbusCoilArray(ArrayField):
             bit_data = f.parse(data=bit_data)
             self.append(f)
         return bit_data
-
-    @property
-    def bits(self) -> bitarray:
-        """Get the bytes value of the field.
-
-        Returns:
-            the bytes value of the field
-        """
-        data = bitarray(endian="little")
-        values = list(self._children.values())
-        for value in values:
-            data = value.bits + data
-        b_big_endian = data.tobytes()
-        byte_count = math.ceil(len(data) / 8)
-        temp_int = int.from_bytes(b_big_endian, byteorder="big", signed=False)
-        b_little_endian = int.to_bytes(temp_int, length=byte_count, byteorder="little", signed=False)
-        data = bitarray(endian="little")
-        data.frombytes(b_little_endian)
-        return data
 
     @property
     def formatted_value(self) -> str:

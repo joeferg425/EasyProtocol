@@ -20,7 +20,7 @@ class CharField(UInt8Field):
             data=data,
             value=value,
             format=format,
-            endian="big",
+            endian="little",
         )
         self._string_encoding = string_encoding
 
@@ -88,7 +88,7 @@ class ByteField(UInt8Field):
             data=data,
             value=value,
             format=format,
-            endian="big",
+            endian="little",
         )
         self._string_encoding = string_encoding
 

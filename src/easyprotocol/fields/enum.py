@@ -1,5 +1,5 @@
 from __future__ import annotations
-from easyprotocol.base.parse_object import InputT
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, InputT
 
 from easyprotocol.fields.unsigned_int import UIntField
 from typing import Literal, TypeVar, Generic
@@ -16,7 +16,7 @@ class EnumField(UIntField, Generic[E]):
         enum_type: type[E],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
         format: str = "{}",
     ) -> None:
         self._enum_type = enum_type
@@ -72,7 +72,7 @@ class UInt8EnumField(EnumField):
         enum_type: type[E],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -91,7 +91,7 @@ class UInt16EnumField(EnumField):
         enum_type: type[E],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -110,7 +110,7 @@ class UInt24EnumField(EnumField):
         enum_type: type[E],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
@@ -129,7 +129,7 @@ class UInt32EnumField(EnumField):
         enum_type: type[E],
         data: InputT | None = None,
         value: int | None = None,
-        endian: Literal["little", "big"] = "big",
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,

@@ -126,6 +126,7 @@ def check_parseobject(
 
 class TestParseObject:
     def test_parseobject_create_empty(self) -> None:
+        endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
             value=None,
@@ -133,7 +134,7 @@ class TestParseObject:
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
-            endian="big",
+            endian=endian,
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
@@ -155,6 +156,7 @@ class TestParseObject:
             ParseObject(name=name, value=value)
 
     def test_parseobject_set_name(self) -> None:
+        endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
             value=None,
@@ -162,7 +164,7 @@ class TestParseObject:
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
-            endian="big",
+            endian=endian,
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
@@ -179,6 +181,7 @@ class TestParseObject:
         )
 
     def test_parseobject_set_value(self) -> None:
+        endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
             value=None,
@@ -186,7 +189,7 @@ class TestParseObject:
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
-            endian="big",
+            endian=endian,
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
@@ -198,6 +201,7 @@ class TestParseObject:
             obj.value = 1
 
     def test_parseobject_set_bits(self) -> None:
+        endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
             format="{}",
@@ -205,7 +209,7 @@ class TestParseObject:
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
-            endian="big",
+            endian=endian,
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
@@ -225,6 +229,7 @@ class TestParseObject:
             obj.bits = tst.bits_data
 
     def test_parseobject_set_parent(self) -> None:
+        endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
             format="{}",
@@ -233,7 +238,7 @@ class TestParseObject:
             bits_data=bitarray(endian="little"),
             parent=None,
             children=OrderedDict(),
-            endian="big",
+            endian=endian,
         )
         obj = ParseObject(name=tst.name)
         check_parseobject(
@@ -248,6 +253,7 @@ class TestParseObject:
         )
 
     def test_parseobject_set_children(self) -> None:
+        endian: Literal["big", "little"] = "little"
         child = ParseObject(name="child")
         tst = TestData(
             name="test",
@@ -256,7 +262,7 @@ class TestParseObject:
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
-            endian="big",
+            endian=endian,
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)

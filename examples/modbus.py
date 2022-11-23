@@ -78,7 +78,7 @@ def ReadCoils(check_crc: bool = False) -> None:
     print("│ │ │")
     print("│ │ ├─┐  Recalculating CRC")
     readCoilsResponse.crc.update()
-    print(f"│ │ │ ├─ parser:\t{readCoilsResponse}")
+    print(f"│ │ │ ├─ parser:\t\t{readCoilsResponse}")
     print(f"│ │ │ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
     print("│ │ ├─┘")
     print("│ ├─┘")

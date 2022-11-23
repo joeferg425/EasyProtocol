@@ -4,7 +4,7 @@ import struct
 from bitarray import bitarray
 from collections import OrderedDict
 from easyprotocol.base.parse_object import ParseObject
-from typing import Any
+from typing import Any, Literal
 from easyprotocol.fields.float import Float32Field, FloatField, FLOAT_STRING_FORMAT
 from test_parse_object import (
     check_parseobject_children,
@@ -22,6 +22,7 @@ TEST_VALUES_32_BIT_FLOAT_LE = [
             v,
         )[0],
         get_bitarray(v),
+        "little",
     )
     for v in TEST_VALUES_32_BIT
 ]
@@ -33,6 +34,7 @@ TEST_VALUES_32_BIT_FLOAT_BE = [
             v,
         )[0],
         get_bitarray(v),
+        "big",
     )
     for v in TEST_VALUES_32_BIT
 ]
@@ -165,11 +167,11 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value", "bits_data"],
+        ["byte_data", "value", "bits_data", "endian"],
         TEST_VALUES_32_BIT_FLOAT_BE,
     )
     def test_float32field_create_parse_bytes_big_endian(
-        self, byte_data: bytes, value: float, bits_data: bitarray
+        self, byte_data: bytes, value: float, bits_data: bitarray, endian: Literal["big", "little"]
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
@@ -194,11 +196,11 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value", "bits_data"],
+        ["byte_data", "value", "bits_data", "endian"],
         TEST_VALUES_32_BIT_FLOAT_LE,
     )
     def test_float32field_create_parse_bytes_little_endian(
-        self, byte_data: bytes, value: float, bits_data: bitarray
+        self, byte_data: bytes, value: float, bits_data: bitarray, endian: Literal["big", "little"]
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
@@ -223,11 +225,11 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value", "bits_data"],
+        ["byte_data", "value", "bits_data", "endian"],
         TEST_VALUES_32_BIT_FLOAT_BE,
     )
     def test_float32field_create_init_value_big_endian(
-        self, byte_data: bytes, value: float, bits_data: bitarray
+        self, byte_data: bytes, value: float, bits_data: bitarray, endian: Literal["big", "little"]
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
@@ -252,11 +254,11 @@ class TestFloat32:
         )
 
     @pytest.mark.parametrize(
-        ["byte_data", "value", "bits_data"],
+        ["byte_data", "value", "bits_data", "endian"],
         TEST_VALUES_32_BIT_FLOAT_LE,
     )
     def test_float32field_create_init_value_little_endian(
-        self, byte_data: bytes, value: float, bits_data: bitarray
+        self, byte_data: bytes, value: float, bits_data: bitarray, endian: Literal["big", "little"]
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)

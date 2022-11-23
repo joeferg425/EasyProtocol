@@ -6,7 +6,7 @@ from easyprotocol.base.parse_list import ParseList
 from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.fields import UInt8Field
 from bitarray import bitarray
-from test_parse_object import parseobject_properties, parseobject_children, TestData
+from test_parse_object import check_parseobject_properties, check_parseobject_children, TestData
 
 
 def parselist_value(
@@ -34,11 +34,11 @@ def parselist_tests(
     obj: ParseList,
     tst: TestData,
 ) -> None:
-    parseobject_properties(
+    check_parseobject_properties(
         obj=obj,
         tst=tst,
     )
-    parseobject_children(
+    check_parseobject_children(
         obj=obj,
         tst=tst,
     )
@@ -214,6 +214,107 @@ class TestParseList:
             data=tst.byte_data,
         )
 
+        parselist_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_parselist_parse_single_field(self) -> None:
+        f1_value = 255
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray(endian="little")
+        f1_bits.frombytes(f1_data)
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name)
+        byte_data1 = b"\x00"
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        values1 = [0]
+        byte_data2 = f1_data
+        bits_data2 = f1_bits
+        values2 = [f1_value]
+        tst = TestData(
+            name="test",
+            value=values1,
+            format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=OrderedDict({f1.name: f1}),
+            endian="big",
+        )
+        obj = ParseList(
+            name=tst.name,
+            children=[f1],
+        )
+        parselist_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.parse(data=byte_data2)
+        tst.value = values2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        parselist_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_parselist_parse_multi_field(self) -> None:
+        init_value = 0
+        init_data = int.to_bytes(init_value, length=1, byteorder="big", signed=False)
+        init_bits = bitarray(endian="little")
+        init_bits.frombytes(init_data)
+        f1_name = "f1"
+        f1_value = 170
+        f1_data = b"\xaa"
+        f1_bits = bitarray(endian="little")
+        f1_bits.frombytes(f1_data)
+        f1 = UInt8Field(name=f1_name)
+        f2_name = "f2"
+        f2_value = 187
+        f2_data = b"\xbb"
+        f2_bits = bitarray(endian="little")
+        f2_bits.frombytes(f2_data)
+        f2 = UInt8Field(name=f2_name)
+        f3_name = "f3"
+        f3_value = 204
+        f3_data = b"\xcc"
+        f3_bits = bitarray(endian="little")
+        f3_bits.frombytes(f3_data)
+        f3 = UInt8Field(name=f3_name)
+        byte_data1 = b"\x00\x00\x00"
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        values1 = [0, 0, 0]
+        byte_data2 = f1_data + f2_data + f3_data
+        bits_data2 = f1_bits + f2_bits + f3_bits
+        values2 = [f1_value, f2_value, f3_value]
+        tst = TestData(
+            name="test",
+            value=values1,
+            format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
+            endian="big",
+        )
+
+        obj = ParseList(
+            name=tst.name,
+            children=[f1, f2, f3],
+        )
+        parselist_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.parse(data=byte_data2)
+        tst.value = values2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
         parselist_tests(
             obj=obj,
             tst=tst,

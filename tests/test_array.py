@@ -11,7 +11,11 @@ class TestArray:
         f1_name = "count"
         f1 = UInt8Field(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(name=f2_name, count=f1, array_item_class=UInt8Field)
+        f2 = ArrayField(
+            name=f2_name,
+            count=f1,
+            array_item_class=UInt8Field,
+        )
         data = b"\x00"
         obj = ParseList(name=name, children=[f1, f2])
         obj.parse(data=data)

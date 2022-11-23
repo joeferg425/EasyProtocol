@@ -13,26 +13,32 @@ class FlagsField(UIntField, Generic[F]):
         self,
         name: str,
         bit_count: int,
-        enum_type: type[F],
+        flags_type: type[F],
         data: InputT | None = None,
         value: int | None = None,
+        format: str = "{}",
         endian: Literal["little", "big"] = "big",
+        init_value: bool = True,
     ) -> None:
-        self.enum_type = enum_type
+        self._flags_type = flags_type
         super().__init__(
             name=name,
             bit_count=bit_count,
             data=data,
             value=value,
             endian=endian,
+            format=format,
+            init_to_zero=False,
         )
+        if self.value is None and init_value is True:
+            self.value = flags_type[flags_type._member_names_[0]]
 
     def _get_value(self) -> F | None:
         v = super()._get_value()
         if v is None:
             return None
         else:
-            return self.enum_type(v)
+            return self._flags_type(v)
 
     def _set_value(self, value: F | int) -> None:
         if isinstance(value, type(F)):
@@ -48,7 +54,7 @@ class FlagsField(UIntField, Generic[F]):
         Returns:
             the value of the field with custom formatting
         """
-        return self.value.name
+        return "|".join([v.name for v in self._flags_type._member_map_.values() if v in self.value])
 
     @property
     def value(self) -> F | None:
@@ -76,7 +82,7 @@ class UInt8FlagsField(FlagsField):
         super().__init__(
             name=name,
             bit_count=8,
-            enum_type=enum_type,
+            flags_type=enum_type,
             data=data,
             value=value,
             endian=endian,
@@ -95,7 +101,7 @@ class UInt16FlagsField(FlagsField):
         super().__init__(
             name=name,
             bit_count=16,
-            enum_type=enum_type,
+            flags_type=enum_type,
             data=data,
             value=value,
             endian=endian,
@@ -114,7 +120,7 @@ class UInt24FlagsField(FlagsField):
         super().__init__(
             name=name,
             bit_count=24,
-            enum_type=enum_type,
+            flags_type=enum_type,
             data=data,
             value=value,
             endian=endian,
@@ -133,7 +139,7 @@ class UInt32FlagsField(FlagsField):
         super().__init__(
             name=name,
             bit_count=32,
-            enum_type=enum_type,
+            flags_type=enum_type,
             data=data,
             value=value,
             endian=endian,

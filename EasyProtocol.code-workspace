@@ -13,12 +13,14 @@
 			"bitarray",
 			"easyprotocol",
 			"frombytes",
+			"intfield",
 			"Modbus",
 			"parsedict",
 			"parselist",
 			"parseobject",
 			"pytest",
-			"tobytes"
+			"tobytes",
+			"uintfield"
 		],
 		"editor.gotoLocation.multipleDeclarations": "goto",
 		"editor.gotoLocation.multipleDefinitions": "goto",

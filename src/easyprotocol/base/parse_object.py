@@ -117,12 +117,10 @@ class ParseObject(SupportsBytes, Generic[T]):
     def parent(self, parent: ParseObject[Any]) -> None:
         self._parent = parent
 
-    @property
-    def children(self) -> OrderedDict[str, ParseObject[Any]]:
+    def _get_children(self) -> OrderedDict[str, ParseObject[Any]]:
         return self._children
 
-    @children.setter
-    def children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
         if isinstance(children, dict):
             for key, value in children.items():
                 self._children[key] = value
@@ -133,13 +131,31 @@ class ParseObject(SupportsBytes, Generic[T]):
                 value.parent = self
 
     @property
+    def children(self) -> OrderedDict[str, ParseObject[Any]]:
+        return self._get_children()
+
+    @children.setter
+    def children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+        self._set_children(children=children)
+
+    def _get_bits(self) -> bitarray:
+        return self._bits
+
+    def _set_bits(self, bits: bitarray) -> None:
+        raise NotImplementedError()
+
+    @property
     def bits(self) -> bitarray:
         """Get the bit value of the field.
 
         Returns:
             the bit value of the field
         """
-        return self._bits
+        return self._get_bits()
+
+    @bits.setter
+    def bits(self, bits: bitarray) -> None:
+        self._set_bits(bits)
 
     @property
     def bytes(self) -> bytes:

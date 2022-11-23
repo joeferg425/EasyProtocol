@@ -1,10 +1,18 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
-from typing import Literal
+from collections import OrderedDict
+from typing import Any, Literal
 from bitarray import bitarray
 from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 import math
+
+UINT_STRING_FORMAT = "{:X}(hex)"
+UINT8_STRING_FORMAT = "{:02X}(hex)"
+UINT16_STRING_FORMAT = "{:04X}(hex)"
+UINT24_STRING_FORMAT = "{:06X}(hex)"
+UINT32_STRING_FORMAT = "{:08X}(hex)"
+UINT64_STRING_FORMAT = "{:016X}(hex)"
 
 
 class UIntField(ParseObject[int]):
@@ -16,8 +24,9 @@ class UIntField(ParseObject[int]):
         bit_count: int,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:X}(hex)",
+        format: str | None = UINT_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
+        init_to_zero: bool = True,
     ) -> None:
         self.bit_count = bit_count
         super().__init__(
@@ -27,7 +36,7 @@ class UIntField(ParseObject[int]):
             format=format,
             endian=endian,
         )
-        if self.value is None:
+        if self.value is None and init_to_zero is True:
             self.value = 0
 
     def parse(self, data: InputT) -> bitarray:
@@ -71,7 +80,7 @@ class UIntField(ParseObject[int]):
         my_bytes = int.to_bytes(value, length=byte_count, byteorder=self.endian, signed=False)
         bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
-        self._bits = bits
+        self._bits = bits[: self.bit_count]
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -93,6 +102,20 @@ class UIntField(ParseObject[int]):
     @value.setter
     def value(self, value: int) -> None:
         self._set_value(value)
+
+    def _set_bits(self, bits: bitarray) -> None:
+        if not bits.endian == "little":
+            v = bits.tobytes()
+            _bits = bitarray(endian="little")
+            _bits.frombytes(v)
+        else:
+            _bits = bits
+        if len(_bits) < self.bit_count:
+            _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
+        self._bits = _bits[: self.bit_count]
+
+    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+        raise NotImplementedError()
 
 
 class BoolField(UIntField):
@@ -137,7 +160,7 @@ class UInt8Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:02X}(hex)",
+        format: str | None = UINT8_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -158,7 +181,7 @@ class UInt16Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:04X}(hex)",
+        format: str | None = UINT16_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -179,7 +202,7 @@ class UInt24Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:06X}(hex)",
+        format: str | None = UINT24_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -200,7 +223,7 @@ class UInt32Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:08X}(hex)",
+        format: str | None = UINT32_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -221,7 +244,7 @@ class UInt64Field(UIntField):
         name: str,
         data: InputT | None = None,
         value: int | None = None,
-        format: str | None = "{:016X}(hex)",
+        format: str | None = UINT64_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(

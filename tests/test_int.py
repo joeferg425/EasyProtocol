@@ -2,9 +2,10 @@ from collections import OrderedDict
 import struct
 from typing import Literal
 import pytest
-from easyprotocol.fields.signed_int import Int8Field, Int16Field, Int32Field, Int64Field, Int24Field
+from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.fields.signed_int import Int8Field, Int16Field, Int32Field, Int64Field, Int24Field, IntField
 from bitarray import bitarray
-from test_parse_object import parseobject_tests, TestData
+from test_parse_object import check_parseobject, TestData
 from test_uint import (
     TEST_VALUES_08_BIT,
     TEST_VALUES_16_BIT,
@@ -97,6 +98,230 @@ TEST_VALUES_64_BIT_INT_BE = [
 ]
 
 
+class TestIntField:
+    def test_intfield_create_empty_big_endian(self) -> None:
+        value = 0
+        byte_data = struct.pack(">b", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_intfield_create_empty_little_endian(self) -> None:
+        value = 0
+        byte_data = struct.pack("<b", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="little",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_intfield_set_name(self) -> None:
+        value = 0
+        byte_data = struct.pack("b", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+        tst.name = "new_name"
+        obj.name = tst.name
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_intfield_set_value(self) -> None:
+        value1 = 0
+        byte_data1 = struct.pack("b", value1)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        value2 = 100
+        byte_data2 = struct.pack("b", value2)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        tst = TestData(
+            name="test",
+            value=value1,
+            format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = value2
+        tst.value = value2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_intfield_set_bits(self) -> None:
+        value1 = 0
+        byte_data1 = struct.pack("b", value1)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        value2 = 100
+        byte_data2 = struct.pack("b", value2)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        tst = TestData(
+            name="test",
+            value=value1,
+            format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.bits = bits_data2
+        tst.value = value2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_intfield_set_parent(self) -> None:
+        value = 0
+        byte_data = struct.pack("b", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+        tst.parent = ParseObject(name="parent")
+        obj.parent = tst.parent
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_intfield_set_children(self) -> None:
+        child = ParseObject(name="child")
+        value = 0
+        byte_data = struct.pack("b", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = IntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+        with pytest.raises(NotImplementedError):
+            obj.children = OrderedDict({child.name: child})
+
+
 class TestInt08:
     def test_int8_create_empty_big_endian(self) -> None:
         value = 0
@@ -117,7 +342,7 @@ class TestInt08:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -141,7 +366,7 @@ class TestInt08:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -166,7 +391,7 @@ class TestInt08:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -195,7 +420,7 @@ class TestInt08:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -222,7 +447,7 @@ class TestInt08:
             data=tst.bits_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -249,7 +474,7 @@ class TestInt08:
             data=tst.bits_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -304,7 +529,7 @@ class TestInt08:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -331,7 +556,7 @@ class TestInt08:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -375,7 +600,7 @@ class TestInt16:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -399,7 +624,7 @@ class TestInt16:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -426,7 +651,7 @@ class TestInt16:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -453,7 +678,7 @@ class TestInt16:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -480,7 +705,7 @@ class TestInt16:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -507,7 +732,7 @@ class TestInt16:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -551,7 +776,7 @@ class TestInt24:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -575,7 +800,7 @@ class TestInt24:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -602,7 +827,7 @@ class TestInt24:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -629,7 +854,7 @@ class TestInt24:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -656,7 +881,7 @@ class TestInt24:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -683,7 +908,7 @@ class TestInt24:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -727,7 +952,7 @@ class TestInt32:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -751,7 +976,7 @@ class TestInt32:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -778,7 +1003,7 @@ class TestInt32:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -805,7 +1030,7 @@ class TestInt32:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -834,7 +1059,7 @@ class TestInt32:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -861,7 +1086,7 @@ class TestInt32:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -905,7 +1130,7 @@ class TestInt64:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -929,7 +1154,7 @@ class TestInt64:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -956,7 +1181,7 @@ class TestInt64:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -983,7 +1208,7 @@ class TestInt64:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -1010,7 +1235,7 @@ class TestInt64:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -1037,7 +1262,7 @@ class TestInt64:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )

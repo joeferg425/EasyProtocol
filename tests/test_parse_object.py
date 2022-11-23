@@ -19,7 +19,7 @@ class TestData:
     children: OrderedDict[str, ParseObject[Any]]
 
 
-def parseobject_properties(
+def check_parseobject_properties(
     obj: ParseObject[Any],
     tst: TestData,
 ) -> None:
@@ -42,7 +42,7 @@ def parseobject_properties(
     ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
 
 
-def parseobject_children(
+def check_parseobject_children(
     obj: ParseObject[Any],
     tst: TestData,
 ) -> None:
@@ -72,7 +72,7 @@ def parseobject_children(
     assert tst.name in repr(obj)
 
 
-def parseobject_value(
+def check_parseobject_value(
     obj: ParseObject[Any],
     tst: TestData,
 ) -> None:
@@ -81,7 +81,7 @@ def parseobject_value(
     ), f"{obj}: obj.value is not the expected value ({obj.value} != expected value: {tst.value})"
 
 
-def parseobject_strings(
+def check_parseobject_strings(
     obj: ParseObject[Any],
     tst: TestData,
 ) -> None:
@@ -102,23 +102,23 @@ def parseobject_strings(
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
 
 
-def parseobject_tests(
+def check_parseobject(
     obj: ParseObject[Any],
     tst: TestData,
 ) -> None:
-    parseobject_value(
+    check_parseobject_value(
         obj=obj,
         tst=tst,
     )
-    parseobject_properties(
+    check_parseobject_properties(
         obj=obj,
         tst=tst,
     )
-    parseobject_children(
+    check_parseobject_children(
         obj=obj,
         tst=tst,
     )
-    parseobject_strings(
+    check_parseobject_strings(
         obj=obj,
         tst=tst,
     )
@@ -137,7 +137,7 @@ class TestParseObject:
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -166,14 +166,14 @@ class TestParseObject:
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
         tst.name = "new_name"
         obj.name = tst.name
 
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -190,7 +190,7 @@ class TestParseObject:
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -209,7 +209,7 @@ class TestParseObject:
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -217,12 +217,12 @@ class TestParseObject:
         tst.bits_data = bitarray(endian="little")
         tst.bits_data.frombytes(tst.byte_data)
         obj._bits = tst.bits_data
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
-        with pytest.raises(AttributeError):
-            obj.bits = tst.byte_data  # type:ignore
+        with pytest.raises(NotImplementedError):
+            obj.bits = tst.bits_data
 
     def test_parseobject_set_parent(self) -> None:
         tst = TestData(
@@ -236,13 +236,13 @@ class TestParseObject:
             endian="big",
         )
         obj = ParseObject(name=tst.name)
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
         tst.parent = ParseObject(name="parent")
         obj.parent = tst.parent
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -260,13 +260,13 @@ class TestParseObject:
             children=OrderedDict(),
         )
         obj = ParseObject(name=tst.name)
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
         tst.children = OrderedDict({child.name: child})
         obj.children = tst.children
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )

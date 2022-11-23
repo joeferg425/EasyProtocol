@@ -49,8 +49,8 @@ class ArrayField(ParseList):
             self.append(f)
         return bit_data
 
-    def _get_value(self) -> T | None:
-        return list([v.value for f, v in self._children.items()])
+    def _get_value(self) -> list[T] | None:
+        return list([v.value for v in self._children.values()])
 
     @property
     def value(self) -> list[T]:
@@ -59,7 +59,7 @@ class ArrayField(ParseList):
         Returns:
             the value of the field
         """
-        self._get_value()
+        return self._get_value()
 
     def _set_value(self, value: T) -> None:
         if not isinstance(value, list):

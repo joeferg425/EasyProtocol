@@ -17,21 +17,23 @@ class EnumField(UIntField, Generic[E]):
         data: InputT | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = "big",
+        format: str = "{}",
     ) -> None:
-        self.enum_type = enum_type
+        self._enum_type = enum_type
         super().__init__(
             name=name,
             bit_count=bit_count,
             data=data,
             value=value,
             endian=endian,
+            format=format,
         )
 
     def _get_value(self) -> int | None:
         v = super()._get_value()
         if v is None:
             return None
-        return self.enum_type(v)
+        return self._enum_type(v)
 
     def _set_value(self, value: E | int) -> None:
         if isinstance(value, type(E)):

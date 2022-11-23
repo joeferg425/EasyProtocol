@@ -1,10 +1,13 @@
 from __future__ import annotations
-from typing import Literal
+from collections import OrderedDict
+from typing import Any, Literal
 from bitarray import bitarray
 from easyprotocol.base.parse_object import ParseObject
 from easyprotocol.base.utils import InputT, input_to_bytes
 import math
 import struct
+
+FLOAT_STRING_FORMAT = "{:.3e}"
 
 
 class FloatField(ParseObject[float]):
@@ -16,7 +19,7 @@ class FloatField(ParseObject[float]):
         bit_count: int,
         data: InputT | None = None,
         value: float | None = None,
-        format: str | None = "{:.3e}",
+        format: str | None = FLOAT_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         self.bit_count = bit_count
@@ -30,6 +33,9 @@ class FloatField(ParseObject[float]):
         if self.value is None:
             self.value = 0.0
 
+    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+        raise NotImplementedError()
+
 
 class Float32IEEField(FloatField):
     def __init__(
@@ -37,7 +43,7 @@ class Float32IEEField(FloatField):
         name: str,
         data: InputT | None = None,
         value: float | None = None,
-        format: str | None = "{:.3e}",
+        format: str | None = FLOAT_STRING_FORMAT,
         endian: Literal["little", "big"] = "big",
     ) -> None:
         super().__init__(
@@ -89,11 +95,11 @@ class Float32IEEField(FloatField):
     def _set_value(self, value: float) -> None:
         if not isinstance(value, float):
             raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        bits = bitarray(endian="little")
         if self.endian == "little":
-            bytes_val = struct.pack("<f", value)
+            bytes_val = bytearray(struct.pack("<f", value))
         else:
-            bytes_val = struct.pack(">f", value)
+            bytes_val = bytearray(struct.pack(">f", value))
+        bits = bitarray(endian="little")
         bits.frombytes(bytes_val)
         self._bits = bits
 
@@ -117,6 +123,20 @@ class Float32IEEField(FloatField):
     @value.setter
     def value(self, value: float) -> None:
         self._set_value(value)
+
+    def _set_bits(self, bits: bitarray) -> None:
+        if not bits.endian == "little":
+            v = bits.tobytes()
+            _bits = bitarray(endian="little")
+            _bits.frombytes(v)
+        else:
+            _bits = bits
+        if len(_bits) < self.bit_count:
+            _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
+        self._bits = _bits[: self.bit_count]
+
+    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+        raise NotImplementedError()
 
 
 class Float32Field(Float32IEEField):

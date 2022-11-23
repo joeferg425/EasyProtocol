@@ -1,9 +1,23 @@
 from collections import OrderedDict
 from typing import Literal
 import pytest
-from easyprotocol.fields.unsigned_int import UInt8Field, UInt16Field, UInt32Field, UInt64Field, UInt24Field
+from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.fields.unsigned_int import (
+    UInt8Field,
+    UInt16Field,
+    UInt32Field,
+    UInt64Field,
+    UInt24Field,
+    UIntField,
+    UINT64_STRING_FORMAT,
+    UINT16_STRING_FORMAT,
+    UINT24_STRING_FORMAT,
+    UINT32_STRING_FORMAT,
+    UINT8_STRING_FORMAT,
+    UINT_STRING_FORMAT,
+)
 from bitarray import bitarray
-from test_parse_object import parseobject_tests, TestData
+from test_parse_object import check_parseobject, TestData
 import struct
 
 
@@ -184,8 +198,8 @@ TEST_VALUES_64_BIT_UINT_BE = [
 ]
 
 
-class TestUInt08:
-    def test_uint8_create_empty_big_endian(self) -> None:
+class TestUIntField:
+    def test_uintfield_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">B", value)
         bits_data = bitarray(endian="little")
@@ -193,7 +207,231 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format="{:02X}(hex)",
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_uintfield_create_empty_little_endian(self) -> None:
+        value = 0
+        byte_data = struct.pack("<B", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="little",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_uintfield_set_name(self) -> None:
+        value = 0
+        byte_data = struct.pack("B", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+        tst.name = "new_name"
+        obj.name = tst.name
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_uintfield_set_value(self) -> None:
+        value1 = 0
+        byte_data1 = struct.pack("B", value1)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        value2 = 100
+        byte_data2 = struct.pack("B", value2)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        tst = TestData(
+            name="test",
+            value=value1,
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = value2
+        tst.value = value2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_uintfield_set_bits(self) -> None:
+        value1 = 0
+        byte_data1 = struct.pack("B", value1)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        value2 = 100
+        byte_data2 = struct.pack("b", value2)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        tst = TestData(
+            name="test",
+            value=value1,
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.bits = bits_data2
+        tst.value = value2
+        tst.byte_data = byte_data2
+        tst.bits_data = bits_data2
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_uintfield_set_parent(self) -> None:
+        value = 0
+        byte_data = struct.pack("B", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+        tst.parent = ParseObject(name="parent")
+        obj.parent = tst.parent
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_uintfield_set_children(self) -> None:
+        child = ParseObject(name="child")
+        value = 0
+        byte_data = struct.pack("B", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=UINT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian="big",
+            children=OrderedDict(),
+        )
+        obj = UIntField(
+            name=tst.name,
+            bit_count=8,
+            endian=tst.endian,
+            value=tst.value,
+        )
+        check_parseobject(
+            obj=obj,
+            tst=tst,
+        )
+        with pytest.raises(NotImplementedError):
+            obj.children = OrderedDict({child.name: child})
+
+
+class TestUInt08:
+    def test_uint8field_create_empty_big_endian(self) -> None:
+        value = 0
+        byte_data = struct.pack(">B", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -204,12 +442,12 @@ class TestUInt08:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint8_create_empty_little_endian(self) -> None:
+    def test_uint8field_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<B", value)
         bits_data = bitarray(endian="little")
@@ -217,7 +455,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format="{:02X}(hex)",
+            format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -228,7 +466,7 @@ class TestUInt08:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -237,11 +475,11 @@ class TestUInt08:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_BE,
     )
-    def test_uint8_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint8field_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:02X}(hex)",
+            format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -253,7 +491,7 @@ class TestUInt08:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -262,11 +500,11 @@ class TestUInt08:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_LE,
     )
-    def test_uint8_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint8field_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:02X}(hex)",
+            format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -278,12 +516,12 @@ class TestUInt08:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint8_create_parse_short_big_endian(self) -> None:
+    def test_uint8field_create_parse_short_big_endian(self) -> None:
         byte_data = b"\x00"
         bits_data_full = bitarray(endian="little")
         bits_data_full.frombytes(byte_data)
@@ -297,7 +535,7 @@ class TestUInt08:
                 endian=endian,
             )
 
-    def test_uint8_create_parse_short_little_endian(self) -> None:
+    def test_uint8field_create_parse_short_little_endian(self) -> None:
         name = "test"
         byte_data = b"\x00"
         bits_data_full = bitarray(endian="little")
@@ -315,11 +553,11 @@ class TestUInt08:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_BE,
     )
-    def test_uint8_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint8field_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:02X}(hex)",
+            format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -331,7 +569,7 @@ class TestUInt08:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -340,11 +578,13 @@ class TestUInt08:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_08_BIT_UINT_LE,
     )
-    def test_uint8_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint8field_create_init_value_little_endian(
+        self, byte_data: bytes, value: int, bits_data: bitarray
+    ) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:02X}(hex)",
+            format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -356,12 +596,12 @@ class TestUInt08:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint8_set_value_invalid_type(self) -> None:
+    def test_uint8field_set_value_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
         obj = UInt8Field(
@@ -370,7 +610,7 @@ class TestUInt08:
         with pytest.raises(TypeError):
             obj.value = value  # type:ignore
 
-    def test_uint8_set_value_invalid_value(self) -> None:
+    def test_uint8field_set_value_invalid_value(self) -> None:
         name = "test"
         value = 0x100
         obj = UInt8Field(
@@ -381,7 +621,7 @@ class TestUInt08:
 
 
 class TestUInt16:
-    def test_uint16_create_empty_big_endian(self) -> None:
+    def test_uint16field_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">H", value)
         bits_data = bitarray(endian="little")
@@ -389,7 +629,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format="{:04X}(hex)",
+            format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -400,12 +640,12 @@ class TestUInt16:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint16_create_empty_little_endian(self) -> None:
+    def test_uint16field_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<H", value)
         bits_data = bitarray(endian="little")
@@ -413,7 +653,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format="{:04X}(hex)",
+            format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -424,7 +664,7 @@ class TestUInt16:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -433,11 +673,11 @@ class TestUInt16:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_BE,
     )
-    def test_uint16_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint16field_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:04X}(hex)",
+            format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -449,7 +689,7 @@ class TestUInt16:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -458,11 +698,11 @@ class TestUInt16:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_LE,
     )
-    def test_uint16_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint16field_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:04X}(hex)",
+            format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -474,7 +714,7 @@ class TestUInt16:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -483,11 +723,13 @@ class TestUInt16:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_LE,
     )
-    def test_uint16_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint16field_create_init_value_little_endian(
+        self, byte_data: bytes, value: int, bits_data: bitarray
+    ) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:04X}(hex)",
+            format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -499,7 +741,7 @@ class TestUInt16:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -508,11 +750,11 @@ class TestUInt16:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_16_BIT_UINT_BE,
     )
-    def test_uint16_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint16field_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:04X}(hex)",
+            format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -524,12 +766,12 @@ class TestUInt16:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint16_assign_invalid_type(self) -> None:
+    def test_uint16field_assign_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
         obj = UInt16Field(
@@ -538,7 +780,7 @@ class TestUInt16:
         with pytest.raises(TypeError):
             obj.value = value  # type:ignore
 
-    def test_uint16_assign_invalid_value(self) -> None:
+    def test_uint16field_assign_invalid_value(self) -> None:
         name = "test"
         value = 0x10000
         obj = UInt16Field(
@@ -549,7 +791,7 @@ class TestUInt16:
 
 
 class TestUInt24:
-    def test_uint24_create_empty_big_endian(self) -> None:
+    def test_uint24field_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">I", value)[1:]
         bits_data = bitarray(endian="little")
@@ -557,7 +799,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format="{:06X}(hex)",
+            format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -568,12 +810,12 @@ class TestUInt24:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint24_create_empty_little_endian(self) -> None:
+    def test_uint24field_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<I", value)[:-1]
         bits_data = bitarray(endian="little")
@@ -581,7 +823,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format="{:06X}(hex)",
+            format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -592,7 +834,7 @@ class TestUInt24:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -601,11 +843,11 @@ class TestUInt24:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_BE,
     )
-    def test_uint24_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint24field_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:06X}(hex)",
+            format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -617,7 +859,7 @@ class TestUInt24:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -626,11 +868,11 @@ class TestUInt24:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_LE,
     )
-    def test_uint24_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint24field_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:06X}(hex)",
+            format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -642,7 +884,7 @@ class TestUInt24:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -651,11 +893,11 @@ class TestUInt24:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_BE,
     )
-    def test_uint24_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint24field_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:06X}(hex)",
+            format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -667,7 +909,7 @@ class TestUInt24:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -676,11 +918,13 @@ class TestUInt24:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_24_BIT_UINT_LE,
     )
-    def test_uint24_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint24field_create_init_value_little_endian(
+        self, byte_data: bytes, value: int, bits_data: bitarray
+    ) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:06X}(hex)",
+            format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -692,12 +936,12 @@ class TestUInt24:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint24_assign_invalid_type(self) -> None:
+    def test_uint24field_assign_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
         obj = UInt16Field(
@@ -706,7 +950,7 @@ class TestUInt24:
         with pytest.raises(TypeError):
             obj.value = value  # type:ignore
 
-    def test_uint24_assign_invalid_value(self) -> None:
+    def test_uint24field_assign_invalid_value(self) -> None:
         name = "test"
         value = 0x1000000
         obj = UInt16Field(
@@ -717,7 +961,7 @@ class TestUInt24:
 
 
 class TestUInt32:
-    def test_uint32_create_empty_big_endian(self) -> None:
+    def test_uint32field_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">I", value)
         bits_data = bitarray(endian="little")
@@ -725,7 +969,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format="{:08X}(hex)",
+            format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -736,12 +980,12 @@ class TestUInt32:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint32_create_empty_little_endian(self) -> None:
+    def test_uint32field_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<I", value)
         bits_data = bitarray(endian="little")
@@ -749,7 +993,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format="{:08X}(hex)",
+            format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -760,7 +1004,7 @@ class TestUInt32:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -769,11 +1013,11 @@ class TestUInt32:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_BE,
     )
-    def test_uint32_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint32field_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:08X}(hex)",
+            format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -785,7 +1029,7 @@ class TestUInt32:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -794,11 +1038,11 @@ class TestUInt32:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_LE,
     )
-    def test_uint32_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint32field_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:08X}(hex)",
+            format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -810,7 +1054,7 @@ class TestUInt32:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -819,11 +1063,11 @@ class TestUInt32:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_BE,
     )
-    def test_uint32_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint32field_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:08X}(hex)",
+            format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -835,7 +1079,7 @@ class TestUInt32:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -844,11 +1088,13 @@ class TestUInt32:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_32_BIT_UINT_LE,
     )
-    def test_uint32_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint32field_create_init_value_little_endian(
+        self, byte_data: bytes, value: int, bits_data: bitarray
+    ) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:08X}(hex)",
+            format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -860,12 +1106,12 @@ class TestUInt32:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint32_set_value_invalid_type(self) -> None:
+    def test_uint32field_set_value_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
         obj = UInt32Field(
@@ -874,7 +1120,7 @@ class TestUInt32:
         with pytest.raises(TypeError):
             obj.value = value  # type:ignore
 
-    def test_uint32_set_value_invalid_value(self) -> None:
+    def test_uint32field_set_value_invalid_value(self) -> None:
         name = "test"
         value = 0x100000000
         obj = UInt32Field(
@@ -885,7 +1131,7 @@ class TestUInt32:
 
 
 class TestUInt64:
-    def test_uint64_create_empty_big_endian(self) -> None:
+    def test_uint64field_create_empty_big_endian(self) -> None:
         value = 0
         byte_data = struct.pack(">Q", value)
         bits_data = bitarray(endian="little")
@@ -893,7 +1139,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format="{:016X}(hex)",
+            format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -904,12 +1150,12 @@ class TestUInt64:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint64_create_empty_little_endian(self) -> None:
+    def test_uint64field_create_empty_little_endian(self) -> None:
         value = 0
         byte_data = struct.pack("<Q", value)
         bits_data = bitarray(endian="little")
@@ -917,7 +1163,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format="{:016X}(hex)",
+            format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -928,7 +1174,7 @@ class TestUInt64:
             name=tst.name,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -937,11 +1183,11 @@ class TestUInt64:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_BE,
     )
-    def test_uint64_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint64field_create_parse_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:016X}(hex)",
+            format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -953,7 +1199,7 @@ class TestUInt64:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -962,11 +1208,11 @@ class TestUInt64:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_LE,
     )
-    def test_uint64_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint64field_create_parse_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:016X}(hex)",
+            format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -978,7 +1224,7 @@ class TestUInt64:
             data=byte_data,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -987,11 +1233,11 @@ class TestUInt64:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_BE,
     )
-    def test_uint64_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint64field_create_init_value_big_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:016X}(hex)",
+            format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1003,7 +1249,7 @@ class TestUInt64:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
@@ -1012,11 +1258,13 @@ class TestUInt64:
         ["byte_data", "value", "bits_data"],
         TEST_VALUES_64_BIT_UINT_LE,
     )
-    def test_uint64_create_init_value_little_endian(self, byte_data: bytes, value: int, bits_data: bitarray) -> None:
+    def test_uint64field_create_init_value_little_endian(
+        self, byte_data: bytes, value: int, bits_data: bitarray
+    ) -> None:
         tst = TestData(
             name="test",
             value=value,
-            format="{:016X}(hex)",
+            format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1028,12 +1276,12 @@ class TestUInt64:
             value=tst.value,
             endian=tst.endian,
         )
-        parseobject_tests(
+        check_parseobject(
             obj=obj,
             tst=tst,
         )
 
-    def test_uint64_set_value_invalid_type(self) -> None:
+    def test_uint64field_set_value_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
         obj = UInt64Field(
@@ -1042,7 +1290,7 @@ class TestUInt64:
         with pytest.raises(TypeError):
             obj.value = value  # type:ignore
 
-    def test_uint64_set_value_invalid_value(self) -> None:
+    def test_uint64field_set_value_invalid_value(self) -> None:
         name = "test"
         value = -900000000001
         obj = UInt64Field(

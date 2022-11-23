@@ -52,11 +52,6 @@ class IntField(ParseObject[int]):
         byte_count = math.ceil(self.bit_count / 8)
         if len(temp_bits) < byte_count * 8:
             temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
-        my_bytes = bytearray(temp_bits.tobytes())
-        temp = int.from_bytes(my_bytes, byteorder="little", signed=True)
-        my_bytes = int.to_bytes(temp, byteorder="big", length=byte_count, signed=True)
-        my_bits = bitarray(endian="little")
-        my_bits.frombytes(my_bytes)
         self._bits = my_bits[: self.bit_count]
         if len(bits) >= self.bit_count:
             return bits[self.bit_count :]
@@ -85,6 +80,19 @@ class IntField(ParseObject[int]):
             the bytes of this field
         """
         return self._bits.tobytes()
+
+    @property
+    def value(self) -> int | None:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self._get_value()
+
+    @value.setter
+    def value(self, value: int) -> None:
+        self._set_value(value)
 
 
 class Int8Field(IntField):

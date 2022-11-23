@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import TypeVar, Any
 from bitarray import bitarray
-from bitarray.util import int2ba
 
 T = TypeVar("T", Any, Any)
 InputT = TypeVar("InputT", bitarray, bytearray, bytes)

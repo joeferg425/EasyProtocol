@@ -67,7 +67,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
         self._name = name
 
     @property
-    def value(self) -> list[Any]:
+    def value(self) -> list[Any] | None:
         """Get the parsed value of the field.
 
         Returns:

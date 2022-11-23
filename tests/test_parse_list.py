@@ -13,16 +13,21 @@ def parselist_value(
     obj: ParseList,
     tst: TestData,
 ) -> None:
-    assert len(obj.value) == len(tst.value), (
-        f"{obj}: len(obj.value) is not the expected value " + f"({len(obj.value)} != expected value: {len(tst.value)})"
-    )
-    for i in range(len(tst.value)):
-        assert obj.value[i] == tst.value[i], (
-            f"{obj}: obj.value[{i}] is not the expected value " + f"({obj.value[i]} != expected value: {tst.value[i]})"
+    if obj.value is None:
+        assert False, "object value is not instantiated"
+    else:
+        assert len(obj.value) == len(tst.value), (
+            f"{obj}: len(obj.value) is not the expected value "
+            + f"({len(obj.value)} != expected value: {len(tst.value)})"
         )
-        assert obj[i].format.format(obj.value[i]) in obj.formatted_value
-        assert obj[i].format.format(obj.value[i]) in str(obj)
-        assert obj[i].format.format(obj.value[i]) in repr(obj)
+        for i in range(len(tst.value)):
+            assert obj.value[i] == tst.value[i], (
+                f"{obj}: obj.value[{i}] is not the expected value "
+                + f"({obj.value[i]} != expected value: {tst.value[i]})"
+            )
+            assert obj[i].format.format(obj.value[i]) in obj.formatted_value
+            assert obj[i].format.format(obj.value[i]) in str(obj)
+            assert obj[i].format.format(obj.value[i]) in repr(obj)
 
 
 def parselist_tests(

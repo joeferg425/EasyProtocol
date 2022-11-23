@@ -13,23 +13,27 @@ def parsedict_value(
     obj: ParseDict,
     tst: TestData,
 ) -> None:
-    assert len(obj.value) == len(tst.value), (
-        f"{obj}: len(obj.value) is not the expected value " + f"({len(obj.value)} != expected value: {len(tst.value)})"
-    )
-    assert obj.value.keys() == tst.value.keys(), (
-        f"{obj}: obj.value.keys() is not the expected value "
-        + f"({obj.value.keys()} != expected value: {tst.value.keys()})"
-    )
-    for key in tst.value.keys():
-        assert obj.value[key] == tst.value[key], (
-            f"{obj}: obj.value[key] is not the expected value "
-            + f"({obj.value[key]} != expected value: {tst.value[key]})"
+    if obj.value is None:
+        assert False, "object value is not instantiated"
+    else:
+        assert len(obj.value) == len(tst.value), (
+            f"{obj}: len(obj.value) is not the expected value "
+            + f"({len(obj.value)} != expected value: {len(tst.value)})"
         )
+        assert obj.value.keys() == tst.value.keys(), (
+            f"{obj}: obj.value.keys() is not the expected value "
+            + f"({obj.value.keys()} != expected value: {tst.value.keys()})"
+        )
+        for key in tst.value.keys():
+            assert obj.value[key] == tst.value[key], (
+                f"{obj}: obj.value[key] is not the expected value "
+                + f"({obj.value[key]} != expected value: {tst.value[key]})"
+            )
 
-    for key in obj.value.keys():
-        assert obj[key].format.format(obj.value[key]) in obj.formatted_value
-        assert obj[key].format.format(obj.value[key]) in str(obj)
-        assert obj[key].format.format(obj.value[key]) in repr(obj)
+        for key in obj.value.keys():
+            assert obj[key].format.format(obj.value[key]) in obj.formatted_value
+            assert obj[key].format.format(obj.value[key]) in str(obj)
+            assert obj[key].format.format(obj.value[key]) in repr(obj)
 
 
 def parsedict_tests(

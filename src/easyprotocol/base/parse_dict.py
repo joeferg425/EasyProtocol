@@ -7,7 +7,7 @@ from bitarray import bitarray
 from enum import Enum
 
 
-class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]]):
+class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str, ParseObject[Any]]):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
@@ -167,3 +167,16 @@ class ParseDict(ParseObject[ParseObject[Any]], OrderedDict[str, ParseObject[Any]
 
     def __len__(self) -> int:
         return len(self._children)
+
+    @property
+    def value(self) -> OrderedDict[str, ParseObject[Any]] | None:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self._get_value()
+
+    @value.setter
+    def value(self, value: OrderedDict[str, ParseObject[Any]]) -> None:
+        self._set_value(value)

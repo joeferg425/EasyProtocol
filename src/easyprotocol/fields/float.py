@@ -66,19 +66,14 @@ class Float32IEEField(FloatField):
             bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
         if len(bits) < len(bit_mask):
             raise IndexError("Too little data to parse field.")
-        my_bits = (bits & bit_mask)[-self.bit_count :]  # noqa
+        my_bits = (bits & bit_mask)[: self.bit_count]
         temp_bits = bitarray(my_bits)
         byte_count = math.ceil(self.bit_count / 8)
         if len(temp_bits) < byte_count * 8:
             temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
-        my_bytes = bytearray(temp_bits.tobytes())
-        temp_value = int.from_bytes(my_bytes, byteorder="big", signed=False)
-        my_bytes = int.to_bytes(temp_value, byte_count, byteorder="little", signed=False)
-        my_bits = bitarray(endian="little")
-        my_bits.frombytes(my_bytes)
-        self._bits = my_bits[-self.bit_count :]  # noqa
+        self._bits = my_bits[: self.bit_count]
         if len(bits) >= self.bit_count:
-            return bits[: -self.bit_count]  # noqa
+            return bits[self.bit_count :]
         else:
             return bitarray(endian="little")
 
@@ -109,6 +104,19 @@ class Float32IEEField(FloatField):
             the bytes of this field
         """
         return self._bits.tobytes()
+
+    @property
+    def value(self) -> float | None:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self._get_value()
+
+    @value.setter
+    def value(self, value: float) -> None:
+        self._set_value(value)
 
 
 class Float32Field(Float32IEEField):

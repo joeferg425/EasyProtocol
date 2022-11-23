@@ -49,6 +49,19 @@ class EnumField(UIntField, Generic[E]):
         """
         return self.value.name
 
+    @property
+    def value(self) -> E | None:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self._get_value()
+
+    @value.setter
+    def value(self, value: E | int) -> None:
+        self._set_value(value)
+
 
 class UInt8EnumField(EnumField):
     def __init__(

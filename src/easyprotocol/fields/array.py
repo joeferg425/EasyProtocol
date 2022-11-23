@@ -19,15 +19,17 @@ class ArrayField(ParseList):
         data: InputT | None = None,
         parent: ParseObject[Any] | None = None,
         children: list[ParseObject[T]] | OrderedDict[str, ParseObject[T]] | None = None,
+        format: str = "{}",
     ) -> None:
+        self._count = count
+        self.array_item_class = array_item_class
         super().__init__(
             name=name,
             data=data,
             parent=parent,
             children=children,
+            format=format,
         )
-        self._count = count
-        self.array_item_class = array_item_class
 
     def parse(self, data: InputT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.

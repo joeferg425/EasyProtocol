@@ -1,0 +1,421 @@
+from __future__ import annotations
+import struct
+import pytest  # noqa
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
+from easyprotocol.fields.string import (
+    CharField,
+    BytesField,
+    ByteField,
+    StringField,
+    DEFAULT_BYTES_FORMAT,
+    DEFAULT_BYTE_FORMAT,
+    DEFAULT_CHAR_FORMAT,
+    DEFAULT_STRING_FORMAT,
+)
+from easyprotocol.base.utils import hex
+from bitarray import bitarray
+
+from test_parse_object import (
+    TestData,
+    check_parseobject_properties,
+    check_parseobject_value,
+)
+from collections import OrderedDict
+
+
+def check_str_strings(
+    obj: CharField | StringField,
+    tst: TestData,
+) -> None:
+    assert tst.format.format(tst.value) == obj.formatted_value, (
+        f"{obj}: obj.formatted_value is not the expected value "
+        + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+    )
+    assert len(obj.formatted_value) > 0, (
+        f"{obj}: obj.formatted_value is not the expected value " + f"(? != expected value: {obj.formatted_value})"
+    )
+    assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
+    assert obj.formatted_value in str(
+        obj
+    ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
+    assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
+    assert obj.formatted_value in repr(
+        obj
+    ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
+    assert obj.__class__.__name__ in repr(
+        obj
+    ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
+
+
+def check_str(
+    obj: CharField | StringField,
+    tst: TestData,
+) -> None:
+    check_parseobject_value(
+        obj=obj,
+        tst=tst,
+    )
+    check_parseobject_properties(
+        obj=obj,
+        tst=tst,
+    )
+    check_str_strings(
+        obj=obj,
+        tst=tst,
+    )
+
+
+def check_byte_strings(
+    obj: ByteField | BytesField,
+    tst: TestData,
+) -> None:
+    assert tst.format.format(hex(tst.value)) == obj.formatted_value, (
+        f"{obj}: obj.formatted_value is not the expected value "
+        + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+    )
+    assert len(obj.formatted_value) > 0, (
+        f"{obj}: obj.formatted_value is not the expected value " + f"(? != expected value: {obj.formatted_value})"
+    )
+    assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
+    assert obj.formatted_value in str(
+        obj
+    ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
+    assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
+    assert obj.formatted_value in repr(
+        obj
+    ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
+    assert obj.__class__.__name__ in repr(
+        obj
+    ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
+
+
+def check_bytes(
+    obj: ByteField | BytesField,
+    tst: TestData,
+) -> None:
+    check_parseobject_value(
+        obj=obj,
+        tst=tst,
+    )
+    check_parseobject_properties(
+        obj=obj,
+        tst=tst,
+    )
+    check_byte_strings(
+        obj=obj,
+        tst=tst,
+    )
+
+
+class TestChar:
+    def test_char_create_empty(self) -> None:
+        value = "\x00"
+        byte_data = b"\x00"
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_CHAR_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = CharField(
+            name=tst.name,
+        )
+
+        check_str(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_char_create_parse(self) -> None:
+        value = "G"
+        byte_data = struct.pack("B", ord(value[0]))
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_CHAR_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = CharField(
+            name=tst.name,
+            data=byte_data,
+        )
+
+        check_str(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_char_create_init_value(self) -> None:
+        value = "!"
+        byte_data = struct.pack("B", ord(value[0]))
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_CHAR_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = CharField(
+            name=tst.name,
+            value=value,
+        )
+
+        check_str(
+            obj=obj,
+            tst=tst,
+        )
+
+
+class TestString:
+    def test_string_create_empty(self) -> None:
+        value = ""
+        byte_data = value.encode("latin1")
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        count = 0
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = StringField(
+            name=tst.name,
+            count=count,
+        )
+
+        check_str(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_string_create_parse(self) -> None:
+        value = "\x00bob\x03"
+        byte_data = value.encode("latin1")
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        count = 5
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = StringField(
+            name=tst.name,
+            count=count,
+            data=byte_data,
+        )
+
+        check_str(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_string_create_init_value(self) -> None:
+        value = "tacocat"
+        byte_data = value.encode("latin1")
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_STRING_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = StringField(
+            name=tst.name,
+            count=7,
+            value=value,
+        )
+
+        check_str(
+            obj=obj,
+            tst=tst,
+        )
+
+
+class TestByte:
+    def test_byte_create_empty(self) -> None:
+        value = b"\x00"
+        byte_data = bytes(value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_BYTE_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = ByteField(
+            name=tst.name,
+        )
+
+        check_bytes(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_byte_create_parse(self) -> None:
+        value = b"G"
+        byte_data = bytes(value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_BYTE_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = ByteField(
+            name=tst.name,
+            data=byte_data,
+        )
+
+        check_bytes(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_byte_create_init_value(self) -> None:
+        value = b"!"
+        byte_data = bytes(value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_BYTE_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = ByteField(
+            name=tst.name,
+            value=value,
+        )
+
+        check_bytes(
+            obj=obj,
+            tst=tst,
+        )
+
+
+class TestBytes:
+    def test_bytes_create_empty(self) -> None:
+        value = b""
+        byte_data = bytes(value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        count = 0
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_BYTES_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = BytesField(
+            name=tst.name,
+            count=count,
+        )
+
+        check_bytes(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_bytes_create_parse(self) -> None:
+        value = b"\x00bob\x03"
+        byte_data = bytes(value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        count = 5
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_BYTES_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = BytesField(
+            name=tst.name,
+            count=count,
+            data=byte_data,
+        )
+
+        check_bytes(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_bytes_create_init_value(self) -> None:
+        value = b"tacocat"
+        byte_data = bytes(value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        tst = TestData(
+            name="test",
+            value=value,
+            format=DEFAULT_BYTES_FORMAT,
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = BytesField(
+            name=tst.name,
+            count=7,
+            value=value,
+        )
+
+        check_bytes(
+            obj=obj,
+            tst=tst,
+        )

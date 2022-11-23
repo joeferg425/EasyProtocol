@@ -16,6 +16,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
         data: InputT | None = None,
         parent: ParseObject[Any] | None = None,
         children: list[ParseObject[Any]] | OrderedDict[str, ParseObject[Any]] | None = None,
+        format: str = "{}",
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -29,6 +30,7 @@ class ParseList(ParseObject[ParseObject[Any]], MutableSequence[ParseObject[Any]]
             data=None,
             value=None,
             parent=parent,
+            format=format,
         )
 
         if children is not None:

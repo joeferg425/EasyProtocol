@@ -170,6 +170,7 @@ class UInt8Field(UIntField):
         value: int | None = None,
         format: str | None = UINT8_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        init_to_zero: bool = True,
     ) -> None:
         super().__init__(
             name=name,
@@ -178,6 +179,7 @@ class UInt8Field(UIntField):
             bit_count=8,
             format=format,
             endian=endian,
+            init_to_zero=init_to_zero,
         )
 
 
@@ -191,6 +193,7 @@ class UInt16Field(UIntField):
         value: int | None = None,
         format: str | None = UINT16_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        init_to_zero: bool = True,
     ) -> None:
         super().__init__(
             name=name,
@@ -199,6 +202,7 @@ class UInt16Field(UIntField):
             bit_count=16,
             format=format,
             endian=endian,
+            init_to_zero=init_to_zero,
         )
 
 
@@ -212,6 +216,7 @@ class UInt24Field(UIntField):
         value: int | None = None,
         format: str | None = UINT24_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        init_to_zero: bool = True,
     ) -> None:
         super().__init__(
             name=name,
@@ -220,6 +225,7 @@ class UInt24Field(UIntField):
             bit_count=24,
             format=format,
             endian=endian,
+            init_to_zero=init_to_zero,
         )
 
 
@@ -233,6 +239,7 @@ class UInt32Field(UIntField):
         value: int | None = None,
         format: str | None = UINT32_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        init_to_zero: bool = True,
     ) -> None:
         super().__init__(
             name=name,
@@ -241,6 +248,7 @@ class UInt32Field(UIntField):
             bit_count=32,
             format=format,
             endian=endian,
+            init_to_zero=init_to_zero,
         )
 
 
@@ -254,6 +262,7 @@ class UInt64Field(UIntField):
         value: int | None = None,
         format: str | None = UINT64_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        init_to_zero: bool = True,
     ) -> None:
         super().__init__(
             name=name,
@@ -262,4 +271,5 @@ class UInt64Field(UIntField):
             bit_count=64,
             format=format,
             endian=endian,
+            init_to_zero=init_to_zero,
         )

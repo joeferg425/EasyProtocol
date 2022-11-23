@@ -498,16 +498,22 @@ class TestInt08:
         )
 
     def test_int8_create_parse_bits_short(self) -> None:
+        value1 = 0xFFFF
+        value2 = 0xFF
+        byte_data1 = struct.pack("H", value1)
+        byte_data2 = struct.pack("B", value2)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
         name = "test"
-        byte_data = b"\x00"
-        bits_data_full = bitarray(endian="little")
-        bits_data_full.frombytes(byte_data)
-        bits_data = bits_data_full[-3:]
-        with pytest.raises(IndexError):
-            Int8Field(
-                name=name,
-                data=bits_data,
-            )
+        obj = Int8Field(
+            name=name,
+            data=byte_data1,
+        )
+
+        assert obj.bits == bits_data2
+        assert obj.bytes == byte_data2
 
     @pytest.mark.parametrize(
         ["byte_data", "value", "bits_data", "endian"],

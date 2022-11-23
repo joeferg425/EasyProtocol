@@ -1,7 +1,7 @@
 from collections import OrderedDict
 from typing import Literal
 import pytest
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields.unsigned_int import (
     UInt8Field,
     UInt16Field,
@@ -542,7 +542,6 @@ class TestUInt08:
         )
 
     def test_uint8field_create_parse_short(self) -> None:
-        endian: Literal["big", "little"] = "big"
         value1 = 0xFFFF
         value2 = 0xFF
         byte_data1 = struct.pack("H", value1)
@@ -555,7 +554,7 @@ class TestUInt08:
         obj = UInt8Field(
             name=name,
             data=byte_data1,
-            endian=endian,
+            endian=DEFAULT_ENDIANNESS,
         )
 
         assert obj.bits == bits_data2

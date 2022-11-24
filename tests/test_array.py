@@ -167,7 +167,7 @@ class TestArray:
         obj = ParseList(name=name, children=[f2])
         obj.parse(data=byte_data)
 
-        assert obj.bytes == byte_data
+        assert obj.byte_value == byte_data
         assert obj.bits == bits_data
 
     # def test_array_set_name(self) -> None:

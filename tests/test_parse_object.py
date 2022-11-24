@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Literal
+
 import pytest
-from easyprotocol.base.parse_object import ParseObject
 from bitarray import bitarray
+
+from easyprotocol.base.parse_object import ParseObject
 
 
 @dataclass
@@ -26,8 +29,8 @@ def check_parseobject_properties(
     assert obj is not None, "Object is None"
     assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
     assert (
-        obj.format == tst.format
-    ), f"{obj}: obj.format is not the expected value ({obj.format} != expected value: {tst.format})"
+        obj.fmt == tst.format
+    ), f"{obj}: obj.format is not the expected value ({obj.fmt} != expected value: {tst.format})"
     assert (
         obj.bits == tst.bits_data
     ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"

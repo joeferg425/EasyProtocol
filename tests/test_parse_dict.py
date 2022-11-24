@@ -1,14 +1,17 @@
 from __future__ import annotations
-from collections import OrderedDict
+
 import struct
+from collections import OrderedDict
 from typing import Any
+
 import pytest
+from bitarray import bitarray
+from test_parse_object import TestData, check_parseobject, check_parseobject_children, check_parseobject_properties
+
 from easyprotocol.base.parse_dict import ParseDict
 from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields import UInt8Field
-from bitarray import bitarray
 from easyprotocol.fields.unsigned_int import UIntField
-from test_parse_object import check_parseobject_properties, check_parseobject_children, check_parseobject, TestData
 
 
 def check_parsedict_value(
@@ -33,9 +36,9 @@ def check_parsedict_value(
             )
 
         for key in obj.value.keys():
-            assert obj[key].format.format(obj.value[key]) in obj.formatted_value
-            assert obj[key].format.format(obj.value[key]) in str(obj)
-            assert obj[key].format.format(obj.value[key]) in repr(obj)
+            assert obj[key].fmt.format(obj.value[key]) in obj.formatted_value
+            assert obj[key].fmt.format(obj.value[key]) in str(obj)
+            assert obj[key].fmt.format(obj.value[key]) in repr(obj)
 
 
 def check_parsedict(
@@ -184,7 +187,7 @@ class TestParseDict:
             tst=TestData(
                 name=f1_name,
                 value=f1_value,
-                format=f1.format,
+                format=f1.fmt,
                 bits_data=f1_bits,
                 byte_data=f1_data,
                 parent=obj,
@@ -197,7 +200,7 @@ class TestParseDict:
             tst=TestData(
                 name=f2_name,
                 value=f2_value,
-                format=f2.format,
+                format=f2.fmt,
                 bits_data=f2_bits,
                 byte_data=f2_data,
                 parent=obj,
@@ -210,7 +213,7 @@ class TestParseDict:
             tst=TestData(
                 name=f3_name,
                 value=f3_value,
-                format=f3.format,
+                format=f3.fmt,
                 bits_data=f3_bits,
                 byte_data=f3_data,
                 parent=obj,
@@ -331,7 +334,7 @@ class TestParseDict:
             tst=TestData(
                 name=f1_name,
                 value=init_value,
-                format=f1.format,
+                format=f1.fmt,
                 bits_data=init_bits,
                 byte_data=init_data,
                 parent=obj,
@@ -344,7 +347,7 @@ class TestParseDict:
             tst=TestData(
                 name=f2_name,
                 value=init_value,
-                format=f2.format,
+                format=f2.fmt,
                 bits_data=init_bits,
                 byte_data=init_data,
                 parent=obj,
@@ -357,7 +360,7 @@ class TestParseDict:
             tst=TestData(
                 name=f3_name,
                 value=init_value,
-                format=f3.format,
+                format=f3.fmt,
                 bits_data=init_bits,
                 byte_data=init_data,
                 parent=obj,
@@ -381,7 +384,7 @@ class TestParseDict:
             tst=TestData(
                 name=f1_name,
                 value=f1_value,
-                format=f1.format,
+                format=f1.fmt,
                 bits_data=f1_bits,
                 byte_data=f1_data,
                 parent=obj,
@@ -394,7 +397,7 @@ class TestParseDict:
             tst=TestData(
                 name=f2_name,
                 value=f2_value,
-                format=f2.format,
+                format=f2.fmt,
                 bits_data=f2_bits,
                 byte_data=f2_data,
                 parent=obj,
@@ -407,7 +410,7 @@ class TestParseDict:
             tst=TestData(
                 name=f3_name,
                 value=f3_value,
-                format=f3.format,
+                format=f3.fmt,
                 bits_data=f3_bits,
                 byte_data=f3_data,
                 parent=obj,
@@ -504,7 +507,7 @@ class TestParseDict:
             tst=TestData(
                 name=f1_name,
                 value=f1_value,
-                format=f1.format,
+                format=f1.fmt,
                 bits_data=f1_bits,
                 byte_data=f1_byte,
                 parent=obj,
@@ -517,7 +520,7 @@ class TestParseDict:
             tst=TestData(
                 name=f2_name,
                 value=f2_value,
-                format=f2.format,
+                format=f2.fmt,
                 bits_data=f2_bits,
                 byte_data=f2_data,
                 parent=obj,
@@ -530,7 +533,7 @@ class TestParseDict:
             tst=TestData(
                 name=f3_name,
                 value=f3_value,
-                format=f3.format,
+                format=f3.fmt,
                 bits_data=f3_bits,
                 byte_data=f3_data,
                 parent=obj,

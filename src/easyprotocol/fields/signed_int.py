@@ -34,7 +34,7 @@ class IntField(ParseObject[int]):
             name=name,
             data=data,
             value=value,
-            format=format,
+            fmt=format,
             endian=endian,
         )
         if self.value is None and init_to_zero is True:
@@ -85,7 +85,7 @@ class IntField(ParseObject[int]):
         my_bytes = int.to_bytes(value, length=byte_count, byteorder=self.endian, signed=True)
         bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
-        self._bits = bits[:self.bit_count]
+        self._bits = bits[: self.bit_count]
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.

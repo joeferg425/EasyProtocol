@@ -33,7 +33,15 @@
 			"tests"
 		],
 		"python.testing.unittestEnabled": false,
-		"python.testing.pytestEnabled": true
+		"python.testing.pytestEnabled": true,
+		"editor.formatOnSave": true,
+		"python.linting.lintOnSave": true,
+		"python.linting.mypyEnabled": true,
+		"editor.codeActionsOnSave": {
+			"source.organizeImports": true,
+		},
+		"isort.check": true,
+		"autoDocstring.generateDocstringOnEnter": true
 	},
 	"tasks": {
 		"version": "2.0.0",

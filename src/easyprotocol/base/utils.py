@@ -1,8 +1,10 @@
 from __future__ import annotations
-from typing import TypeVar, Any
+
+from typing import Any, TypeVar, Union
+
 from bitarray import bitarray
 
-T = TypeVar("T", Any, Any)
+T = TypeVar("T", bound=Union[Any, list[Any], dict[str, Any]])
 InputT = TypeVar("InputT", bitarray, bytearray, bytes)
 
 
@@ -10,6 +12,15 @@ def input_to_bytes(
     data: InputT,
     bit_count: int | None = None,
 ) -> bitarray:
+    """Convert bits or bytes into valid bits
+
+    Args:
+        data: data that needs to be little-endian bits
+        bit_count: the number of desired output bits
+
+    Returns:
+        the bit data
+    """
     if isinstance(data, (bytes, bytearray)):
         data = bytearray(data)
         bits = bitarray(endian="little")
@@ -25,4 +36,12 @@ def input_to_bytes(
 
 
 def hex(bts: bytes) -> str:
+    """Convert bytes to hexadecimal, but nicely.
+
+    Args:
+        hex representation of bytes, nicely formatted
+
+    Returns:
+        _type_: _description_
+    """
     return bytes.hex(bts, sep=" ").upper()

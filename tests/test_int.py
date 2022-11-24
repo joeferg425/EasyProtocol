@@ -513,7 +513,7 @@ class TestInt08:
         )
 
         assert obj.bits == bits_data2
-        assert obj.bytes == byte_data2
+        assert obj.byte_value == byte_data2
 
     @pytest.mark.parametrize(
         ["byte_data", "value", "bits_data", "endian"],

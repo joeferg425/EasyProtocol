@@ -1,13 +1,24 @@
 from __future__ import annotations
+
 import math
+from collections import OrderedDict
 from typing import Any
-from easyprotocol.fields import UInt8Field, BoolField, UIntField, UInt16Field, ChecksumField, UInt8EnumField, ArrayField
-from easyprotocol.base import ParseObject, InputT, input_to_bytes
-from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum, ModbusFieldNames
+
 import crc
 from bitarray import bitarray
 from bitarray.util import int2ba
-from collections import OrderedDict
+
+from easyprotocol.base import InputT, ParseObject, input_to_bytes
+from easyprotocol.fields import (
+    ArrayField,
+    BoolField,
+    ChecksumField,
+    UInt8EnumField,
+    UInt8Field,
+    UInt16Field,
+    UIntField,
+)
+from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunctionEnum
 
 
 class ModbusDeviceId(UInt8Field):
@@ -106,7 +117,7 @@ class ModbusCRC(ChecksumField):
             endian="little",
         )
 
-    def update(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
+    def update_field(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
         byte_data = bytes(self.parent)
         crc_int = self.crc_calculator.calculate_checksum(byte_data[:-2])
         crc_bytes = int.to_bytes(crc_int, length=2, byteorder=self.endian)

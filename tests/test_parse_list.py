@@ -1,14 +1,17 @@
 from __future__ import annotations
-from collections import OrderedDict
+
 import struct
+from collections import OrderedDict
 from typing import Any
+
 import pytest
+from bitarray import bitarray
+from test_parse_object import TestData, check_parseobject_children, check_parseobject_properties
+
 from easyprotocol.base.parse_list import ParseList
 from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields import UInt8Field
-from bitarray import bitarray
 from easyprotocol.fields.unsigned_int import UIntField
-from test_parse_object import check_parseobject_properties, check_parseobject_children, TestData
 
 
 def parselist_value(
@@ -27,9 +30,9 @@ def parselist_value(
                 f"{obj}: obj.value[{i}] is not the expected value "
                 + f"({obj.value[i]} != expected value: {tst.value[i]})"
             )
-            assert obj[i].format.format(obj.value[i]) in obj.formatted_value
-            assert obj[i].format.format(obj.value[i]) in str(obj)
-            assert obj[i].format.format(obj.value[i]) in repr(obj)
+            assert obj[i].fmt.format(obj.value[i]) in obj.formatted_value
+            assert obj[i].fmt.format(obj.value[i]) in str(obj)
+            assert obj[i].fmt.format(obj.value[i]) in repr(obj)
 
 
 def parselist_tests(

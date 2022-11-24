@@ -1,12 +1,15 @@
 from __future__ import annotations
+
 import math
 from typing import Literal
+
+from bitarray import bitarray
+from bitarray.util import int2ba
+from crc import Configuration, CrcCalculator
+
 from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import InputT
 from easyprotocol.fields.unsigned_int import UIntField
-from crc import Configuration, CrcCalculator
-from bitarray import bitarray
-from bitarray.util import int2ba
 
 
 class ChecksumField(UIntField):
@@ -32,7 +35,7 @@ class ChecksumField(UIntField):
             configuration=crc_configuration,
         )
 
-    def update(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
+    def update_field(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
         if data is None:
             byte_data = bytes(self.parent)
         else:

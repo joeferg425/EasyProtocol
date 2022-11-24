@@ -33,7 +33,7 @@ class UIntField(ParseObject[int]):
             name=name,
             data=data,
             value=value,
-            format=format,
+            fmt=format,
             endian=endian,
         )
         if self.value is None and init_to_zero is True:

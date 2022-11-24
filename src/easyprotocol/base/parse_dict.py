@@ -1,10 +1,13 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
-from typing import Any, OrderedDict
-from easyprotocol.base.parse_object import ParseObject
-from easyprotocol.base.utils import InputT, input_to_bytes
-from bitarray import bitarray
+
 from enum import Enum
+from typing import Any, OrderedDict
+
+from bitarray import bitarray
+
+from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.utils import InputT, T, input_to_bytes
 
 
 class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str, ParseObject[Any]]):
@@ -50,18 +53,24 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    @property
-    def name(self) -> str:
-        """Get the name of the field.
+    def popitem(self, last: bool = False) -> tuple[str, ParseObject[Any]]:
+        """Remove item from list.
+
+        Args:
+            last: delete the last added item instead of the first
 
         Returns:
-            the name of the field
+            the popped item
         """
-        return self._name
+        return self.children.popitem(last=last)
 
-    @name.setter
-    def name(self, name: str) -> None:
-        self._name = name
+    def pop(self, name: str, default: ParseObject[Any] | None = None) -> ParseObject[Any]:
+        if isinstance(name, Enum):
+            p = self.children.pop(name.name, default)
+        else:
+            p = self.children.pop(name, default)
+        p.parent = None
+        return p
 
     def _get_value(
         self,
@@ -87,13 +96,7 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
                 obj = self.__getitem__(key)
                 obj.value = item
 
-    @property
-    def bits(self) -> bitarray:
-        """Get the bytes value of the field.
-
-        Returns:
-            the bytes value of the field
-        """
+    def _get_bits(self) -> bitarray:
         data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
@@ -108,6 +111,19 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
             the value of the field with custom formatting
         """
         return f'[{", ".join([str(value) for key,value in self._children.items()])}]'
+
+    @property
+    def value(self) -> OrderedDict[str, ParseObject[Any]] | None:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self._get_value()
+
+    @value.setter
+    def value(self, value: OrderedDict[str, ParseObject[Any]]) -> None:
+        self._set_value(value)
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -154,29 +170,5 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         else:
             return self._children.__delitem__(name)
 
-    def popitem(self, last: bool) -> tuple[str, ParseObject[Any]]:
-        self.children.popitem(last=last)
-
-    def pop(self, name: str | Enum) -> ParseObject[Any]:
-        if isinstance(name, Enum):
-            p = self.children.pop(name.name)
-        else:
-            p = self.children.pop(name)
-        p.parent = None
-        return p
-
     def __len__(self) -> int:
         return len(self._children)
-
-    @property
-    def value(self) -> OrderedDict[str, ParseObject[Any]] | None:
-        """Get the parsed value of the field.
-
-        Returns:
-            the value of the field
-        """
-        return self._get_value()
-
-    @value.setter
-    def value(self, value: OrderedDict[str, ParseObject[Any]]) -> None:
-        self._set_value(value)

@@ -27,7 +27,7 @@ class FloatField(ParseObject[float]):
             name=name,
             data=data,
             value=value,
-            format=format,
+            fmt=format,
             endian=endian,
         )
         if self.value is None:

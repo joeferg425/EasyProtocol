@@ -1,22 +1,24 @@
 from __future__ import annotations
-from typing import Any, TypeVar
+
+from collections import OrderedDict
+from typing import Any, Generic, TypeVar
+
+from bitarray import bitarray
+
 from easyprotocol.base.parse_list import ParseList
 from easyprotocol.base.parse_object import ParseObject
-from easyprotocol.base.utils import InputT, input_to_bytes
-from bitarray import bitarray
-from collections import OrderedDict
+from easyprotocol.base.utils import InputT, T, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntField
 
-T = TypeVar("T")
 
-
-class ArrayField(ParseList):
+class ArrayField(ParseList, Generic[T]):
     def __init__(
         self,
         name: str,
         count: UIntField | int,
-        array_item_class: type[ParseObject[Any]],
+        array_item_class: type[ParseObject[T]],
         data: InputT | None = None,
+        value: T | None = None,
         parent: ParseObject[Any] | None = None,
         children: list[ParseObject[T]] | OrderedDict[str, ParseObject[T]] | None = None,
         format: str = "{}",
@@ -27,7 +29,7 @@ class ArrayField(ParseList):
             name=name,
             data=data,
             parent=parent,
-            children=children,
+            children=children,  # type:ignore
             format=format,
         )
 
@@ -45,16 +47,17 @@ class ArrayField(ParseList):
             count = self._count.value
         else:
             count = self._count
-        for i in range(count):
-            f = self.array_item_class(f"#{i}")
-            bit_data = f.parse(data=bit_data)
-            self.append(f)
+        if count is not None:
+            for i in range(count):
+                f = self.array_item_class(f"#{i}")
+                bit_data = f.parse(data=bit_data)
+                self.append(f)
         return bit_data
 
-    def _get_value(self) -> list[T] | None:
+    def _get_value(self) -> list[T] | None:  # type:ignore
         return list([v.value for v in self._children.values()])
 
-    @property
+    @property  # type:ignore
     def value(self) -> list[T]:
         """Get the parsed value of the field.
 
@@ -63,7 +66,7 @@ class ArrayField(ParseList):
         """
         return self._get_value()
 
-    def _set_value(self, value: T) -> None:
+    def _set_value(self, value: T) -> None:  # type:ignore
         if not isinstance(value, list):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         for index, item in enumerate(value):
@@ -78,6 +81,6 @@ class ArrayField(ParseList):
                 parse_object = self[index]
                 parse_object.value = item
 
-    @value.setter
+    @value.setter  # type:ignore
     def value(self, value: list[ParseObject[Any]] | list[T]) -> None:
         self._set_value(value=value)

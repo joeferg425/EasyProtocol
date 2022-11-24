@@ -17,6 +17,15 @@ crc = "^1.3.0"
 black = "^22.1"
 flake8 = "^4.0"
 pytest = "^7.1"
+mypy = "^0.991"
+flake8-docstrings = "^1.6.0"
+flake8-pep518 = "^0.2.0"
+darglint = "^1.8.1"
+flake8-eradicate = "^1.4.0"
+flake8-isort = "^5.0.3"
+flake8-bugbear = "^22.10.27"
+flake8-builtins = "^2.0.1"
+pyright = "^1.1.281"
 
 
 [build-system]
@@ -29,3 +38,12 @@ line-length = 120
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["tests/test_*.py"]
+
+[tool.isort]
+profile = "black"
+skip = [".gitignore", ".dockerignore"]
+
+[tool.pyright]
+include = ["src"]
+reportMissingImports = true
+reportMissingTypeStubs = false

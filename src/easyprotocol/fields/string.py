@@ -1,10 +1,13 @@
 from __future__ import annotations
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
-from easyprotocol.fields.unsigned_int import UInt8Field, UIntField
-from easyprotocol.fields.array import ArrayField
-from easyprotocol.base.utils import InputT, hex
-from bitarray import bitarray
+
 import math
+
+from bitarray import bitarray
+
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
+from easyprotocol.base.utils import InputT, hex
+from easyprotocol.fields.array import ArrayField
+from easyprotocol.fields.unsigned_int import UInt8Field, UIntField
 
 DEFAULT_CHAR_FORMAT = '"{}"'
 DEFAULT_STRING_FORMAT = '"{}"'
@@ -55,7 +58,7 @@ class CharField(UInt8Field):
         Returns:
             the value of the field with custom formatting
         """
-        return self.format.format(self.value)
+        return self.fmt.format(self.value)
 
 
 class StringField(ArrayField):
@@ -122,7 +125,7 @@ class StringField(ArrayField):
         Returns:
             the value of the field with custom formatting
         """
-        return self.format.format(self.value)
+        return self.fmt.format(self.value)
 
 
 class ByteField(UInt8Field):
@@ -168,7 +171,7 @@ class ByteField(UInt8Field):
         Returns:
             the value of the field with custom formatting
         """
-        return self.format.format(hex(self.value))
+        return self.fmt.format(hex(self.value))
 
     def _set_value(self, value: bytes) -> None:
         if not isinstance(value, bytes):
@@ -260,4 +263,4 @@ class BytesField(ArrayField):
         Returns:
             the value of the field with custom formatting
         """
-        return self.format.format(hex(self.value))
+        return self.fmt.format(hex(self.value))

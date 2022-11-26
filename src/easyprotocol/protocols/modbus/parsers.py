@@ -1,24 +1,26 @@
 from __future__ import annotations
+
+from collections import OrderedDict
 from typing import Any, cast
-from easyprotocol.base import ParseObject, InputT, ParseDict
-from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum, ModbusFieldNames
+
+from easyprotocol.base import I, ParseDict, ParseObject
+from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunctionEnum
 from easyprotocol.protocols.modbus.fields import (
     ModbusAddress,
     ModbusByteCount,
     ModbusCoilArray,
-    ModbusDeviceId,
-    ModbusFunction,
     ModbusCount,
     ModbusCRC,
+    ModbusDeviceId,
+    ModbusFunction,
 )
-from collections import OrderedDict
 
 
 class ModbusHeader(ParseDict):
     def __init__(
         self,
         name: str = "modbusHeader",
-        data: InputT | None = None,
+        data: I | None = None,
         children: list[ParseObject[Any]]
         | OrderedDict[str, ParseObject[Any]] = [
             ModbusDeviceId(),
@@ -82,7 +84,7 @@ class ModbusHeader(ParseDict):
 class ModbusReadCoilsRequest(ModbusHeader):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFunctionEnum.ReadCoils.name + "Request",
@@ -100,7 +102,7 @@ class ModbusReadCoilsRequest(ModbusHeader):
 class ModbusReadCoilsResponse(ModbusHeader):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
     ) -> None:
         count_field = ModbusByteCount()
         super().__init__(
@@ -119,7 +121,7 @@ class ModbusReadCoilsResponse(ModbusHeader):
 class ModbusReadDiscreteInputsRequest(ModbusHeader):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFunctionEnum.ReadDiscreteInputs.name + "Request",

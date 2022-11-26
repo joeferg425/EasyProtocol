@@ -1,25 +1,27 @@
 from __future__ import annotations
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, InputT
 
-from easyprotocol.fields.unsigned_int import UIntField
-from typing import Literal, TypeVar, Generic
 from enum import IntEnum
+from typing import Generic, Literal, TypeVar, cast
 
-E = TypeVar("E", IntEnum, IntEnum)
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
+from easyprotocol.base.utils import I
+from easyprotocol.fields.unsigned_int import UIntFieldGeneric
+
+E = TypeVar("E", bound=IntEnum)
 
 
-class EnumField(UIntField, Generic[E]):
+class EnumField(UIntFieldGeneric[E], Generic[E]):
     def __init__(
         self,
         name: str,
         bit_count: int,
         enum_type: type[E],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | E | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
         format: str = "{}",
     ) -> None:
-        self._enum_type = enum_type
+        self._enum_type: type[E] = enum_type
         super().__init__(
             name=name,
             bit_count=bit_count,
@@ -29,17 +31,19 @@ class EnumField(UIntField, Generic[E]):
             format=format,
         )
 
-    def _get_value(self) -> int | None:
+    def _get_value(self) -> E | None:
         v = super()._get_value()
         if v is None:
             return None
         return self._enum_type(v)
 
-    def _set_value(self, value: E | int) -> None:
-        if isinstance(value, type(E)):
-            _value = value.value
-        else:
+    def _set_value(self, value: E | int | None) -> None:
+        if value is None:
+            return
+        elif isinstance(value, int):
             _value = value
+        else:
+            _value = value.value
         super()._set_value(_value)
 
     @property
@@ -49,7 +53,10 @@ class EnumField(UIntField, Generic[E]):
         Returns:
             the value of the field with custom formatting
         """
-        return self.value.name
+        if self.value is None:
+            return "?UNDEFINED?"
+        else:
+            return self.value.name
 
     @property
     def value(self) -> E | None:
@@ -65,13 +72,13 @@ class EnumField(UIntField, Generic[E]):
         self._set_value(value)
 
 
-class UInt8EnumField(EnumField):
+class UInt8EnumField(EnumField[E]):
     def __init__(
         self,
         name: str,
         enum_type: type[E],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | E | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -84,12 +91,12 @@ class UInt8EnumField(EnumField):
         )
 
 
-class UInt16EnumField(EnumField):
+class UInt16EnumField(EnumField[E]):
     def __init__(
         self,
         name: str,
         enum_type: type[E],
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
@@ -103,12 +110,12 @@ class UInt16EnumField(EnumField):
         )
 
 
-class UInt24EnumField(EnumField):
+class UInt24EnumField(EnumField[E]):
     def __init__(
         self,
         name: str,
         enum_type: type[E],
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
@@ -122,12 +129,12 @@ class UInt24EnumField(EnumField):
         )
 
 
-class UInt32EnumField(EnumField):
+class UInt32EnumField(EnumField[E]):
     def __init__(
         self,
         name: str,
         enum_type: type[E],
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:

@@ -1,7 +1,8 @@
 import struct
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
-from easyprotocol.fields.flags import FlagsField
+from collections import OrderedDict
 from enum import IntFlag
+from typing import Any
+
 import pytest
 from bitarray import bitarray
 from test_parse_object import (
@@ -9,7 +10,13 @@ from test_parse_object import (
     check_parseobject_properties,
     check_parseobject_value,
 )
-from collections import OrderedDict
+
+from easyprotocol.base.parse_object import (
+    DEFAULT_ENDIANNESS,
+    ParseObject,
+    ParseObjectGeneric,
+)
+from easyprotocol.fields.flags import FlagsField
 
 
 def check_flags_strings(
@@ -34,7 +41,7 @@ def check_flags_strings(
 
 
 def check_flags(
-    obj: FlagsField[IntFlag],
+    obj: FlagsField[Any],
     tst: TestData,
 ) -> None:
     check_parseobject_value(
@@ -182,7 +189,7 @@ class TestFlags:
                 name="invalid",
                 bit_count=4,
                 flags_type=TestingFlags,
-                data="pickles",
+                data="pickles",  # type:ignore
             )
 
     def test_flags_set_name(self) -> None:

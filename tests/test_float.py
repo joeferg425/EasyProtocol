@@ -1,18 +1,21 @@
 from __future__ import annotations
-import pytest
+
 import struct
-from bitarray import bitarray
 from collections import OrderedDict
-from easyprotocol.base.parse_object import ParseObject
 from typing import Any, Literal
-from easyprotocol.fields.float import Float32Field, FloatField, FLOAT_STRING_FORMAT
+
+import pytest
+from bitarray import bitarray
 from test_parse_object import (
+    TestData,
     check_parseobject_children,
     check_parseobject_properties,
     check_parseobject_strings,
-    TestData,
 )
 from test_uint import TEST_VALUES_32_BIT, get_bitarray
+
+from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.fields.float import FLOAT_STRING_FORMAT, Float32Field, FloatField
 
 TEST_VALUES_32_BIT_FLOAT_LE = [
     pytest.param(
@@ -41,7 +44,7 @@ TEST_VALUES_32_BIT_FLOAT_BE = [
 
 
 def check_float_value(
-    obj: ParseObject[Any],
+    obj: FloatField[Any],
     tst: TestData,
 ) -> None:
     assert (
@@ -50,7 +53,7 @@ def check_float_value(
 
 
 def check_float(
-    obj: ParseObject[Any],
+    obj: FloatField[Any],
     tst: TestData,
 ) -> None:
     check_parseobject_properties(

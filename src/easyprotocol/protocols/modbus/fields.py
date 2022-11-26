@@ -8,9 +8,9 @@ import crc
 from bitarray import bitarray
 from bitarray.util import int2ba
 
-from easyprotocol.base import InputT, ParseObject, input_to_bytes
+from easyprotocol.base import I, ParseObject, input_to_bytes
 from easyprotocol.fields import (
-    ArrayField,
+    ArrayFieldGeneric,
     BoolField,
     ChecksumField,
     UInt8EnumField,
@@ -24,7 +24,7 @@ from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunc
 class ModbusDeviceId(UInt8Field):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -38,7 +38,7 @@ class ModbusDeviceId(UInt8Field):
 class ModbusFunction(UInt8EnumField):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -53,7 +53,7 @@ class ModbusFunction(UInt8EnumField):
 class ModbusAddress(UInt16Field):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -67,7 +67,7 @@ class ModbusAddress(UInt16Field):
 class ModbusCount(UInt16Field):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -82,7 +82,7 @@ class ModbusCount(UInt16Field):
 class ModbusByteCount(UInt8Field):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -97,7 +97,7 @@ class ModbusByteCount(UInt8Field):
 class ModbusCRC(ChecksumField):
     def __init__(
         self,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -117,20 +117,20 @@ class ModbusCRC(ChecksumField):
             endian="little",
         )
 
-    def update_field(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
+    def update_field(self, data: I | None = None) -> tuple[int, bytes, bitarray]:
         byte_data = bytes(self.parent)
         crc_int = self.crc_calculator.calculate_checksum(byte_data[:-2])
         crc_bytes = int.to_bytes(crc_int, length=2, byteorder=self.endian)
-        crc_bits = int2ba(crc_int, length=self.bit_count)
+        crc_bits = int2ba(crc_int, length=self._bit_count)
         self.value = crc_int
         return (crc_int, crc_bytes, crc_bits)
 
 
-class ModbusCoilArray(ArrayField):
+class ModbusCoilArray(ArrayFieldGeneric):
     def __init__(
         self,
         count_field: UIntField,
-        data: InputT | None = None,
+        data: I | None = None,
         parent: ParseObject[Any] | None = None,
         children: list[ParseObject[bool]] | OrderedDict[str, ParseObject[bool]] | None = None,
     ) -> None:
@@ -143,7 +143,7 @@ class ModbusCoilArray(ArrayField):
             children=children,
         )
 
-    def parse(self, data: InputT) -> bitarray:
+    def parse(self, data: I) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:

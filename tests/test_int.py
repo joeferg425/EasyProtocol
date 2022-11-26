@@ -1,11 +1,10 @@
-from collections import OrderedDict
 import struct
+from collections import OrderedDict
 from typing import Literal
+
 import pytest
-from easyprotocol.base.parse_object import ParseObject
-from easyprotocol.fields.signed_int import Int8Field, Int16Field, Int32Field, Int64Field, Int24Field, IntField
 from bitarray import bitarray
-from test_parse_object import check_parseobject, TestData
+from test_parse_object import TestData, check_parseobject
 from test_uint import (
     TEST_VALUES_08_BIT,
     TEST_VALUES_16_BIT,
@@ -15,6 +14,15 @@ from test_uint import (
     get_bitarray,
 )
 
+from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.fields.signed_int import (
+    Int8Field,
+    Int16Field,
+    Int24Field,
+    Int32Field,
+    Int64Field,
+    IntField,
+)
 
 TEST_VALUES_08_BIT_INT_LE = [
     pytest.param(
@@ -579,7 +587,7 @@ class TestInt08:
         obj = Int8Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_int8_set_value_invalid_value(self) -> None:
@@ -763,7 +771,7 @@ class TestInt16:
         obj = Int16Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_int16_set_value_invalid_value(self) -> None:
@@ -947,7 +955,7 @@ class TestInt24:
         obj = Int24Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_int24_set_value_invalid_value(self) -> None:
@@ -1133,7 +1141,7 @@ class TestInt32:
         obj = Int32Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_int32_set_value_invalid_value(self) -> None:
@@ -1315,7 +1323,7 @@ class TestInt64:
         name = "test"
         value = "invalid"
         obj = Int64Field(name=name)
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_int64_set_value_invalid_value(self) -> None:

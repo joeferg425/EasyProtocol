@@ -7,7 +7,7 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_object import UNDEFINED, ParseObject, ParseObjectGeneric
 
 
 @dataclass
@@ -18,12 +18,12 @@ class TestData:
     format: str
     bits_data: bitarray
     byte_data: bytes | bytearray
-    parent: ParseObject[Any] | None
-    children: OrderedDict[str, ParseObject[Any]]
+    parent: ParseObjectGeneric[Any] | None
+    children: OrderedDict[str, ParseObjectGeneric[Any]]
 
 
 def check_parseobject_properties(
-    obj: ParseObject[Any],
+    obj: ParseObjectGeneric[Any],
     tst: TestData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -46,7 +46,7 @@ def check_parseobject_properties(
 
 
 def check_parseobject_children(
-    obj: ParseObject[Any],
+    obj: ParseObjectGeneric[Any],
     tst: TestData,
 ) -> None:
     assert len(obj.children) == len(tst.children), (
@@ -76,7 +76,7 @@ def check_parseobject_children(
 
 
 def check_parseobject_value(
-    obj: ParseObject[Any],
+    obj: ParseObjectGeneric[Any],
     tst: TestData,
 ) -> None:
     assert (
@@ -85,13 +85,19 @@ def check_parseobject_value(
 
 
 def check_parseobject_strings(
-    obj: ParseObject[Any],
+    obj: ParseObjectGeneric[Any],
     tst: TestData,
 ) -> None:
-    assert tst.format.format(tst.value) == obj.formatted_value, (
-        f"{obj}: obj.formatted_value is not the expected value "
-        + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
-    )
+    if obj.value is None:
+        assert UNDEFINED == obj.formatted_value, (
+            f"{obj}: obj.formatted_value is not the expected value "
+            + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+        )
+    else:
+        assert tst.format.format(tst.value) == obj.formatted_value, (
+            f"{obj}: obj.formatted_value is not the expected value "
+            + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+        )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
     assert obj.formatted_value in str(
         obj
@@ -106,7 +112,7 @@ def check_parseobject_strings(
 
 
 def check_parseobject(
-    obj: ParseObject[Any],
+    obj: ParseObjectGeneric[Any],
     tst: TestData,
 ) -> None:
     check_parseobject_value(

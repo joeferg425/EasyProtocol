@@ -6,19 +6,23 @@ from typing import Any, OrderedDict
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import ParseObject
-from easyprotocol.base.utils import InputT, T, input_to_bytes
+from easyprotocol.base.parse_object import ParseObjectGeneric, T
+from easyprotocol.base.utils import I, input_to_bytes
 
 
-class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str, ParseObject[Any]]):
+class ParseDictGeneric(
+    ParseObjectGeneric[OrderedDict[str, ParseObjectGeneric[T]]], OrderedDict[str, ParseObjectGeneric[T]]
+):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
-        data: InputT | None = None,
-        children: list[ParseObject[Any]] | OrderedDict[str, ParseObject[Any]] | None = None,
-        parent: ParseObject[Any] | None = None,
+        bit_count: int = -1,
+        data: I | None = None,
+        value: OrderedDict[str, ParseObjectGeneric[T]] | None = None,
+        children: OrderedDict[str, ParseObjectGeneric[T]] | None = None,
+        parent: ParseObjectGeneric[T] | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -29,17 +33,20 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         """
         super().__init__(
             name=name,
+            bit_count=bit_count,
             data=None,
             value=None,
             parent=parent,
         )
 
         if children is not None:
-            self.children = children
+            self._set_children(children=children)
         if data is not None:
             self.parse(data)
+        elif value is not None:
+            self._set_value(value=value)
 
-    def parse(self, data: InputT) -> bitarray:
+    def parse(self, data: I) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -53,7 +60,7 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self, last: bool = False) -> tuple[str, ParseObject[Any]]:
+    def popitem(self, last: bool = False) -> tuple[str, ParseObjectGeneric[T]]:
         """Remove item from list.
 
         Args:
@@ -64,32 +71,44 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         """
         return self.children.popitem(last=last)
 
-    def pop(self, name: str, default: ParseObject[Any] | None = None) -> ParseObject[Any]:
+    def pop(  # type:ignore
+        self, name: str, default: ParseObjectGeneric[T] | None = None
+    ) -> ParseObjectGeneric[T] | None:
+        """Pop item from dictionary by name.
+
+        Args:
+            name: name of item to pop
+            default: object to return if the name is not in the dictionary
+
+        Returns:
+            the item (or default item)
+        """
         if isinstance(name, Enum):
             p = self.children.pop(name.name, default)
         else:
             p = self.children.pop(name, default)
-        p.parent = None
+        if p is not None:
+            p.parent = None
         return p
 
     def _get_value(
         self,
-    ) -> dict[str, Any] | OrderedDict[str, Any]:
+    ) -> OrderedDict[str, ParseObjectGeneric[T]]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return {k: v.value for k, v in self._children.items()}
+        return OrderedDict({k: v for k, v in self.children.items()})
 
     def _set_value(
         self,
-        value: OrderedDict[str, ParseObject[Any]] | OrderedDict[str, Any],
+        value: OrderedDict[str, ParseObjectGeneric[T]] | OrderedDict[str, T] | None,
     ) -> None:
         if not isinstance(value, dict):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         for key, item in value.items():
-            if isinstance(item, ParseObject):
+            if isinstance(item, ParseObjectGeneric):
                 self.__setitem__(key, item)
                 item.parent = self
             else:
@@ -110,10 +129,10 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         Returns:
             the value of the field with custom formatting
         """
-        return f'[{", ".join([str(value) for key,value in self._children.items()])}]'
+        return f'[{", ".join([str(value) for value in self._children.values()])}]'
 
-    @property
-    def value(self) -> OrderedDict[str, ParseObject[Any]] | None:
+    @property  # type:ignore
+    def value(self) -> OrderedDict[str, ParseObjectGeneric[T]]:
         """Get the parsed value of the field.
 
         Returns:
@@ -122,7 +141,7 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         return self._get_value()
 
     @value.setter
-    def value(self, value: OrderedDict[str, ParseObject[Any]]) -> None:
+    def value(self, value: OrderedDict[str, T] | OrderedDict[str, ParseObjectGeneric[T]] | None) -> None:
         self._set_value(value)
 
     def __bytes__(self) -> bytes:
@@ -139,7 +158,7 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self.name}: {self.formatted_value}"
+        return f"{self._name}: {self.formatted_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -149,8 +168,8 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, name: str | Enum, value: ParseObject[Any]) -> None:
-        if not isinstance(value, ParseObject):
+    def __setitem__(self, name: str | Enum, value: ParseObjectGeneric[T]) -> None:
+        if not isinstance(value, ParseObjectGeneric):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         value.parent = self
         if isinstance(name, Enum):
@@ -158,7 +177,7 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
         else:
             return self._children.__setitem__(name, value)
 
-    def __getitem__(self, name: str | Enum) -> ParseObject[Any]:
+    def __getitem__(self, name: str | Enum) -> ParseObjectGeneric[T]:
         if isinstance(name, Enum):
             return self._children.__getitem__(name.name)
         else:
@@ -172,3 +191,23 @@ class ParseDict(ParseObject[OrderedDict[str, ParseObject[Any]]], OrderedDict[str
 
     def __len__(self) -> int:
         return len(self._children)
+
+
+class ParseDict(ParseDictGeneric[Any]):
+    def __init__(
+        self,
+        name: str,
+        bit_count: int = -1,
+        data: I | None = None,
+        value: OrderedDict[str, ParseObjectGeneric[Any]] | None = None,
+        children: OrderedDict[str, ParseObjectGeneric[Any]] | None = None,
+        parent: ParseObjectGeneric[Any] | None = None,
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=bit_count,
+            data=data,
+            value=value,
+            children=children,
+            parent=parent,
+        )

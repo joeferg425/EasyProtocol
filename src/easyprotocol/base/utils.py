@@ -4,12 +4,11 @@ from typing import Any, TypeVar, Union
 
 from bitarray import bitarray
 
-T = TypeVar("T", bound=Union[Any, list[Any], dict[str, Any]])
-InputT = TypeVar("InputT", bitarray, bytearray, bytes)
+I = TypeVar("I", bitarray, bytearray, bytes)
 
 
 def input_to_bytes(
-    data: InputT,
+    data: I,
     bit_count: int | None = None,
 ) -> bitarray:
     """Convert bits or bytes into valid bits

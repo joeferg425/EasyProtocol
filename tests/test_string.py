@@ -1,33 +1,51 @@
 from __future__ import annotations
+
 import struct
+from collections import OrderedDict
+
 import pytest  # noqa
+from bitarray import bitarray
+from test_parse_object import TestData, check_parseobject_value
+
 from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
+from easyprotocol.base.utils import hex
 from easyprotocol.fields.string import (
-    CharField,
-    BytesField,
-    ByteField,
-    StringField,
-    DEFAULT_BYTES_FORMAT,
     DEFAULT_BYTE_FORMAT,
+    DEFAULT_BYTES_FORMAT,
     DEFAULT_CHAR_FORMAT,
     DEFAULT_STRING_FORMAT,
+    ByteField,
+    BytesField,
+    CharField,
+    StringField,
 )
-from easyprotocol.base.utils import hex
-from bitarray import bitarray
 
-from test_parse_object import (
-    TestData,
-    check_parseobject_properties,
-    check_parseobject_value,
-)
-from collections import OrderedDict
+
+def check_strbyte_properties(
+    obj: CharField | StringField | ByteField | BytesField,
+    tst: TestData,
+) -> None:
+    assert obj is not None, "Object is None"
+    assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
+    assert (
+        obj.bits == tst.bits_data
+    ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
+    assert (
+        obj.parent == tst.parent
+    ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
+    assert (
+        bytes(obj) == tst.byte_data
+    ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
+    assert (
+        obj.endian == tst.endian
+    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
 
 
 def check_str_strings(
     obj: CharField | StringField,
     tst: TestData,
 ) -> None:
-    assert tst.format.format(tst.value) == obj.formatted_value, (
+    assert f'"{tst.value}"' == obj.formatted_value, (
         f"{obj}: obj.formatted_value is not the expected value "
         + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
     )
@@ -55,7 +73,7 @@ def check_str(
         obj=obj,
         tst=tst,
     )
-    check_parseobject_properties(
+    check_strbyte_properties(
         obj=obj,
         tst=tst,
     )
@@ -69,7 +87,7 @@ def check_byte_strings(
     obj: ByteField | BytesField,
     tst: TestData,
 ) -> None:
-    assert tst.format.format(hex(tst.value)) == obj.formatted_value, (
+    assert f'"{hex(tst.value)}"' == obj.formatted_value, (
         f"{obj}: obj.formatted_value is not the expected value "
         + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
     )
@@ -97,7 +115,7 @@ def check_bytes(
         obj=obj,
         tst=tst,
     )
-    check_parseobject_properties(
+    check_strbyte_properties(
         obj=obj,
         tst=tst,
     )

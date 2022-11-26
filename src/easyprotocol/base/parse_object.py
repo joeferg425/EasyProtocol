@@ -7,21 +7,26 @@ from typing import Any, Generic, Literal, SupportsBytes, TypeVar, Union
 
 from bitarray import bitarray
 
-from easyprotocol.base.utils import InputT, T
+from easyprotocol.base.utils import I
 
 DEFAULT_ENDIANNESS: Literal["big", "little"] = "little"
+T = TypeVar("T", bound=Union[Any, list[Any], OrderedDict[str, Any]])
+
+UNDEFINED = "?UNDEFINED?"
 
 
-class ParseObject(SupportsBytes, Generic[T]):
+class ParseObjectGeneric(SupportsBytes, Generic[T]):
     """The base parsing object for handling parsing in a convenient (to modify) package."""
 
     def __init__(
         self,
         name: str | Enum,
-        data: InputT | None = None,
+        bit_count: int = -1,
+        data: I | None = None,
         value: T | None = None,
         fmt: str | None = None,
-        parent: ParseObject[Any] | None = None,
+        parent: ParseObjectGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
@@ -34,28 +39,31 @@ class ParseObject(SupportsBytes, Generic[T]):
             parent: object to nest this one inside of
             endian: the byte endian-ness of this object
         """
-        self.name: str = ""
+        self._name: str = ""
+        self._endian: Literal["little", "big"] = endian
+        self._bits: bitarray = bitarray(endian="little")
+        self._parent: ParseObjectGeneric[Any] | None = None
+        self._children: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict()
+        self._bit_count: int = bit_count
         if isinstance(name, Enum):
             self._name = name.name
         else:
             self._name = str(name)
-        self._endian: Literal["little", "big"] = endian
-        self._bits: bitarray = bitarray(endian=self._endian)
         if fmt is None:
             self._fmt = "{}"
         else:
             self._fmt = fmt
-        self._parent: ParseObject[Any] | None = parent
-        self._children: OrderedDict[str, ParseObject[Any]] = OrderedDict()
-
+        self._parent = parent
         if self._fmt is None:
             self._fmt = "{}"
+        if children is not None:
+            self._set_children(children)
         if data is not None:
             self.parse(data=data)
         elif value is not None:
-            self.value = value
+            self._set_value(value)
 
-    def parse(self, data: InputT) -> bitarray:
+    def parse(self, data: I) -> bitarray:
         """Parse the passed bits or bytes into meaningful data.
 
         Args:
@@ -66,7 +74,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         """
         raise NotImplementedError()
 
-    def update_field(self, data: InputT | None = None) -> Any:
+    def update_field(self, data: I | None = None) -> Any:
         """Calculate a new value for this field based on this field and/or an argument.
 
         Args:
@@ -75,7 +83,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         Returns:
             whatever is needed
         """
-        return None
+        raise NotImplementedError()
 
     def _get_value(self) -> T | None:
         return None
@@ -83,17 +91,22 @@ class ParseObject(SupportsBytes, Generic[T]):
     def _set_value(self, value: T) -> None:
         raise NotImplementedError()
 
-    def _get_children(self) -> OrderedDict[str, ParseObject[Any]]:
+    def _get_children(self) -> OrderedDict[str, ParseObjectGeneric[Any]]:
         return self._children
 
-    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
-        if isinstance(children, dict):
-            for key, value in children.items():
+    def _set_children(
+        self, children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None | None
+    ) -> None:
+        self._children.clear()
+        if isinstance(children, (dict, OrderedDict)):
+            keys = list(children.keys())
+            for key in keys:
+                value = children[key]
                 self._children[key] = value
                 value.parent = self
-        else:
+        elif isinstance(children, list):
             for value in children:
-                self._children[value.name] = value
+                self._children[value._name] = value
                 value.parent = self
 
     def _get_bits(self) -> bitarray:
@@ -108,7 +121,10 @@ class ParseObject(SupportsBytes, Generic[T]):
         Returns:
             the value of the field with custom formatting
         """
-        return self._fmt.format(self.value)
+        if self.value is None:
+            return UNDEFINED
+        else:
+            return self._fmt.format(self.value)
 
     @property
     def name(self) -> str:
@@ -150,7 +166,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         self._set_bits(bits)
 
     @property
-    def parent(self) -> ParseObject[Any] | None:
+    def parent(self) -> ParseObjectGeneric[Any] | None:
         """Get the parent of the field.
 
         Returns:
@@ -159,7 +175,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         return self._parent
 
     @parent.setter
-    def parent(self, parent: ParseObject[Any]) -> None:
+    def parent(self, parent: ParseObjectGeneric[Any] | None) -> None:
         self._parent = parent
 
     @property
@@ -176,7 +192,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         self._fmt = fmt
 
     @property
-    def children(self) -> OrderedDict[str, ParseObject[Any]]:
+    def children(self) -> OrderedDict[str, ParseObjectGeneric[Any]]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -185,7 +201,9 @@ class ParseObject(SupportsBytes, Generic[T]):
         return self._get_children()
 
     @children.setter
-    def children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+    def children(
+        self, children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None | None
+    ) -> None:
         self._set_children(children=children)
 
     @property
@@ -229,7 +247,7 @@ class ParseObject(SupportsBytes, Generic[T]):
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self.name}: {self.formatted_value}"
+        return f"{self._name}: {self.formatted_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -238,3 +256,27 @@ class ParseObject(SupportsBytes, Generic[T]):
             a nicely formatted string describing this field
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
+
+
+class ParseObject(ParseObjectGeneric[Any]):
+    def __init__(
+        self,
+        name: str | Enum,
+        bit_count: int = -1,
+        data: I | None = None,
+        value: T | None = None,
+        fmt: str | None = None,
+        parent: ParseObjectGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None = None,
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=bit_count,
+            data=data,
+            value=value,
+            fmt=fmt,
+            parent=parent,
+            children=children,
+            endian=endian,
+        )

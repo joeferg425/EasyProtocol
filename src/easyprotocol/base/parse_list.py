@@ -2,24 +2,28 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Generic, MutableSequence, SupportsIndex, TypeVar, overload
+from enum import Enum
+from typing import Any, Generic, Literal, MutableSequence, overload
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import ParseObject
-from easyprotocol.base.utils import InputT, T, input_to_bytes
+from easyprotocol.base.parse_object import ParseObjectGeneric, T
+from easyprotocol.base.utils import I, input_to_bytes
 
 
-class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject[Any]]):
+class ParseListGeneric(
+    ParseObjectGeneric[list[ParseObjectGeneric[T]]], MutableSequence[ParseObjectGeneric[T]], Generic[T]
+):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
-        name: str,
-        data: InputT | None = None,
-        value: list[ParseObject[Any]] | None = None,
-        parent: ParseObject[Any] | None = None,
-        children: list[ParseObject[Any]] | None = None,
+        name: str | Enum,
+        bit_count: int = -1,
+        data: I | None = None,
+        value: list[ParseObjectGeneric[T]] | None = None,
+        parent: ParseObjectGeneric[T] | None = None,
+        children: list[ParseObjectGeneric[T]] | OrderedDict[str, ParseObjectGeneric[T]] | None = None,
         format: str = "{}",
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
@@ -31,6 +35,7 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
         """
         super().__init__(
             name=name,
+            bit_count=bit_count,
             data=None,
             value=None,
             parent=parent,
@@ -39,15 +44,15 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
 
         if children is not None:
             if isinstance(children, dict):
-                self.children = children
+                self._set_children(children)
             else:
-                self.children = OrderedDict({val.name: val for val in children})
+                self._set_children(OrderedDict({val._name: val for val in children}))
         if data is not None:
             self.parse(data)
         elif value is not None:
-            self.value = value
+            self._set_value(value)
 
-    def parse(self, data: InputT) -> bitarray:
+    def parse(self, data: I) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -61,20 +66,20 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def insert(self, index: int | slice, val: ParseObject[Any]) -> None:
-        c = OrderedDict()
+    def insert(self, index: int | slice, val: ParseObjectGeneric[T]) -> None:
+        c: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict()
         for i, value in enumerate(self._children.values()):
             if index == i:
-                c[val.name] = val
+                c[val._name] = val
                 val.parent = self
-            c[value.name] = self._children[value.name]
+            c[value._name] = self._children[value._name]
         self._children = c
 
-    def append(self, val: ParseObject[Any]) -> None:
-        self._children[val.name] = val
+    def append(self, val: ParseObjectGeneric[T]) -> None:
+        self._children[val._name] = val
         val.parent = self
 
-    def _get_value(self) -> list[Any] | None:
+    def _get_value(self) -> list[T | None]:  # type:ignore
         """Get the parsed value of the field.
 
         Returns:
@@ -82,11 +87,11 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
         """
         return list([v.value for f, v in self._children.items()])
 
-    def _set_value(self, value: list[Any] | list[ParseObject[Any]]) -> None:
+    def _set_value(self, value: list[Any] | list[ParseObjectGeneric[T]]) -> None:
         if not isinstance(value, list):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         for index, item in enumerate(value):
-            if isinstance(item, ParseObject):
+            if isinstance(item, ParseObjectGeneric):
                 if index < len(self._children):
                     self[index] = item
                     item.parent = self
@@ -126,7 +131,7 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self.name}: {self.formatted_value}"
+        return f"{self._name}: {self.formatted_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -136,8 +141,8 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    @property
-    def value(self) -> list[Any] | None:
+    @property  # type:ignore
+    def value(self) -> list[Any | None]:
         """Get the parsed value of the field.
 
         Returns:
@@ -146,18 +151,18 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
         return self._get_value()
 
     @value.setter
-    def value(self, value: list[ParseObject[Any]] | list[Any]) -> None:
+    def value(self, value: list[ParseObjectGeneric[T]] | list[Any]) -> None:
         self._set_value(value)
 
     @overload
-    def __getitem__(self, index: int) -> ParseObject[Any]:
+    def __getitem__(self, index: int) -> ParseObjectGeneric[T]:
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> list[ParseObject[Any]]:
+    def __getitem__(self, index: slice) -> list[ParseObjectGeneric[T]]:
         ...
 
-    def __getitem__(self, index: int | slice) -> ParseObject[Any] | list[ParseObject[Any]]:
+    def __getitem__(self, index: int | slice) -> ParseObjectGeneric[T] | list[ParseObjectGeneric[T]]:
         return list(self._children.values())[index]
 
     def __delitem__(self, index: int | slice) -> None:
@@ -165,37 +170,92 @@ class ParseList(ParseObject[list[ParseObject[Any]]], MutableSequence[ParseObject
         if isinstance(item, list):
             for x in item:
                 x.parent = None
-                self._children.pop(x.name)
+                self._children.pop(x._name)
         else:
             item.parent = None
-            self._children.pop(item.name)
+            self._children.pop(item._name)
 
     @overload  # type:ignore
-    def __setitem__(self, index: int, value: ParseObject[Any]) -> None:
+    def __setitem__(self, index: int, value: ParseObjectGeneric[T]) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: slice, value: list[ParseObject[Any]]) -> None:
+    def __setitem__(self, index: slice, value: list[ParseObjectGeneric[T]]) -> None:
         ...
 
-    def __setitem__(self, index: int | slice, value: ParseObject[Any] | list[ParseObject[Any]]) -> None:
+    def __setitem__(self, index: int | slice, value: ParseObjectGeneric[T] | list[ParseObjectGeneric[T]]) -> None:
         index_key = list(self._children.keys())[index]
         c = OrderedDict()
         for key in self._children:
-            if isinstance(index_key, str) and isinstance(value, ParseObject):
+            if isinstance(index_key, str) and isinstance(value, ParseObjectGeneric):
                 if key != index_key:
                     c[key] = self._children[key]
                 else:
-                    c[value.name] = value
+                    c[value._name] = value
                     value.parent = self
             elif isinstance(index_key, list) and isinstance(value, list):
                 for i, sub_key in enumerate(index_key):
                     if key != sub_key:
                         c[key] = self._children[key]
                     else:
-                        c[value[i].name] = value[i]
+                        c[value[i]._name] = value[i]
                         value[i].parent = self
         self._children = c
 
     def __len__(self) -> int:
         return len(self._children)
+
+    def _get_children(self) -> OrderedDict[str, ParseObjectGeneric[T]]:
+        return self._children
+
+    def _set_children(
+        self, children: OrderedDict[str, ParseObjectGeneric[T]] | list[ParseObjectGeneric[T]] | None | None
+    ) -> None:
+        self._children.clear()
+        if isinstance(children, (dict, OrderedDict)):
+            keys = list(children.keys())
+            for key in keys:
+                value = children[key]
+                self._children[key] = value
+                value.parent = self
+        elif isinstance(children, list):
+            for value in children:
+                self._children[value._name] = value
+                value.parent = self
+
+    @property
+    def children(self) -> OrderedDict[str, ParseObjectGeneric[T]]:
+        """Get the parse objects that are contained by this one.
+
+        Returns:
+            the parse objects that are contained by this one
+        """
+        return self._get_children()
+
+    @children.setter
+    def children(
+        self, children: OrderedDict[str, ParseObjectGeneric[T]] | list[ParseObjectGeneric[T]] | None | None
+    ) -> None:
+        self._set_children(children=children)
+
+
+class ParseList(ParseListGeneric[Any]):
+    def __init__(
+        self,
+        name: str | Enum,
+        bit_count: int = -1,
+        data: I | None = None,
+        value: list[ParseObjectGeneric[Any]] | None = None,
+        parent: ParseObjectGeneric[Any] | None = None,
+        children: list[ParseObjectGeneric[Any]] | OrderedDict[str, ParseObjectGeneric[Any]] | None = None,
+        format: str = "{}",
+    ) -> None:
+        super().__init__(
+            name=name,
+            bit_count=bit_count,
+            data=data,
+            value=value,
+            parent=parent,
+            children=children,
+            format=format,
+        )

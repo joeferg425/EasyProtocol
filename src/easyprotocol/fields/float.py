@@ -1,24 +1,28 @@
 from __future__ import annotations
-from collections import OrderedDict
-from typing import Any, Literal
-from bitarray import bitarray
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
-from easyprotocol.base.utils import InputT, input_to_bytes
+
 import math
 import struct
+from collections import OrderedDict
+from typing import Any, Generic, Literal, TypeVar, cast
 
+from bitarray import bitarray
+
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObjectGeneric
+from easyprotocol.base.utils import I, input_to_bytes
+
+F = TypeVar("F", float, float)
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(ParseObject[float]):
+class FloatField(ParseObjectGeneric[F], Generic[F]):
     """The base parsing object for unsigned floating point values."""
 
     def __init__(
         self,
         name: str,
         bit_count: int,
-        data: InputT | None = None,
-        value: float | None = None,
+        data: I | None = None,
+        value: float | F | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
@@ -26,22 +30,24 @@ class FloatField(ParseObject[float]):
         super().__init__(
             name=name,
             data=data,
-            value=value,
+            value=value,  # type:ignore
             fmt=format,
             endian=endian,
         )
         if self.value is None:
             self.value = 0.0
 
-    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
+    def _set_children(
+        self, children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None
+    ) -> None:
         raise NotImplementedError()
 
 
-class Float32IEEField(FloatField):
+class Float32IEEField(FloatField[float]):
     def __init__(
         self,
         name: str,
-        data: InputT | None = None,
+        data: I | None = None,
         value: float | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -55,7 +61,7 @@ class Float32IEEField(FloatField):
             endian=endian,
         )
 
-    def parse(self, data: InputT) -> bitarray:
+    def parse(self, data: I) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -90,9 +96,9 @@ class Float32IEEField(FloatField):
             return None
         b = self.bits.tobytes()
         if self.endian == "little":
-            return struct.unpack("<f", b)[0]
+            return cast(float, struct.unpack("<f", b)[0])
         else:
-            return struct.unpack(">f", b)[0]
+            return cast(float, struct.unpack(">f", b)[0])
 
     def _set_value(self, value: float) -> None:
         if not isinstance(value, float):
@@ -127,7 +133,7 @@ class Float32IEEField(FloatField):
         self._set_value(value)
 
     def _set_bits(self, bits: bitarray) -> None:
-        if not bits.endian == "little":
+        if bits.endian != Literal["little"]:
             v = bits.tobytes()
             _bits = bitarray(endian="little")
             _bits.frombytes(v)
@@ -136,9 +142,6 @@ class Float32IEEField(FloatField):
         if len(_bits) < self.bit_count:
             _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self.bit_count]
-
-    def _set_children(self, children: OrderedDict[str, ParseObject[Any]] | list[ParseObject[Any]]) -> None:
-        raise NotImplementedError()
 
 
 class Float32Field(Float32IEEField):

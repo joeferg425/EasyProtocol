@@ -1,26 +1,28 @@
 from __future__ import annotations
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, InputT
 
-from easyprotocol.fields.unsigned_int import UIntField
-from typing import Literal, TypeVar, Generic
 from enum import IntFlag
+from typing import Generic, Literal, TypeVar
 
-F = TypeVar("F", IntFlag, IntFlag)
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
+from easyprotocol.base.utils import I
+from easyprotocol.fields.unsigned_int import UIntFieldGeneric
+
+F = TypeVar("F", bound=IntFlag)
 
 
-class FlagsField(UIntField, Generic[F]):
+class FlagsField(UIntFieldGeneric[F], Generic[F]):
     def __init__(
         self,
         name: str,
         bit_count: int,
         flags_type: type[F],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | F | None = None,
         format: str = "{}",
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
         init_value: bool = True,
     ) -> None:
-        self._flags_type = flags_type
+        self._flags_type: type[F] = flags_type
         super().__init__(
             name=name,
             bit_count=bit_count,
@@ -40,11 +42,13 @@ class FlagsField(UIntField, Generic[F]):
         else:
             return self._flags_type(v)
 
-    def _set_value(self, value: F | int) -> None:
-        if isinstance(value, type(F)):
-            _value = value.value
-        else:
+    def _set_value(self, value: F | int | None) -> None:
+        if value is None:
+            return
+        elif isinstance(value, int):
             _value = value
+        else:
+            _value = value.value
         super()._set_value(_value)
 
     @property
@@ -54,7 +58,10 @@ class FlagsField(UIntField, Generic[F]):
         Returns:
             the value of the field with custom formatting
         """
-        return "|".join([v.name for v in self._flags_type._member_map_.values() if v in self.value])
+        if self.value is None:
+            return ""
+        else:
+            return "|".join([v.name for v in self._flags_type._member_map_.values() if v in self.value])  # type:ignore
 
     @property
     def value(self) -> F | None:
@@ -66,17 +73,17 @@ class FlagsField(UIntField, Generic[F]):
         return self._get_value()
 
     @value.setter
-    def value(self, value: F | int) -> None:
+    def value(self, value: F | int | None) -> None:
         self._set_value(value)
 
 
-class UInt8FlagsField(FlagsField):
+class UInt8FlagsField(FlagsField[F]):
     def __init__(
         self,
         name: str,
         enum_type: type[F],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | F | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -89,13 +96,13 @@ class UInt8FlagsField(FlagsField):
         )
 
 
-class UInt16FlagsField(FlagsField):
+class UInt16FlagsField(FlagsField[F]):
     def __init__(
         self,
         name: str,
         enum_type: type[F],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | F | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -108,13 +115,13 @@ class UInt16FlagsField(FlagsField):
         )
 
 
-class UInt24FlagsField(FlagsField):
+class UInt24FlagsField(FlagsField[F]):
     def __init__(
         self,
         name: str,
         enum_type: type[F],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | F | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -127,13 +134,13 @@ class UInt24FlagsField(FlagsField):
         )
 
 
-class UInt32FlagsField(FlagsField):
+class UInt32FlagsField(FlagsField[F]):
     def __init__(
         self,
         name: str,
         enum_type: type[F],
-        data: InputT | None = None,
-        value: int | None = None,
+        data: I | None = None,
+        value: int | F | None = None,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(

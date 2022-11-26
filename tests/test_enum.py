@@ -1,7 +1,8 @@
 import struct
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
-from easyprotocol.fields.enum import EnumField
+from collections import OrderedDict
 from enum import IntEnum
+from typing import Any
+
 import pytest
 from bitarray import bitarray
 from test_parse_object import (
@@ -9,7 +10,9 @@ from test_parse_object import (
     check_parseobject_properties,
     check_parseobject_value,
 )
-from collections import OrderedDict
+
+from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
+from easyprotocol.fields.enum import EnumField
 
 
 def check_enum_strings(
@@ -37,7 +40,7 @@ def check_enum_strings(
 
 
 def check_enum(
-    obj: EnumField[IntEnum],
+    obj: EnumField[Any],
     tst: TestData,
 ) -> None:
     check_parseobject_value(
@@ -187,7 +190,7 @@ class TestEnums:
                 name="enum",
                 bit_count=4,
                 enum_type=TestEnumerating,
-                data="bad_data",
+                data="bad_data",  # type:ignore
             )
 
     def test_enum_set_name(self) -> None:

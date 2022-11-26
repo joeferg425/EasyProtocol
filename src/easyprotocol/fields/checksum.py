@@ -8,17 +8,17 @@ from bitarray.util import int2ba
 from crc import Configuration, CrcCalculator
 
 from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
-from easyprotocol.base.utils import InputT
-from easyprotocol.fields.unsigned_int import UIntField
+from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 
-class ChecksumField(UIntField):
+class ChecksumField(UIntFieldGeneric[int]):
     def __init__(
         self,
         name: str,
         bit_count: int,
         crc_configuration: Configuration,
-        data: InputT | None = None,
+        data: I | None = None,
         value: int | None = None,
         format: str | None = "{:X}(hex)",
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -35,15 +35,18 @@ class ChecksumField(UIntField):
             configuration=crc_configuration,
         )
 
-    def update_field(self, data: InputT | None = None) -> tuple[int, bytes, bitarray]:
+    def update_field(self, data: I | None = None) -> tuple[int, bytes, bitarray]:
         if data is None:
-            byte_data = bytes(self.parent)
+            if self.parent is not None:
+                byte_data = bytes(self.parent)
+            else:
+                byte_data = b""
         else:
-            byte_data = data
+            byte_data = input_to_bytes(data=data, bit_count=self._bit_count).tobytes()
         crc_int = self.crc_calculator.calculate_checksum(byte_data)
-        byte_length = math.ceil(self.bit_count / 8)
+        byte_length = math.ceil(self._bit_count / 8)
         crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")
         crc_int = int.from_bytes(crc_bytes, byteorder=self._endian, signed=False)
-        crc_bits = int2ba(crc_int, length=self.bit_count)
+        crc_bits = int2ba(crc_int, length=self._bit_count)
         self.value = crc_int
         return (crc_int, crc_bytes, crc_bits)

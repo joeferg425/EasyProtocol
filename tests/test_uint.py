@@ -1,24 +1,26 @@
+import struct
 from collections import OrderedDict
 from typing import Literal
+
 import pytest
+from bitarray import bitarray
+from test_parse_object import TestData, check_parseobject
+
 from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields.unsigned_int import (
-    UInt8Field,
-    UInt16Field,
-    UInt32Field,
-    UInt64Field,
-    UInt24Field,
-    UIntField,
-    UINT64_STRING_FORMAT,
+    UINT8_STRING_FORMAT,
     UINT16_STRING_FORMAT,
     UINT24_STRING_FORMAT,
     UINT32_STRING_FORMAT,
-    UINT8_STRING_FORMAT,
+    UINT64_STRING_FORMAT,
     UINT_STRING_FORMAT,
+    UInt8Field,
+    UInt16Field,
+    UInt24Field,
+    UInt32Field,
+    UInt64Field,
+    UIntField,
 )
-from bitarray import bitarray
-from test_parse_object import check_parseobject, TestData
-import struct
 
 
 def get_bitarray(b: bytes) -> bitarray:
@@ -620,7 +622,7 @@ class TestUInt08:
         obj = UInt8Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_uint8field_set_value_invalid_value(self) -> None:
@@ -797,7 +799,7 @@ class TestUInt16:
         obj = UInt16Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_uint16field_assign_invalid_value(self) -> None:
@@ -973,7 +975,7 @@ class TestUInt24:
         obj = UInt16Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_uint24field_assign_invalid_value(self) -> None:
@@ -1149,7 +1151,7 @@ class TestUInt32:
         obj = UInt32Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_uint32field_set_value_invalid_value(self) -> None:
@@ -1325,7 +1327,7 @@ class TestUInt64:
         obj = UInt64Field(
             name=name,
         )
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             obj.value = value  # type:ignore
 
     def test_uint64field_set_value_invalid_value(self) -> None:

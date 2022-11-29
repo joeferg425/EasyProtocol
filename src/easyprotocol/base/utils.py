@@ -4,11 +4,11 @@ from typing import Any, TypeVar, Union
 
 from bitarray import bitarray
 
-I = TypeVar("I", bitarray, bytearray, bytes)
+dataT = Union[bitarray, bytearray, bytes, None]
 
 
 def input_to_bytes(
-    data: I,
+    data: dataT,
     bit_count: int | None = None,
 ) -> bitarray:
     """Convert bits or bytes into valid bits
@@ -26,11 +26,13 @@ def input_to_bytes(
         bits.frombytes(data)
         if len(bits) < (8 * len(data)):
             bits = bits + bitarray("0" * ((8 * len(data)) - len(bits)), endian="little")
-    else:
+    elif isinstance(data, bitarray):
         bits = bitarray(data, endian="little")
+    else:
+        raise TypeError()
     if bit_count is not None:
         if len(bits) < bit_count and isinstance(data, bytes):
-            bits = +bits + bitarray("0" * (bit_count - len(bits)), endian="little")
+            bits = bits + bitarray("0" * (bit_count - len(bits)), endian="little")
     return bits
 
 

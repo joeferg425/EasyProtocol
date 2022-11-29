@@ -1,12 +1,15 @@
 from __future__ import annotations
+
+from collections import OrderedDict
+
+from easyprotocol.base.utils import hex
 from easyprotocol.protocols.modbus import (
+    ModbusFieldNames,
     ModbusReadCoilsRequest,
     ModbusReadCoilsResponse,
-    ModbusFieldNames,
     ModbusReadDiscreteInputsRequest,
 )
 from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum
-from easyprotocol.base.utils import hex
 
 
 def ReadCoils(check_crc: bool = False) -> None:
@@ -24,24 +27,28 @@ def ReadCoils(check_crc: bool = False) -> None:
 
     if check_crc is True:
         print("│ ├─┐  Recalculating CRC")
-        readCoilsRequest.crc.update()
+        readCoilsRequest.crc.update_field()
         print(f"│ │ ├─ parser:\t\t{readCoilsRequest}")
         print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")
         print("│ ├─┘")
         print("│ │")
 
     print("│ ├─┐  Changing Frame data")
-    readCoilsRequest.value = {
-        ModbusFieldNames.DeviceID: 17,
-        ModbusFieldNames.FunctionCode: 1,
-        ModbusFieldNames.Address: 19,
-        ModbusFieldNames.Count: 37,
-    }
+    readCoilsRequest.set_value(
+        OrderedDict(
+            {
+                ModbusFieldNames.DeviceID.name: 17,
+                ModbusFieldNames.FunctionCode.name: 1,
+                ModbusFieldNames.Address.name: 19,
+                ModbusFieldNames.Count.name: 37,
+            }
+        )
+    )
     print(f"│ │ ├─ parser:\t\t{readCoilsRequest}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")
     print("│ │ │")
     print("│ │ ├─┐  Recalculating CRC")
-    readCoilsRequest.crc.update()
+    readCoilsRequest.crc.update_field()
     print(f"│ │ │ ├─ parser:\t{readCoilsRequest}")
     print(f"│ │ │ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")
     print("│ │ ├─┘")
@@ -60,24 +67,28 @@ def ReadCoils(check_crc: bool = False) -> None:
     print("│ │")
     if check_crc is True:
         print("│ ├─┐  Recalculating CRC")
-        readCoilsResponse.crc.update()
+        readCoilsResponse.crc.update_field()
         print(f"│ │ ├─ parser:\t{readCoilsResponse}")
         print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
         print("│ ├─┘")
         print("│ │")
 
     print("│ ├─┐  Changing Frame data")
-    readCoilsResponse.value = {
-        ModbusFieldNames.DeviceID: 17,
-        ModbusFieldNames.FunctionCode: 1,
-        ModbusFieldNames.ByteCount: 5,
-        ModbusFieldNames.CoilArray: [0, 1, 2, 3, 4],
-    }
+    readCoilsResponse.set_value(
+        OrderedDict(
+            {
+                ModbusFieldNames.DeviceID.name: 17,
+                ModbusFieldNames.FunctionCode.name: 1,
+                ModbusFieldNames.ByteCount.name: 5,
+                ModbusFieldNames.CoilArray.name: [0, 1, 2, 3, 4],
+            }
+        )
+    )
     print(f"│ │ ├─ parser:\t\t{readCoilsResponse}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
     print("│ │ │")
     print("│ │ ├─┐  Recalculating CRC")
-    readCoilsResponse.crc.update()
+    readCoilsResponse.crc.update_field()
     print(f"│ │ │ ├─ parser:\t\t{readCoilsResponse}")
     print(f"│ │ │ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
     print("│ │ ├─┘")
@@ -100,23 +111,27 @@ def ReadDiscreteInputs(check_crc: bool = False) -> None:
     print("│ │")
 
     if check_crc is True:
-        readDiscreteInputsRequest.crc.update()
+        readDiscreteInputsRequest.crc.update_field()
         print("│ ├─┐  Recalculating CRC")
         print(f"│ │ ├─ parser:\t\t{readDiscreteInputsRequest}")
         print(f"│ │ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")
         print("│ ├─┘")
 
     print("│ ├─┐  Changing Frame data")
-    readDiscreteInputsRequest.value = {
-        ModbusFieldNames.DeviceID: 11,
-        ModbusFieldNames.FunctionCode: 2,
-        ModbusFieldNames.Address: 0xC400,
-        ModbusFieldNames.Count: 16,
-    }
+    readDiscreteInputsRequest.set_value(
+        OrderedDict(
+            {
+                ModbusFieldNames.DeviceID.name: 11,
+                ModbusFieldNames.FunctionCode.name: 2,
+                ModbusFieldNames.Address.name: 0xC400,
+                ModbusFieldNames.Count.name: 16,
+            }
+        )
+    )
     print(f"│ │ ├─ parser:\t\t{readDiscreteInputsRequest}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")
     print("│ │ ├─┐  Recalculating CRC")
-    readDiscreteInputsRequest.crc.update()
+    readDiscreteInputsRequest.crc.update_field()
     print(f"│ │ │ ├─ parser:\t{readDiscreteInputsRequest}")
     print(f"│ │ │ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")
     print("│ │ ├─┘")

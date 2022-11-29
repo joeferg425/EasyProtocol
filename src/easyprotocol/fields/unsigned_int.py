@@ -3,17 +3,12 @@ from __future__ import annotations
 
 import math
 from collections import OrderedDict
-from typing import Any, Literal, cast
+from typing import Any, Literal, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import (
-    DEFAULT_ENDIANNESS,
-    ParseObject,
-    ParseObjectGeneric,
-    T,
-)
-from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBaseGeneric
+from easyprotocol.base.utils import dataT, input_to_bytes
 
 UINT_STRING_FORMAT = "{:X}(hex)"
 UINT8_STRING_FORMAT = "{:02X}(hex)"
@@ -21,17 +16,18 @@ UINT16_STRING_FORMAT = "{:04X}(hex)"
 UINT24_STRING_FORMAT = "{:06X}(hex)"
 UINT32_STRING_FORMAT = "{:08X}(hex)"
 UINT64_STRING_FORMAT = "{:016X}(hex)"
+T = TypeVar("T", bound=Union[int, Any])
 
 
-class UIntFieldGeneric(ParseObjectGeneric[T]):
+class UIntFieldGeneric(ParseBaseGeneric[T]):
     """The base parsing object for unsigned integers."""
 
     def __init__(
         self,
         name: str,
         bit_count: int,
-        data: I | None = None,
-        value: int | T | None = None,
+        data: dataT = None,
+        value: T | None = None,
         format: str | None = UINT_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
         init_to_zero: bool = True,
@@ -40,14 +36,14 @@ class UIntFieldGeneric(ParseObjectGeneric[T]):
             name=name,
             bit_count=bit_count,
             data=data,
-            value=cast(T, value),
-            fmt=format,
+            value=value,
+            string_format=format,
             endian=endian,
         )
-        if self.value is None and init_to_zero is True:
+        if value is None and data is None and init_to_zero is True:
             self.value = cast(T, 0)
 
-    def parse(self, data: I) -> bitarray:
+    def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -79,17 +75,15 @@ class UIntFieldGeneric(ParseObjectGeneric[T]):
         else:
             return bitarray(endian="little")
 
-    def _get_value(self) -> T | None:
-        if len(self.bits) == 0:
-            return None
+    def get_value(self) -> T:
         b = self.bits.tobytes()
         return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
-    def _set_value(self, value: T | int | None) -> None:
+    def set_value(self, value: T) -> None:
         if value is None:
             _value = 0
         elif not isinstance(value, int):
-            _value = int(value)  # type:ignore
+            _value = int(value)
         else:
             _value = value
         byte_count = math.ceil(self._bit_count / 8)
@@ -107,20 +101,20 @@ class UIntFieldGeneric(ParseObjectGeneric[T]):
         return self._bits.tobytes()
 
     @property
-    def value(self) -> T | None:
+    def value(self) -> T:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return self._get_value()
+        return self.get_value()
 
     @value.setter
-    def value(self, value: T | int | None) -> None:
-        self._set_value(value)
+    def value(self, value: T) -> None:
+        self.set_value(value)
 
-    def _set_bits(self, bits: bitarray) -> None:
-        if bits.endian != Literal["little"]:
+    def set_bits(self, bits: bitarray) -> None:
+        if bits.endian() != Literal["little"]:
             v = bits.tobytes()
             _bits = bitarray(endian="little")
             _bits.frombytes(v)
@@ -130,8 +124,12 @@ class UIntFieldGeneric(ParseObjectGeneric[T]):
             _bits = _bits + bitarray("0" * (self._bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self._bit_count]
 
-    def _set_children(
-        self, children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None
+    def set_children(
+        self,
+        children: OrderedDict[str, ParseBaseGeneric[Any]]
+        | dict[str, ParseBaseGeneric[Any]]
+        | list[ParseBaseGeneric[Any]]
+        | None,
     ) -> None:
         raise NotImplementedError()
 
@@ -143,7 +141,7 @@ class UIntField(UIntFieldGeneric[int]):
         self,
         name: str,
         bit_count: int,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = UINT_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -164,8 +162,8 @@ class BoolField(UIntFieldGeneric[bool]):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
-        value: int | None = None,
+        data: dataT | None = None,
+        value: bool | None = None,
         init_to_false: bool = True,
     ) -> None:
         super().__init__(
@@ -181,20 +179,15 @@ class BoolField(UIntFieldGeneric[bool]):
             self.value = False
 
     @property
-    def value(self) -> bool | None:
-        v = super().value
-        if v is None:
-            return None
-        return bool(v)
+    def value(self) -> bool:
+        return bool(super().value)
 
     @value.setter
-    def value(self, value: bool | int) -> None:
-        if not isinstance(value, bool):
-            raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        value = int(value)
+    def value(self, value: bool) -> None:
+        _value = int(value)
         bits = bitarray(endian="little")
         byte_count = math.ceil(self._bit_count / 8)
-        bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=False))
+        bits.frombytes(int.to_bytes(_value, length=byte_count, byteorder=self._endian, signed=False))
         self._bits = bits[: self._bit_count]
 
 
@@ -204,7 +197,7 @@ class UInt8Field(UIntField):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = UINT8_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -227,7 +220,7 @@ class UInt16Field(UIntField):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = UINT16_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -250,7 +243,7 @@ class UInt24Field(UIntField):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = UINT24_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -273,7 +266,7 @@ class UInt32Field(UIntField):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = UINT32_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -296,7 +289,7 @@ class UInt64Field(UIntField):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = UINT64_STRING_FORMAT,
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,

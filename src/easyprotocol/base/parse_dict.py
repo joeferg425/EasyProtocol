@@ -2,27 +2,68 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, OrderedDict
+from typing import Any, Literal, OrderedDict, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import ParseObjectGeneric, T
-from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, ParseBaseGeneric, endianT
+from easyprotocol.base.parse_field import ParseFieldGeneric
+from easyprotocol.base.utils import dataT, input_to_bytes
+
+T = TypeVar("T", bound=Any)
+# valueVT = OrderedDict[str, T]
+# assignVT = Union[
+#     list[T],
+#     dict[str, T],
+#     dict[str, ParseValueGeneric[T]],
+#     OrderedDict[str, T],
+#     OrderedDict[str, ParseValueGeneric[T]],
+#     None,
+# ]
+# childVT = OrderedDict[str, ParseFieldGeneric[T]]
+# assignChildVT = Union[
+#     OrderedDict[str, ParseValueGeneric[T]],
+#     dict[str, ParseValueGeneric[T]],
+#     list[ParseValueGeneric[T]],
+#     None,
+# ]
+# valueFT = OrderedDict[str, ParseFieldGeneric[T]]
+# assignFT = Union[
+#     list[ParseFieldGeneric[T]],
+#     dict[str, T],
+#     dict[str, ParseFieldGeneric[T]],
+#     OrderedDict[str, T],
+#     OrderedDict[str, ParseFieldGeneric[T]],
+#     None,
+# ]
+# childFT = OrderedDict[str, ParseValueGeneric[T]]
+# assignChildFT = Union[
+#     OrderedDict[str, ParseFieldGeneric[T]],
+#     dict[str, ParseFieldGeneric[T]],
+#     list[ParseFieldGeneric[T]],
+#     None,
+# ]
 
 
 class ParseDictGeneric(
-    ParseObjectGeneric[OrderedDict[str, ParseObjectGeneric[T]]], OrderedDict[str, ParseObjectGeneric[T]]
+    ParseBaseGeneric[T],
+    dict[str, T],
 ):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
+        value_dict: dict[str, T] | None = None,
+        data: dataT = None,
         bit_count: int = -1,
-        data: I | None = None,
-        value: OrderedDict[str, ParseObjectGeneric[T]] | None = None,
-        children: OrderedDict[str, ParseObjectGeneric[T]] | None = None,
-        parent: ParseObjectGeneric[T] | None = None,
+        string_format: str | None = None,
+        endian: endianT = DEFAULT_ENDIANNESS,
+        parent: ParseBaseGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseBaseGeneric[T]]
+        | dict[str, ParseBaseGeneric[T]]
+        | list[ParseBaseGeneric[T]]
+        | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -33,20 +74,21 @@ class ParseDictGeneric(
         """
         super().__init__(
             name=name,
-            bit_count=bit_count,
-            data=None,
             value=None,
+            data=None,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
             parent=parent,
         )
-
         if children is not None:
-            self._set_children(children=children)
+            self.set_children(children=children)
         if data is not None:
             self.parse(data)
-        elif value is not None:
-            self._set_value(value=value)
+        elif value_dict is not None:
+            self.set_dict(value=value_dict)
 
-    def parse(self, data: I) -> bitarray:
+    def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -60,7 +102,7 @@ class ParseDictGeneric(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self, last: bool = False) -> tuple[str, ParseObjectGeneric[T]]:
+    def popitem(self, last: bool = False) -> tuple[str, T]:
         """Remove item from list.
 
         Args:
@@ -69,11 +111,9 @@ class ParseDictGeneric(
         Returns:
             the popped item
         """
-        return self.children.popitem(last=last)
+        return cast(tuple[str, T], self._children.popitem(last=last))
 
-    def pop(  # type:ignore
-        self, name: str, default: ParseObjectGeneric[T] | None = None
-    ) -> ParseObjectGeneric[T] | None:
+    def pop(self, name: str, default: T | None = None) -> T | None:
         """Pop item from dictionary by name.
 
         Args:
@@ -84,46 +124,84 @@ class ParseDictGeneric(
             the item (or default item)
         """
         if isinstance(name, Enum):
-            p = self.children.pop(name.name, default)
+            p = self._children.pop(name.name, default)
         else:
-            p = self.children.pop(name, default)
+            p = self._children.pop(name, default)
         if p is not None:
             p.parent = None
-        return p
+        if p is None:
+            return p
+        else:
+            return p.value
 
-    def _get_value(
+    def get_value(
         self,
-    ) -> OrderedDict[str, ParseObjectGeneric[T]]:
+    ) -> T:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return OrderedDict({k: v for k, v in self.children.items()})
+        raise NotImplementedError()
 
-    def _set_value(
+    def get_dict(self) -> dict[str, T]:
+        return cast(dict[str, T], {k: v for k, v in self._children.items()})
+
+    def set_value(
         self,
-        value: OrderedDict[str, ParseObjectGeneric[T]] | OrderedDict[str, T] | None,
+        value: T,
     ) -> None:
-        if not isinstance(value, dict):
-            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
-        for key, item in value.items():
-            if isinstance(item, ParseObjectGeneric):
+        raise NotImplementedError()
+
+    def set_dict(
+        self,
+        value: dict[str, T] | list[T],
+    ) -> None:
+        if isinstance(value, dict):
+            for key, item in value.items():
+                if isinstance(item, ParseBase):
+                    self.__setitem__(key, item.value)
+                    item.parent = self
+                else:
+                    obj = self.__getitem__(key)
+                    obj.value = item
+        else:
+            for item in value:
+                key = item.name
                 self.__setitem__(key, item)
                 item.parent = self
-            else:
-                obj = self.__getitem__(key)
-                obj.value = item
 
-    def _get_bits(self) -> bitarray:
+    def get_bits(self) -> bitarray:
         data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
             data += value.bits
         return data
 
+    def get_children(self) -> OrderedDict[str, ParseBaseGeneric[T]]:
+        return self._children
+
+    def set_children(
+        self,
+        children: OrderedDict[str, ParseBaseGeneric[T]]
+        | dict[str, ParseBaseGeneric[T]]
+        | list[ParseBaseGeneric[T]]
+        | None,
+    ) -> None:
+        self._children.clear()
+        if isinstance(children, (dict, OrderedDict)):
+            keys = list(children.keys())
+            for key in keys:
+                value = children[key]
+                self._children[key] = value
+                value.parent = self
+        elif isinstance(children, list):
+            for value in children:
+                self._children[value._name] = value
+                value.parent = self
+
     @property
-    def formatted_value(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -131,18 +209,56 @@ class ParseDictGeneric(
         """
         return f'[{", ".join([str(value) for value in self._children.values()])}]'
 
-    @property  # type:ignore
-    def value(self) -> OrderedDict[str, ParseObjectGeneric[T]]:
+    @property
+    def value(self) -> T:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return self._get_value()
+        return self.get_value()
 
     @value.setter
-    def value(self, value: OrderedDict[str, T] | OrderedDict[str, ParseObjectGeneric[T]] | None) -> None:
-        self._set_value(value)
+    def value(
+        self,
+        value: T,
+    ) -> None:
+        self.set_value(value)
+
+    @property
+    def value_dict(self) -> dict[str, T]:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self.get_dict()
+
+    @value_dict.setter
+    def value_dict(
+        self,
+        value: dict[str, T] | list[T],
+    ) -> None:
+        self.set_dict(value)
+
+    @property
+    def children(self) -> OrderedDict[str, ParseBaseGeneric[T]]:
+        """Get the parse objects that are contained by this one.
+
+        Returns:
+            the parse objects that are contained by this one
+        """
+        return self.get_children()
+
+    @children.setter
+    def children(
+        self,
+        children: OrderedDict[str, ParseBaseGeneric[T]]
+        | dict[str, ParseBaseGeneric[T]]
+        | list[ParseBaseGeneric[T]]
+        | None,
+    ) -> None:
+        self.set_children(children=children)
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -158,7 +274,7 @@ class ParseDictGeneric(
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.formatted_value}"
+        return f"{self._name}: {self.string_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -168,46 +284,90 @@ class ParseDictGeneric(
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, name: str | Enum, value: ParseObjectGeneric[T]) -> None:
-        if not isinstance(value, ParseObjectGeneric):
+    def __setitem__(self, name: str, value: T) -> None:
+        if not isinstance(value, ParseBase):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         value.parent = self
-        if isinstance(name, Enum):
-            return self._children.__setitem__(name.name, value)
-        else:
-            return self._children.__setitem__(name, value)
+        return self._children.__setitem__(name, value)
 
-    def __getitem__(self, name: str | Enum) -> ParseObjectGeneric[T]:
-        if isinstance(name, Enum):
-            return self._children.__getitem__(name.name)
-        else:
-            return self._children.__getitem__(name)
+    def __getitem__(self, name: str) -> T:
+        return self._children.__getitem__(name).value
 
-    def __delitem__(self, name: str | Enum) -> None:
-        if isinstance(name, Enum):
-            return self._children.__delitem__(name.name)
-        else:
-            return self._children.__delitem__(name)
+    def __delitem__(self, name: str) -> None:
+        return self._children.__delitem__(name)
 
     def __len__(self) -> int:
         return len(self._children)
+
+
+class ParseValueDict(ParseDictGeneric[Any]):
+    def __init__(
+        self,
+        name: str,
+        value_dict: dict[str, Any] | None = None,
+        data: dataT = None,
+        bit_count: int = -1,
+        string_format: str | None = None,
+        endian: endianT = DEFAULT_ENDIANNESS,
+        parent: ParseBaseGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseBaseGeneric[Any]]
+        | dict[str, ParseBaseGeneric[Any]]
+        | list[ParseBaseGeneric[Any]]
+        | None = None,
+    ) -> None:
+        super().__init__(
+            name=name,
+            value_dict=value_dict,
+            data=data,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
+            parent=parent,
+            children=children,
+        )
+
+
+fieldDictT = TypeVar(
+    "fieldDictT",
+    bound=Union[
+        OrderedDict[str, Any],
+        OrderedDict[str, ParseBase],
+    ],
+)
+fieldDictvalueT = OrderedDict[str, ParseBase]
+
+fieldDictAssignT = Union[
+    list[ParseBase],
+    dict[str, Any],
+    dict[str, ParseBase],
+    OrderedDict[str, Any],
+    OrderedDict[str, ParseBase],
+    None,
+]
 
 
 class ParseDict(ParseDictGeneric[Any]):
     def __init__(
         self,
         name: str,
+        value_dict: dict[str, Any] | None = None,
+        data: dataT = None,
         bit_count: int = -1,
-        data: I | None = None,
-        value: OrderedDict[str, ParseObjectGeneric[Any]] | None = None,
-        children: OrderedDict[str, ParseObjectGeneric[Any]] | None = None,
-        parent: ParseObjectGeneric[Any] | None = None,
+        string_format: str | None = None,
+        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        parent: ParseBaseGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseBaseGeneric[T]]
+        | dict[str, ParseBaseGeneric[T]]
+        | list[ParseBaseGeneric[T]]
+        | None = None,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=bit_count,
             data=data,
-            value=value,
-            children=children,
+            value_dict=value_dict,
+            string_format=string_format,
             parent=parent,
+            children=children,
+            endian=endian,
         )

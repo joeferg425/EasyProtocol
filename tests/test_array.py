@@ -12,8 +12,8 @@ from test_parse_object import (
     check_parseobject_value,
 )
 
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.base.parse_list import ParseList
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
 from easyprotocol.fields.array import ArrayField
 from easyprotocol.fields.unsigned_int import BoolField, UInt8Field
 
@@ -22,21 +22,21 @@ def check_array_strings(
     obj: ArrayField[Any],
     tst: TestData,
 ) -> None:
-    # assert tst.format.format(tst.value) == obj.formatted_value, (
-    #     f"{obj}: obj.formatted_value is not the expected value "
-    #     + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+    # assert tst.format.format(tst.value) == obj.string_value, (
+    #     f"{obj}: obj.string_value is not the expected value "
+    #     + f"({tst.format.format(tst.value)} != expected value: {obj.string_value})"
     # )
-    assert len(obj.formatted_value) > 0, (
-        f"{obj}: obj.formatted_value is not the expected value " + f"(? != expected value: {obj.formatted_value})"
+    assert len(obj.string_value) > 0, (
+        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.formatted_value in str(
+    assert obj.string_value in str(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.formatted_value in repr(
+    assert obj.string_value in repr(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -69,7 +69,7 @@ class TestArray:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -79,7 +79,7 @@ class TestArray:
         obj = ArrayField(
             name=tst.name,
             count=count,
-            array_item_class=ParseObject,
+            array_item_class=ParseBase,
         )
 
         check_array(
@@ -95,7 +95,7 @@ class TestArray:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -105,7 +105,7 @@ class TestArray:
         obj = ArrayField(
             name=tst.name,
             count=count,
-            array_item_class=ParseObject,
+            array_item_class=ParseBase,
         )
 
         check_array(
@@ -151,7 +151,11 @@ class TestArray:
         f1_name = "count"
         f1 = ParseList(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(name=f2_name, count=f1, array_item_class=UInt8Field)  # type:ignore
+        f2 = ArrayField(  # pyright:ignore[reportUnknownVariableType]
+            name=f2_name,
+            count=f1,  # pyright:ignore[reportGeneralTypeIssues]
+            array_item_class=UInt8Field,
+        )
         data = b"\x02\x01\x00\x03"
         with pytest.raises(TypeError):
             obj = ParseList(name=name, children=[f1, f2])
@@ -173,7 +177,7 @@ class TestArray:
         obj = ParseList(name=name, children=[f2])
         obj.parse(data=byte_data)
 
-        assert obj.byte_value == byte_data
+        assert obj.bytes_value == byte_data
         assert obj.bits == bits_data
 
     def test_array_set_name(self) -> None:
@@ -184,7 +188,7 @@ class TestArray:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -221,7 +225,7 @@ class TestArray:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -232,14 +236,14 @@ class TestArray:
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
-            value=value1,
+            value_list=value1,
         )
         check_array(
             obj=obj,
             tst=tst,
         )
 
-        obj.value = value2
+        obj.value_list = value2
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
@@ -261,7 +265,7 @@ class TestArray:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -272,7 +276,7 @@ class TestArray:
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
-            value=value1,
+            value_list=value1,
         )
         check_array(
             obj=obj,
@@ -294,7 +298,7 @@ class TestArray:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -305,14 +309,14 @@ class TestArray:
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
-            value=value1,
+            value_list=value1,
         )
         check_array(
             obj=obj,
             tst=tst,
         )
 
-        tst.parent = ParseObject(name="parent")
+        tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
         check_array(
             obj=obj,
@@ -332,7 +336,7 @@ class TestArray:
     #     tst = TestData(
     #         name="test",
     #         value=value1,
-    #         format="{}",
+    #         string_format="{}",
     #         byte_data=byte_data1,
     #         bits_data=bits_data1,
     #         parent=None,
@@ -349,6 +353,6 @@ class TestArray:
     #         obj=obj,
     #         tst=tst,
     #     )
-    #     child = ParseObject(name="child`")
+    #     child = ParseBase(name="child`")
     #     with pytest.raises(NotImplementedError):
     #         obj.children = OrderedDict({child.name: child})

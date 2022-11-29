@@ -19,6 +19,7 @@
 			"parsedict",
 			"parselist",
 			"parseobject",
+			"pyright",
 			"pytest",
 			"tobytes",
 			"uintfield"
@@ -36,12 +37,14 @@
 		"python.testing.pytestEnabled": true,
 		"editor.formatOnSave": true,
 		"python.linting.lintOnSave": true,
-		"python.linting.mypyEnabled": true,
+		"python.linting.mypyEnabled": false,
 		"editor.codeActionsOnSave": {
 			"source.organizeImports": true,
 		},
 		"isort.check": true,
-		"autoDocstring.generateDocstringOnEnter": true
+		"autoDocstring.generateDocstringOnEnter": true,
+		"editor.trimAutoWhitespace": true,
+		"files.trimTrailingWhitespace": true
 	},
 	"tasks": {
 		"version": "2.0.0",

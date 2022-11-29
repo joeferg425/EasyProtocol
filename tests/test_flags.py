@@ -11,11 +11,7 @@ from test_parse_object import (
     check_parseobject_value,
 )
 
-from easyprotocol.base.parse_object import (
-    DEFAULT_ENDIANNESS,
-    ParseObject,
-    ParseObjectGeneric,
-)
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, ParseBaseGeneric
 from easyprotocol.fields.flags import FlagsField
 
 
@@ -24,17 +20,17 @@ def check_flags_strings(
     tst: TestData,
 ) -> None:
 
-    assert len(obj.formatted_value) > 0, (
-        f"{obj}: obj.formatted_value is not the expected value " + f"(? != expected value: {obj.formatted_value})"
+    assert len(obj.string_value) > 0, (
+        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.formatted_value in str(
+    assert obj.string_value in str(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.formatted_value in repr(
+    assert obj.string_value in repr(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -77,7 +73,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -104,7 +100,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -132,7 +128,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -165,7 +161,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value2,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data2,
             bits_data=bits_data2,
             parent=None,
@@ -184,12 +180,12 @@ class TestFlags:
         )
 
     def test_flags_create_invalid(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             FlagsField(
                 name="invalid",
                 bit_count=4,
                 flags_type=TestingFlags,
-                data="pickles",  # type:ignore
+                data="pickles",  # pyright:ignore[reportGeneralTypeIssues]
             )
 
     def test_flags_set_name(self) -> None:
@@ -202,7 +198,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -242,7 +238,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -284,7 +280,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -321,7 +317,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -339,7 +335,7 @@ class TestFlags:
             tst=tst,
         )
 
-        tst.parent = ParseObject(name="parent")
+        tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
         check_flags(
             obj=obj,
@@ -356,7 +352,7 @@ class TestFlags:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -373,6 +369,6 @@ class TestFlags:
             obj=obj,
             tst=tst,
         )
-        child = ParseObject(name="child`")
+        child = ParseBase(name="child`")
         with pytest.raises(NotImplementedError):
             obj.children = OrderedDict({child.name: child})

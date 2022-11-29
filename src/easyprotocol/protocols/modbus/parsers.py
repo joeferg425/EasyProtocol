@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import OrderedDict
 from typing import Any, cast
 
-from easyprotocol.base import I, ParseDict, ParseObject
+from easyprotocol.base import ParseBase, ParseDict, dataT
 from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunctionEnum
 from easyprotocol.protocols.modbus.fields import (
     ModbusAddress,
@@ -20,9 +20,9 @@ class ModbusHeader(ParseDict):
     def __init__(
         self,
         name: str = "modbusHeader",
-        data: I | None = None,
-        children: list[ParseObject[Any]]
-        | OrderedDict[str, ParseObject[Any]] = [
+        data: dataT | None = None,
+        children: list[ParseBase[Any]]
+        | OrderedDict[str, ParseBase[Any]] = [
             ModbusDeviceId(),
             ModbusFunction(),
             ModbusAddress(),
@@ -84,7 +84,7 @@ class ModbusHeader(ParseDict):
 class ModbusReadCoilsRequest(ModbusHeader):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFunctionEnum.ReadCoils.name + "Request",
@@ -102,7 +102,7 @@ class ModbusReadCoilsRequest(ModbusHeader):
 class ModbusReadCoilsResponse(ModbusHeader):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
     ) -> None:
         count_field = ModbusByteCount()
         super().__init__(
@@ -112,7 +112,7 @@ class ModbusReadCoilsResponse(ModbusHeader):
                 ModbusDeviceId(),
                 ModbusFunction(),
                 count_field,
-                ModbusCoilArray(count_field=count_field),
+                ModbusCoilArray(count=count_field),
                 ModbusCRC(),
             ],
         )
@@ -121,7 +121,7 @@ class ModbusReadCoilsResponse(ModbusHeader):
 class ModbusReadDiscreteInputsRequest(ModbusHeader):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFunctionEnum.ReadDiscreteInputs.name + "Request",

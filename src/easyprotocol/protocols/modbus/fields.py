@@ -8,9 +8,10 @@ import crc
 from bitarray import bitarray
 from bitarray.util import int2ba
 
-from easyprotocol.base import I, ParseObject, input_to_bytes
+from easyprotocol.base import ParseBase, dataT, input_to_bytes
+from easyprotocol.base.parse_base import ParseBase
 from easyprotocol.fields import (
-    ArrayFieldGeneric,
+    ArrayField,
     BoolField,
     ChecksumField,
     UInt8EnumField,
@@ -24,7 +25,7 @@ from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunc
 class ModbusDeviceId(UInt8Field):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -35,10 +36,10 @@ class ModbusDeviceId(UInt8Field):
         )
 
 
-class ModbusFunction(UInt8EnumField):
+class ModbusFunction(UInt8EnumField[ModbusFunctionEnum]):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -53,7 +54,7 @@ class ModbusFunction(UInt8EnumField):
 class ModbusAddress(UInt16Field):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -67,7 +68,7 @@ class ModbusAddress(UInt16Field):
 class ModbusCount(UInt16Field):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -82,7 +83,7 @@ class ModbusCount(UInt16Field):
 class ModbusByteCount(UInt8Field):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -97,7 +98,7 @@ class ModbusByteCount(UInt8Field):
 class ModbusCRC(ChecksumField):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
     ) -> None:
         super().__init__(
@@ -117,8 +118,11 @@ class ModbusCRC(ChecksumField):
             endian="little",
         )
 
-    def update_field(self, data: I | None = None) -> tuple[int, bytes, bitarray]:
-        byte_data = bytes(self.parent)
+    def update_field(self, data: dataT | None = None) -> tuple[int, bytes, bitarray]:
+        if self.parent is not None:
+            byte_data = bytes(self.parent)
+        else:
+            raise Exception("can't")
         crc_int = self.crc_calculator.calculate_checksum(byte_data[:-2])
         crc_bytes = int.to_bytes(crc_int, length=2, byteorder=self.endian)
         crc_bits = int2ba(crc_int, length=self._bit_count)
@@ -126,24 +130,24 @@ class ModbusCRC(ChecksumField):
         return (crc_int, crc_bytes, crc_bits)
 
 
-class ModbusCoilArray(ArrayFieldGeneric):
+class ModbusCoilArray(ArrayField[bool]):
     def __init__(
         self,
-        count_field: UIntField,
-        data: I | None = None,
-        parent: ParseObject[Any] | None = None,
-        children: list[ParseObject[bool]] | OrderedDict[str, ParseObject[bool]] | None = None,
+        count: int | UIntField,
+        data: dataT | None = None,
+        parent: ParseBase[Any] | None = None,
+        children: list[ParseBase[bool]] | OrderedDict[str, ParseBase[bool]] | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFieldNames.CoilArray,
-            count=count_field,
+            count=count,
             array_item_class=BoolField,
             data=data,
             parent=parent,
             children=children,
         )
 
-    def parse(self, data: I) -> bitarray:
+    def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -153,15 +157,21 @@ class ModbusCoilArray(ArrayFieldGeneric):
             NotImplementedError: if not implemented for this field
         """
         bit_data = input_to_bytes(data=data)
-        count = self._count.value * 8
-        for i in range(count):
+        if isinstance(self._count, int):
+            _count = self._count * 8
+        else:
+            if self._count.value is None:
+                _count = 0
+            else:
+                _count = self._count.value * 8
+        for i in range(_count):
             f = self.array_item_class(f"+{i}")
             bit_data = f.parse(data=bit_data)
             self.append(f)
         return bit_data
 
     @property
-    def formatted_value(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -176,8 +186,8 @@ class ModbusCoilArray(ArrayFieldGeneric):
             chunks[chunk_key] = vals
         return f"[{', '.join([key+':'+value for key, value in chunks.items()])}]"
 
-    @property
-    def value(self) -> list[bool]:
+    @property  # type:ignore
+    def value(self) -> list[bool | None]:
         """Get the parsed value of the field.
 
         Returns:
@@ -186,12 +196,12 @@ class ModbusCoilArray(ArrayFieldGeneric):
         return list([v.value for f, v in self._children.items()])
 
     @value.setter
-    def value(self, value: list[ParseObject[Any]] | list[bool] | list[int]) -> None:
+    def value(self, value: list[ParseBase[Any]] | list[bool] | list[int]) -> None:
         if not isinstance(value, list):
             raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
         temp = UInt8Field(name="temp", endian="little")
         for index, item in enumerate(value):
-            if isinstance(item, ParseObject):
+            if isinstance(item, ParseBase):
                 if index < len(self._children):
                     self[index] = item
                     item.parent = self
@@ -203,8 +213,8 @@ class ModbusCoilArray(ArrayFieldGeneric):
                 bits = temp.bits
                 bits.reverse()
                 for i in range(len(bits)):
-                    parse_object = self[index * 8 + i]
-                    parse_object.value = True if bits[i] else False
+                    parse_base = self[index * 8 + i]
+                    parse_base.value = True if bits[i] else False
             else:
-                parse_object = self[index]
-                parse_object.value = item
+                parse_base = self[index]
+                parse_base.value = item  # type:ignore

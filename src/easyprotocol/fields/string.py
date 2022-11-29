@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import math
-from typing import Generic
+from collections import OrderedDict
+from typing import Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject, T
-from easyprotocol.base.utils import I, hex
-from easyprotocol.fields.array import ArrayFieldGeneric
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBaseGeneric
+from easyprotocol.base.utils import dataT, hex
+from easyprotocol.fields.array import ArrayField
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
 DEFAULT_CHAR_FORMAT = '"{}"'
@@ -20,8 +21,8 @@ class CharField(UIntFieldGeneric[str]):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
-        value: str | bytes | int | None = None,
+        data: dataT | None = None,
+        value: str | None = None,
         string_encoding: str = "latin1",
         init_to_zero: bool = True,
     ) -> None:
@@ -30,47 +31,41 @@ class CharField(UIntFieldGeneric[str]):
             name=name,
             bit_count=8,
             data=data,
-            value=value,  # type:ignore
+            value=value,
             endian=DEFAULT_ENDIANNESS,
             init_to_zero=False,
         )
         if self.value is None and init_to_zero is True:
             self.value = "\x00"
 
-    def _get_value(self) -> str | None:
-        if len(self.bits) == 0:
-            return None
+    def get_value(self) -> str:
         b = bytes(self)
         s = b.decode(self._string_encoding)
         return s
 
-    def _set_value(self, value: str | bytes | int | None) -> None:
-        if not isinstance(value, (bytes, str, int)):
-            raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        if isinstance(value, str):
-            _value = ord(value[0])
-        elif isinstance(value, bytes):
-            _value = value[0]
-        else:
-            _value = value
-        super()._set_value(_value)
+    def set_value(self, value: str) -> None:
+        super().set_value(ord(value[0]))
 
-    @property
-    def formatted_value(self) -> str:
-        """Get a formatted value for the field (for any custom formatting).
+    # @property
+    # def string_value(self) -> str:
+    #     """Get a formatted value for the field (for any custom formatting).
 
-        Returns:
-            the value of the field with custom formatting
-        """
-        return f'"{self.value}"'
+    #     Returns:
+    #         the value of the field with custom formatting
+    #     """
+    #     return f'"{self.value}"'
+
+    # @ string_value.setter
+    # def string_value(self,value:str) -> None:
+    #     self.set
 
 
-class StringField(ArrayFieldGeneric[str]):
+class StringField(ArrayField[str]):
     def __init__(
         self,
         name: str,
         count: UIntField | int,
-        data: I | None = None,
+        data: dataT | None = None,
         value: str | None = None,
         string_encoding: str = "latin1",
     ) -> None:
@@ -86,44 +81,36 @@ class StringField(ArrayFieldGeneric[str]):
         if self.value is not None and len(self.value) == 0 and value is not None:
             self.value = value
 
-    def _get_value(self) -> str:  # type:ignore
+    def get_string(self) -> str:
         return "".join([(v.value if v.value is not None else "\x00") for v in self._children.values()])
 
-    def _set_value(self, value: str | None) -> None:  # type:ignore
+    def set_string(self, value: str) -> None:
         if value is None:
             return
         for index, item in enumerate(value):
-            if isinstance(item, ParseObject):
-                if index < len(self._children):
-                    self[index] = item
-                    item.parent = self
-                else:
-                    self.append(item)
-                    item.parent = self
+            if index < len(self._children):
+                kid = cast(CharField, self[index])
+                kid.value = item
             else:
-                if index < len(self._children):
-                    parse_object = self[index]
-                    parse_object.value = item
-                else:
-                    f = self.array_item_class(f"#{index}")
-                    f.value = item
-                    self.append(f)
+                f = self.array_item_class(f"#{index}")
+                f.value = item
+                self._children[f.name] = f
 
-    @property  # type:ignore
-    def value(self) -> str:
+    @property
+    def value_string(self) -> str:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return self._get_value()
+        return self.get_string()
 
-    @value.setter
-    def value(self, value: str | None) -> None:
-        self._set_value(value=value)
+    @value_string.setter
+    def value(self, value: str) -> None:
+        self.set_string(value=value)
 
     @property
-    def formatted_value(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -136,8 +123,8 @@ class ByteField(UIntFieldGeneric[bytes]):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
-        value: bytes | int | None = None,
+        data: dataT | None = None,
+        value: bytes | None = None,
         init_to_zero: bool = True,
     ) -> None:
         super().__init__(
@@ -152,10 +139,8 @@ class ByteField(UIntFieldGeneric[bytes]):
             self.value = b"\x00"
 
     @property
-    def value(self) -> bytes | None:
-        if len(self.bits) == 0:
-            return None
-        return bytes(self)
+    def value(self) -> bytes:
+        return self.bytes_value
 
     @value.setter
     def value(self, value: int | str | bytes | None) -> None:
@@ -168,7 +153,7 @@ class ByteField(UIntFieldGeneric[bytes]):
         self._bits = bits[: self._bit_count]
 
     @property
-    def formatted_value(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -177,22 +162,16 @@ class ByteField(UIntFieldGeneric[bytes]):
         h = hex(self.value if self.value is not None else b"\x00")
         return f'"{h}"'
 
-    def _set_value(self, value: int | bytes | str | None) -> None:
-        if not isinstance(value, bytes):
-            raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
-        if isinstance(value, str):
-            _value = ord(value[0])
-        else:
-            _value = value[0]
-        super()._set_value(_value)
+    def set_value(self, value: bytes) -> None:
+        super().set_value(value[0])
 
 
-class BytesField(ArrayFieldGeneric[bytes]):
+class BytesField(ArrayField[bytes]):
     def __init__(
         self,
         name: str,
         count: UIntField | int,
-        data: I | None = None,
+        data: dataT | None = None,
         value: bytes | None = None,
     ) -> None:
         super().__init__(
@@ -206,44 +185,45 @@ class BytesField(ArrayFieldGeneric[bytes]):
         if self.value is not None and len(self.value) == 0 and value is not None:
             self.value = value
 
-    def _get_value(self) -> bytes:  # type:ignore
+    def get_string(self) -> bytes:
         return b"".join([(v.value if v.value is not None else b"\x00") for v in self._children.values()])
 
-    def _set_value(self, value: bytes | None) -> None:  # type:ignore
+    def set_string(self, value: bytes) -> None:
         if value is None:
             return
         for index, item in enumerate(value):
-            if isinstance(item, ParseObject):
+            if isinstance(item, ParseBaseGeneric):
                 if index < len(self._children):
-                    self[index] = item
+                    kid = cast(ByteField, self[index])
+                    kid.value = item
                     item.parent = self
                 else:
-                    self.append(item)
+                    self._children[item.name] = item
                     item.parent = self
             else:
                 if index < len(self._children):
-                    parse_object = self[index]
-                    parse_object.value = item  # type:ignore
+                    kid = cast(ByteField, self[index])
+                    kid.value = item
                 else:
                     f = self.array_item_class(f"#{index}")
                     f.value = bytes([item])
                     self.append(f)
 
-    @property  # type:ignore
-    def value(self) -> bytes:
-        """Get the parsed value of the field.
+    # @property  # type:ignore
+    # def value(self) -> bytes:
+    #     """Get the parsed value of the field.
 
-        Returns:
-            the value of the field
-        """
-        return self._get_value()
+    #     Returns:
+    #         the value of the field
+    #     """
+    #     return self.get_value()
 
-    @value.setter
-    def value(self, value: bytes | None) -> None:
-        self._set_value(value=value)
+    # @value.setter
+    # def value(self, value: bytes | None) -> None:
+    #     self.set_value(value=value)
 
     @property
-    def formatted_value(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:

@@ -14,7 +14,7 @@ from test_parse_object import (
 )
 from test_uint import TEST_VALUES_32_BIT, get_bitarray
 
-from easyprotocol.base.parse_object import ParseObject
+from easyprotocol.base.parse_base import ParseBase
 from easyprotocol.fields.float import FLOAT_STRING_FORMAT, Float32Field, FloatField
 
 TEST_VALUES_32_BIT_FLOAT_LE = [
@@ -74,52 +74,6 @@ def check_float(
     )
 
 
-class TestFloatField:
-    def test_floatfield_create_empty_big_endian(self) -> None:
-        value = 0.0
-        byte_data = struct.pack(">f", value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        tst = TestData(
-            name="test",
-            value=value,
-            format=FLOAT_STRING_FORMAT,
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian="big",
-            children=OrderedDict(),
-        )
-        with pytest.raises(NotImplementedError):
-            FloatField(
-                name=tst.name,
-                bit_count=32,
-                endian=tst.endian,
-            )
-
-    def test_floatfield_create_empty_little_endian(self) -> None:
-        value = 0
-        byte_data = struct.pack("<f", value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        tst = TestData(
-            name="test",
-            value=value,
-            format=FLOAT_STRING_FORMAT,
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian="little",
-            children=OrderedDict(),
-        )
-        with pytest.raises(NotImplementedError):
-            FloatField(
-                name=tst.name,
-                bit_count=32,
-                endian=tst.endian,
-            )
-
-
 class TestFloat32:
     def test_float32field_create_empty_big_endian(self) -> None:
         value = 0.0
@@ -129,7 +83,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -153,7 +107,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -181,7 +135,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -210,7 +164,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -239,7 +193,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -268,7 +222,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -293,7 +247,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -329,7 +283,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value1,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -367,7 +321,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value1,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -401,7 +355,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -417,7 +371,7 @@ class TestFloat32:
             obj=obj,
             tst=tst,
         )
-        tst.parent = ParseObject(name="parent")
+        tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
         check_float(
             obj=obj,
@@ -425,7 +379,7 @@ class TestFloat32:
         )
 
     def test_float32field_set_children(self) -> None:
-        child = ParseObject(name="child")
+        child = ParseBase(name="child")
         value = 0.0
         byte_data = struct.pack(">f", value)
         bits_data = bitarray(endian="little")
@@ -433,7 +387,7 @@ class TestFloat32:
         tst = TestData(
             name="test",
             value=value,
-            format=FLOAT_STRING_FORMAT,
+            string_format=FLOAT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,

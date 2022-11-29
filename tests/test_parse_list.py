@@ -12,12 +12,8 @@ from test_parse_object import (
     check_parseobject_properties,
 )
 
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, ParseBaseGeneric
 from easyprotocol.base.parse_list import ParseList
-from easyprotocol.base.parse_object import (
-    DEFAULT_ENDIANNESS,
-    ParseObject,
-    ParseObjectGeneric,
-)
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
@@ -38,7 +34,7 @@ def parselist_value(
                 f"{obj}: obj.value[{i}] is not the expected value "
                 + f"({obj.value[i]} != expected value: {tst.value[i]})"
             )
-            assert obj[i].fmt.format(obj.value[i]) in obj.formatted_value
+            assert obj[i].fmt.format(obj.value[i]) in obj.string_value
             assert obj[i].fmt.format(obj.value[i]) in str(obj)
             assert obj[i].fmt.format(obj.value[i]) in repr(obj)
 
@@ -69,7 +65,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -100,13 +96,13 @@ class TestParseList:
         bits_data = f2.bits + f1.bits
         byte_data = bytes(f2) + bytes(f1)
         value: list[Any] = [f1.value, f2.value]
-        children_list: list[ParseObjectGeneric[Any]] = [f1, f2]
+        children_list: list[ParseBaseGeneric[Any]] = [f1, f2]
         tst = TestData(
             name="test",
             value=value,
             byte_data=byte_data,
             bits_data=bits_data,
-            format="{}",
+            string_format="{}",
             parent=None,
             children=OrderedDict({f1.name: f1, f2.name: f2}),
             endian=DEFAULT_ENDIANNESS,
@@ -139,7 +135,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=values,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -168,7 +164,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=values,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -214,7 +210,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=values,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -288,7 +284,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=values,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -323,7 +319,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=values1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -381,7 +377,7 @@ class TestParseList:
         tst = TestData(
             name="test",
             value=values1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -416,7 +412,7 @@ class TestParseList:
         tst = TestData(
             name=name1,
             value=values,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -466,14 +462,14 @@ class TestParseList:
         values2: list[Any] = [f1_value]
         values3: list[Any] = [f2_value]
         values4: list[Any] = [f3_value]
-        children1: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict({f1.name: f1})
-        children3: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict({f2.name: f2})
-        children4: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict({f2.name: f2})
+        children1: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict()
+        children2: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f1.name: f1})
+        children3: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f2.name: f2})
+        children4: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f2.name: f2})
         tst = TestData(
             name="test",
             value=values1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -521,7 +517,7 @@ class TestParseList:
 
         value = 1
         with pytest.raises(TypeError):
-            obj.value = value  # type:ignore
+            obj.value = value
 
     def test_parselist_remove(self) -> None:
         name = "test"

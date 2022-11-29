@@ -6,7 +6,7 @@ import pytest
 from bitarray import bitarray
 from test_parse_object import TestData, check_parseobject
 
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.fields.unsigned_int import (
     UINT8_STRING_FORMAT,
     UINT16_STRING_FORMAT,
@@ -219,7 +219,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -244,7 +244,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -269,7 +269,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -306,7 +306,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value1,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -345,7 +345,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value1,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -380,7 +380,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -397,7 +397,7 @@ class TestUIntField:
             obj=obj,
             tst=tst,
         )
-        tst.parent = ParseObject(name="parent")
+        tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
         check_parseobject(
             obj=obj,
@@ -405,7 +405,7 @@ class TestUIntField:
         )
 
     def test_uintfield_set_children(self) -> None:
-        child = ParseObject(name="child")
+        child = ParseBase(name="child")
         value = 0
         byte_data = struct.pack("B", value)
         bits_data = bitarray(endian="little")
@@ -413,7 +413,7 @@ class TestUIntField:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT_STRING_FORMAT,
+            string_format=UINT_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -444,7 +444,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT8_STRING_FORMAT,
+            string_format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -469,7 +469,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT8_STRING_FORMAT,
+            string_format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -495,7 +495,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT8_STRING_FORMAT,
+            string_format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -526,7 +526,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT8_STRING_FORMAT,
+            string_format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -560,7 +560,7 @@ class TestUInt08:
         )
 
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.bytes_value == byte_data2
 
     @pytest.mark.parametrize(
         ["byte_data", "value", "bits_data", "endian"],
@@ -572,7 +572,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT8_STRING_FORMAT,
+            string_format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -599,7 +599,7 @@ class TestUInt08:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT8_STRING_FORMAT,
+            string_format=UINT8_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -623,7 +623,7 @@ class TestUInt08:
             name=name,
         )
         with pytest.raises(ValueError):
-            obj.value = value  # type:ignore
+            obj.value = value  # pyright:ignore[reportGeneralTypeIssues]
 
     def test_uint8field_set_value_invalid_value(self) -> None:
         name = "test"
@@ -645,7 +645,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT16_STRING_FORMAT,
+            string_format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -669,7 +669,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT16_STRING_FORMAT,
+            string_format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -695,7 +695,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT16_STRING_FORMAT,
+            string_format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -722,7 +722,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT16_STRING_FORMAT,
+            string_format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -749,7 +749,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT16_STRING_FORMAT,
+            string_format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -776,7 +776,7 @@ class TestUInt16:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT16_STRING_FORMAT,
+            string_format=UINT16_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -800,7 +800,7 @@ class TestUInt16:
             name=name,
         )
         with pytest.raises(ValueError):
-            obj.value = value  # type:ignore
+            obj.value = value  # pyright:ignore[reportGeneralTypeIssues]
 
     def test_uint16field_assign_invalid_value(self) -> None:
         name = "test"
@@ -821,7 +821,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT24_STRING_FORMAT,
+            string_format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -845,7 +845,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT24_STRING_FORMAT,
+            string_format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -871,7 +871,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT24_STRING_FORMAT,
+            string_format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -898,7 +898,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT24_STRING_FORMAT,
+            string_format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -925,7 +925,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT24_STRING_FORMAT,
+            string_format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -952,7 +952,7 @@ class TestUInt24:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT24_STRING_FORMAT,
+            string_format=UINT24_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -976,7 +976,7 @@ class TestUInt24:
             name=name,
         )
         with pytest.raises(ValueError):
-            obj.value = value  # type:ignore
+            obj.value = value  # pyright:ignore[reportGeneralTypeIssues]
 
     def test_uint24field_assign_invalid_value(self) -> None:
         name = "test"
@@ -997,7 +997,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT32_STRING_FORMAT,
+            string_format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1021,7 +1021,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT32_STRING_FORMAT,
+            string_format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1047,7 +1047,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT32_STRING_FORMAT,
+            string_format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1074,7 +1074,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT32_STRING_FORMAT,
+            string_format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1101,7 +1101,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT32_STRING_FORMAT,
+            string_format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1128,7 +1128,7 @@ class TestUInt32:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT32_STRING_FORMAT,
+            string_format=UINT32_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1152,7 +1152,7 @@ class TestUInt32:
             name=name,
         )
         with pytest.raises(ValueError):
-            obj.value = value  # type:ignore
+            obj.value = value  # pyright:ignore[reportGeneralTypeIssues]
 
     def test_uint32field_set_value_invalid_value(self) -> None:
         name = "test"
@@ -1173,7 +1173,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT64_STRING_FORMAT,
+            string_format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1197,7 +1197,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT64_STRING_FORMAT,
+            string_format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1223,7 +1223,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT64_STRING_FORMAT,
+            string_format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1250,7 +1250,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT64_STRING_FORMAT,
+            string_format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1277,7 +1277,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT64_STRING_FORMAT,
+            string_format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1304,7 +1304,7 @@ class TestUInt64:
         tst = TestData(
             name="test",
             value=value,
-            format=UINT64_STRING_FORMAT,
+            string_format=UINT64_STRING_FORMAT,
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -1328,7 +1328,7 @@ class TestUInt64:
             name=name,
         )
         with pytest.raises(ValueError):
-            obj.value = value  # type:ignore
+            obj.value = value  # pyright:ignore[reportGeneralTypeIssues]
 
     def test_uint64field_set_value_invalid_value(self) -> None:
         name = "test"

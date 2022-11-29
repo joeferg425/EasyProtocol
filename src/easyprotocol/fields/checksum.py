@@ -7,8 +7,8 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Configuration, CrcCalculator
 
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS
-from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 
@@ -18,7 +18,7 @@ class ChecksumField(UIntFieldGeneric[int]):
         name: str,
         bit_count: int,
         crc_configuration: Configuration,
-        data: I | None = None,
+        data: dataT | None = None,
         value: int | None = None,
         format: str | None = "{:X}(hex)",
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
@@ -35,7 +35,7 @@ class ChecksumField(UIntFieldGeneric[int]):
             configuration=crc_configuration,
         )
 
-    def update_field(self, data: I | None = None) -> tuple[int, bytes, bitarray]:
+    def update_field(self, data: dataT | None = None) -> tuple[int, bytes, bitarray]:
         if data is None:
             if self.parent is not None:
                 byte_data = bytes(self.parent)

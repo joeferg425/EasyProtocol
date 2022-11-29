@@ -2,29 +2,46 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from enum import Enum
-from typing import Any, Generic, Literal, MutableSequence, overload
+from typing import (
+    Any,
+    Generic,
+    Iterable,
+    Literal,
+    MutableSequence,
+    SupportsIndex,
+    TypeVar,
+    Union,
+    cast,
+    overload,
+)
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import ParseObjectGeneric, T
-from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBaseGeneric, endianT
+from easyprotocol.base.utils import dataT, input_to_bytes
+
+T = TypeVar("T", bound=Any)
 
 
 class ParseListGeneric(
-    ParseObjectGeneric[list[ParseObjectGeneric[T]]], MutableSequence[ParseObjectGeneric[T]], Generic[T]
+    ParseBaseGeneric[T],
+    MutableSequence[T],
 ):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
-        name: str | Enum,
+        name: str,
+        value_list: list[T] | None = None,
+        data: dataT = None,
         bit_count: int = -1,
-        data: I | None = None,
-        value: list[ParseObjectGeneric[T]] | None = None,
-        parent: ParseObjectGeneric[T] | None = None,
-        children: list[ParseObjectGeneric[T]] | OrderedDict[str, ParseObjectGeneric[T]] | None = None,
-        format: str = "{}",
+        string_format: str = "{}",
+        endian: endianT = DEFAULT_ENDIANNESS,
+        parent: ParseBaseGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseBaseGeneric[Any]]
+        | dict[str, ParseBaseGeneric[Any]]
+        | list[ParseBaseGeneric[Any]]
+        | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -35,24 +52,25 @@ class ParseListGeneric(
         """
         super().__init__(
             name=name,
-            bit_count=bit_count,
-            data=None,
             value=None,
+            data=None,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
             parent=parent,
-            fmt=format,
         )
 
         if children is not None:
             if isinstance(children, dict):
-                self._set_children(children)
+                self.set_children(children)
             else:
-                self._set_children(OrderedDict({val._name: val for val in children}))
+                self.set_children(OrderedDict({val._name: val for val in children}))
         if data is not None:
             self.parse(data)
-        elif value is not None:
-            self._set_value(value)
+        elif value_list is not None:
+            self.set_list(value_list)
 
-    def parse(self, data: I) -> bitarray:
+    def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -66,56 +84,72 @@ class ParseListGeneric(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def insert(self, index: int | slice, val: ParseObjectGeneric[T]) -> None:
-        c: OrderedDict[str, ParseObjectGeneric[Any]] = OrderedDict()
-        for i, value in enumerate(self._children.values()):
+    def insert(self, index: int | slice, value: T | ParseBaseGeneric[T]) -> None:
+        c: OrderedDict[str, ParseBaseGeneric[T]] = OrderedDict()
+        for i, v in enumerate(self._children.values()):
             if index == i:
-                c[val._name] = val
-                val.parent = self
-            c[value._name] = self._children[value._name]
+                if isinstance(value, ParseBaseGeneric):
+                    c[v._name] = value
+                    v.parent = self
+                else:
+                    c[v._name].value = cast(T, value)
+            if isinstance(value, ParseBaseGeneric):
+                c[v._name] = self._children[v._name]
         self._children = c
 
-    def append(self, val: ParseObjectGeneric[T]) -> None:
-        self._children[val._name] = val
-        val.parent = self
+    def append(self, value: T) -> None:
+        raise NotImplementedError()
+        # self._children[value._name] = value
+        # value.parent = self
 
-    def _get_value(self) -> list[T | None]:  # type:ignore
+    def get_list(self) -> list[T]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return list([v.value for f, v in self._children.items()])
+        return list([v.value for v in self._children.values()])
 
-    def _set_value(self, value: list[Any] | list[ParseObjectGeneric[T]]) -> None:
-        if not isinstance(value, list):
-            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
-        for index, item in enumerate(value):
-            if isinstance(item, ParseObjectGeneric):
-                if index < len(self._children):
-                    self[index] = item
-                    item.parent = self
+    def get_value(self) -> T:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        raise NotImplementedError()
+        # return list([v.value for v in self._children.values()])
+
+    def set_list(self, value: list[T] | list[ParseBaseGeneric[T]]) -> None:
+        if value is not None:
+            for index, item in enumerate(value):
+                if isinstance(item, ParseBaseGeneric):  # pyright:ignore[reportUnnecessaryIsInstance]
+                    if index < len(self._children):
+                        self[index] = item.value
+                        item.parent = self
+                    else:
+                        self.children[item.name] = item
+                        item.parent = self
                 else:
-                    self.append(item)
-                    item.parent = self
-            else:
-                parse_object = self[index]
-                parse_object.value = item
+                    # parse_base = self[index]
+                    self[index] = item  # pyright:ignore[reportGeneralTypeIssues]
 
-    def _get_bits(self) -> bitarray:
+    def set_value(self, value: T) -> None:
+        raise NotImplementedError()
+
+    def get_bits(self) -> bitarray:
         data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
             data += value.bits
         return data
 
-    def _get_formatted_value(self) -> str:
+    def get_string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return f'[{", ".join([str(value) for key,value in self._children .items()])}]'
+        return f'[{", ".join([str(value) for value in self._children .values()])}]'
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -131,7 +165,7 @@ class ParseListGeneric(
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.formatted_value}"
+        return f"{self._name}: {self.string_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -141,29 +175,46 @@ class ParseListGeneric(
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    @property  # type:ignore
-    def value(self) -> list[Any | None]:
+    @property
+    def value(self) -> T:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return self._get_value()
+        return self.get_value()
 
     @value.setter
-    def value(self, value: list[ParseObjectGeneric[T]] | list[Any]) -> None:
-        self._set_value(value)
+    def value(self, value: T) -> None:
+        self.set_value(value=value)
+
+    @property
+    def value_list(self) -> list[T]:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self.get_list()
+
+    @value_list.setter
+    def value_list(self, value: list[T] | list[ParseBaseGeneric[T]]) -> None:
+        self.set_list(value)
 
     @overload
-    def __getitem__(self, index: int) -> ParseObjectGeneric[T]:
+    def __getitem__(self, index: int) -> T:
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> list[ParseObjectGeneric[T]]:
+    def __getitem__(self, index: slice) -> list[T]:
         ...
 
-    def __getitem__(self, index: int | slice) -> ParseObjectGeneric[T] | list[ParseObjectGeneric[T]]:
-        return list(self._children.values())[index]
+    def __getitem__(self, index: int | slice) -> T | list[T]:
+        vs = list(self._children.values())[index]
+        if isinstance(vs, list):
+            return [v.value for v in vs]
+        else:
+            return vs.value
 
     def __delitem__(self, index: int | slice) -> None:
         item = list(self._children.values())[index]
@@ -175,41 +226,49 @@ class ParseListGeneric(
             item.parent = None
             self._children.pop(item._name)
 
-    @overload  # type:ignore
-    def __setitem__(self, index: int, value: ParseObjectGeneric[T]) -> None:
+    @overload
+    def __setitem__(self, index: SupportsIndex, value: T) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: slice, value: list[ParseObjectGeneric[T]]) -> None:
+    def __setitem__(self, index: slice, value: Iterable[T]) -> None:
         ...
 
-    def __setitem__(self, index: int | slice, value: ParseObjectGeneric[T] | list[ParseObjectGeneric[T]]) -> None:
-        index_key = list(self._children.keys())[index]
-        c = OrderedDict()
-        for key in self._children:
-            if isinstance(index_key, str) and isinstance(value, ParseObjectGeneric):
-                if key != index_key:
-                    c[key] = self._children[key]
-                else:
-                    c[value._name] = value
-                    value.parent = self
-            elif isinstance(index_key, list) and isinstance(value, list):
-                for i, sub_key in enumerate(index_key):
-                    if key != sub_key:
-                        c[key] = self._children[key]
+    def __setitem__(self, index: SupportsIndex | slice, value: T | Iterable[T]) -> None:
+        indexed_keys = list(self._children.keys())[index]
+        c: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict()
+        for existing_key in self._children:
+            if isinstance(indexed_keys, str):
+                if isinstance(value, ParseBaseGeneric):
+                    if existing_key != indexed_keys:
+                        c[existing_key] = self._children[existing_key]
                     else:
-                        c[value[i]._name] = value[i]
-                        value[i].parent = self
+                        c[value._name] = value
+                        value.parent = self
+            else:
+                if isinstance(value, list):
+                    for i, sub_key in enumerate(indexed_keys):
+                        sub_value = value[i]
+                        if isinstance(sub_value, ParseBaseGeneric):
+                            if existing_key != sub_key:
+                                c[existing_key] = self._children[existing_key]
+                            else:
+                                c[sub_value._name] = sub_value
+                                sub_value.parent = self
         self._children = c
 
     def __len__(self) -> int:
         return len(self._children)
 
-    def _get_children(self) -> OrderedDict[str, ParseObjectGeneric[T]]:
+    def get_children(self) -> OrderedDict[str, ParseBaseGeneric[T]]:
         return self._children
 
-    def _set_children(
-        self, children: OrderedDict[str, ParseObjectGeneric[T]] | list[ParseObjectGeneric[T]] | None | None
+    def set_children(
+        self,
+        children: OrderedDict[str, ParseBaseGeneric[T]]
+        | dict[str, ParseBaseGeneric[T]]
+        | list[ParseBaseGeneric[T]]
+        | None,
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict, OrderedDict)):
@@ -224,38 +283,47 @@ class ParseListGeneric(
                 value.parent = self
 
     @property
-    def children(self) -> OrderedDict[str, ParseObjectGeneric[T]]:
+    def children(self) -> OrderedDict[str, ParseBaseGeneric[Any]]:
         """Get the parse objects that are contained by this one.
 
         Returns:
             the parse objects that are contained by this one
         """
-        return self._get_children()
+        return self.get_children()
 
     @children.setter
     def children(
-        self, children: OrderedDict[str, ParseObjectGeneric[T]] | list[ParseObjectGeneric[T]] | None | None
+        self,
+        children: OrderedDict[str, ParseBaseGeneric[Any]]
+        | dict[str, ParseBaseGeneric[Any]]
+        | list[ParseBaseGeneric[Any]]
+        | None,
     ) -> None:
-        self._set_children(children=children)
+        self.set_children(children=children)
 
 
 class ParseList(ParseListGeneric[Any]):
     def __init__(
         self,
-        name: str | Enum,
+        name: str,
+        value: list[T] | None = None,
+        data: dataT | None = None,
         bit_count: int = -1,
-        data: I | None = None,
-        value: list[ParseObjectGeneric[Any]] | None = None,
-        parent: ParseObjectGeneric[Any] | None = None,
-        children: list[ParseObjectGeneric[Any]] | OrderedDict[str, ParseObjectGeneric[Any]] | None = None,
-        format: str = "{}",
+        string_format: str = "{}",
+        endian: endianT = DEFAULT_ENDIANNESS,
+        parent: ParseBaseGeneric[Any] | None = None,
+        children: OrderedDict[str, ParseBaseGeneric[Any]]
+        | dict[str, ParseBaseGeneric[Any]]
+        | list[ParseBaseGeneric[Any]]
+        | None = None,
     ) -> None:
         super().__init__(
             name=name,
-            bit_count=bit_count,
+            value_list=value,
             data=data,
-            value=value,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
             parent=parent,
             children=children,
-            format=format,
         )

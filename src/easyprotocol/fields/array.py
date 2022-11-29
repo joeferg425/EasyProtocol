@@ -5,22 +5,27 @@ from typing import Any, Generic, TypeVar
 
 from bitarray import bitarray
 
+from easyprotocol.base.parse_base import ParseBaseGeneric
 from easyprotocol.base.parse_list import ParseListGeneric
-from easyprotocol.base.parse_object import ParseObjectGeneric, T
-from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
+T = TypeVar("T", bound=Any)
 
-class ArrayFieldGeneric(ParseListGeneric[T], Generic[T]):
+
+class ArrayField(ParseListGeneric[T]):
     def __init__(
         self,
         name: str,
         count: UIntFieldGeneric[int] | int,
-        array_item_class: type[ParseObjectGeneric[T]],
-        data: I | None = None,
-        value: list[ParseObjectGeneric[T]] | list[T] | None = None,
-        parent: ParseObjectGeneric[Any] | None = None,
-        children: list[ParseObjectGeneric[T]] | OrderedDict[str, ParseObjectGeneric[T]] | None = None,
+        array_item_class: type[ParseBaseGeneric[T]],
+        data: dataT | None = None,
+        value_list: list[T] | None = None,
+        parent: ParseBaseGeneric[Any] | None = None,
+        children: list[ParseBaseGeneric[T]]
+        | dict[str, ParseBaseGeneric[T]]
+        | OrderedDict[str, ParseBaseGeneric[T]]
+        | None = None,
     ) -> None:
         self._count = count
         self.array_item_class = array_item_class
@@ -29,10 +34,10 @@ class ArrayFieldGeneric(ParseListGeneric[T], Generic[T]):
             data=data,
             parent=parent,
             children=children,
-            value=value,  # type:ignore
+            value_list=value_list,
         )
 
-    def parse(self, data: I) -> bitarray:
+    def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -50,95 +55,95 @@ class ArrayFieldGeneric(ParseListGeneric[T], Generic[T]):
             for i in range(count):
                 f = self.array_item_class(f"#{i}")
                 bit_data = f.parse(data=bit_data)
-                self.append(f)
+                self._children[f.name] = f
         return bit_data
 
-    def _get_value(self) -> list[ParseObjectGeneric[T]]:  # type:ignore
-        return list([v for v in self._children.values()])
+    # def get_list(self) -> list[ParseBase[T]]:
+    #     return list([v for v in self._children.values()])
 
-    def _set_value(self, value: list[ParseObjectGeneric[T]] | list[T] | None) -> None:
-        if value is None:
-            return
-        for index, item in enumerate(value):
-            if isinstance(item, ParseObjectGeneric):
-                if index < len(self._children):
-                    self[index] = item
-                    item.parent = self
-                else:
-                    self.append(item)
-                    item.parent = self
-            else:
-                parse_object = self[index]
-                parse_object.value = item  # type:ignore
+    # def set_value(self, value: list[ParseBase[T]] | list[T] | None) -> None:
+    #     if value is None:
+    #         return
+    #     for index, item in enumerate(value):
+    #         if isinstance(item, ParseBase):
+    #             if index < len(self._children):
+    #                 self[index] = item
+    #                 item.parent = self
+    #             else:
+    #                 self.append(item)
+    #                 item.parent = self
+    #         else:
+    #             parse_base = self[index]
+    #             parse_base.value = item  # type:ignore
 
-    @property  # type:ignore
-    def value(self) -> list[ParseObjectGeneric[T]]:
-        """Get the parsed value of the field.
+    # @property  # type:ignore
+    # def value(self) -> list[ParseBase[T]]:
+    #     """Get the parsed value of the field.
 
-        Returns:
-            the value of the field
-        """
-        return self._get_value()
+    #     Returns:
+    #         the value of the field
+    #     """
+    #     return self.get_value()
 
-    @value.setter
-    def value(self, value: list[ParseObjectGeneric[T]] | list[T] | None) -> None:
-        self._set_value(value=value)
+    # @value.setter
+    # def value(self, value: list[ParseBase[T]] | list[T] | None) -> None:
+    #     self.set_value(value=value)
 
 
-class ArrayField(ArrayFieldGeneric[T]):
-    def __init__(
-        self,
-        name: str,
-        count: UIntFieldGeneric[int] | int,
-        array_item_class: type[ParseObjectGeneric[T]],
-        data: I | None = None,
-        value: list[ParseObjectGeneric[T]] | list[T] | None = None,
-        parent: ParseObjectGeneric[Any] | None = None,
-        children: list[ParseObjectGeneric[T]] | OrderedDict[str, ParseObjectGeneric[T]] | None = None,
-    ) -> None:
-        super().__init__(
-            name=name,
-            count=count,
-            array_item_class=array_item_class,
-            data=data,
-            value=value,
-            parent=parent,
-            children=children,
-        )
+# class ArrayField(ArrayFieldGeneric[T]):
+#     def __init__(
+#         self,
+#         name: str,
+#         count: UIntFieldGeneric[int] | int,
+#         array_item_class: type[ParseBaseGeneric[T]],
+#         data: dataT | None = None,
+#         value_list: list[ParseBaseGeneric[T]] | None = None,
+#         parent: ParseBaseGeneric[Any] | None = None,
+#         children: list[ParseBaseGeneric[T]] | dict[str, ParseBaseGeneric[T]]| OrderedDict[str, ParseBaseGeneric[T]] | None = None,
+#     ) -> None:
+#         super().__init__(
+#             name=name,
+#             count=count,
+#             array_item_class=array_item_class,
+#             data=data,
+#             value=value,
+#             parent=parent,
+#             children=children,
+#         )
 
-    def _get_value(self) -> list[T | None]:  # type:ignore
-        return list([v.value for v in self._children.values()])
+#     def get_value(self) -> list[valueT | None]:  # type:ignore
+#         return list([v.value for v in self._children.values()])
 
-    def _set_value(self, value: list[ParseObjectGeneric[T]] | list[T] | None) -> None:
-        if value is None:
-            return
-        for index, item in enumerate(value):
-            if isinstance(item, ParseObjectGeneric):
-                if index < len(self._children):
-                    self[index] = item
-                    item.parent = self
-                else:
-                    self.append(item)
-                    item.parent = self
-            else:
-                if index < len(self):
-                    parse_object = self[index]
-                    parse_object.value = item  # type:ignore
-                else:
-                    new_name = f"#{index}"
-                    new_item = self.array_item_class(name=new_name, value=item)  # type:ignore
-                    new_item.parent = self
-                    self._children[new_name] = new_item
+#     def set_value(self, value: list[ParseBase[T]] | list[T] | None) -> None:
+#         if value is None:
+#             return
+#         for index, item in enumerate(value):
+#             if isinstance(item, ParseBase):
+#                 if index < len(self._children):
+#                     self[index] = item
+#                     item.parent = self
+#                 else:
+#                     self.append(item)
+#                     item.parent = self
+#             else:
+#                 if index < len(self):
+#                     parse_base = self[index]
+#                     parse_base.value = item  # type:ignore
+#                 else:
+#                     new_name = f"#{index}"
+#                     new_item = self.array_item_class(name=new_name, value=item)  # type:ignore
+#                     new_item.parent = self
+#                     self._children[new_name] = new_item
 
-    @property  # type:ignore
-    def value(self) -> list[T | None]:
-        """Get the parsed value of the field.
+#     @property  # type:ignore
+#     def value(self) -> list[valueT | None]:
+#         """Get the parsed value of the field.
 
-        Returns:
-            the value of the field
-        """
-        return self._get_value()
+#         Returns:
+#             the value of the field
+#         """
+#         return self.get_value()
 
-    @value.setter
-    def value(self, value: list[ParseObjectGeneric[T]] | list[T] | None) -> None:
-        self._set_value(value=value)
+#     @value.setter
+#     def value(self, value: list[ParseBase[T]] | list[T] | None) -> None:
+#         self.set_value(value=value)

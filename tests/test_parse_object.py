@@ -7,7 +7,7 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import UNDEFINED, ParseObject, ParseObjectGeneric
+from easyprotocol.base.parse_base import UNDEFINED, ParseBase, ParseBaseGeneric
 
 
 @dataclass
@@ -15,22 +15,22 @@ class TestData:
     name: str
     value: Any
     endian: Literal["big", "little"]
-    format: str
+    string_format: str
     bits_data: bitarray
     byte_data: bytes | bytearray
-    parent: ParseObjectGeneric[Any] | None
-    children: OrderedDict[str, ParseObjectGeneric[Any]]
+    parent: ParseBaseGeneric[Any] | None
+    children: OrderedDict[str, ParseBaseGeneric[Any]]
 
 
 def check_parseobject_properties(
-    obj: ParseObjectGeneric[Any],
+    obj: ParseBaseGeneric[Any],
     tst: TestData,
 ) -> None:
     assert obj is not None, "Object is None"
     assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
     assert (
-        obj.fmt == tst.format
-    ), f"{obj}: obj.format is not the expected value ({obj.fmt} != expected value: {tst.format})"
+        obj.string_format == tst.string_format
+    ), f"{obj}: obj.format is not the expected value ({obj.string_format} != expected value: {tst.string_format})"
     assert (
         obj.bits == tst.bits_data
     ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
@@ -46,7 +46,7 @@ def check_parseobject_properties(
 
 
 def check_parseobject_children(
-    obj: ParseObjectGeneric[Any],
+    obj: ParseBaseGeneric[Any],
     tst: TestData,
 ) -> None:
     assert len(obj.children) == len(tst.children), (
@@ -68,15 +68,15 @@ def check_parseobject_children(
         )
 
     for v in tst.children.values():
-        assert v.formatted_value in obj.formatted_value
-        assert v.formatted_value in str(obj)
-        assert v.formatted_value in repr(obj)
+        assert v.string_value in obj.string_value
+        assert v.string_value in str(obj)
+        assert v.string_value in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 
 
 def check_parseobject_value(
-    obj: ParseObjectGeneric[Any],
+    obj: ParseBaseGeneric[Any],
     tst: TestData,
 ) -> None:
     assert (
@@ -85,34 +85,34 @@ def check_parseobject_value(
 
 
 def check_parseobject_strings(
-    obj: ParseObjectGeneric[Any],
+    obj: ParseBaseGeneric[Any],
     tst: TestData,
 ) -> None:
     if obj.value is None:
-        assert UNDEFINED == obj.formatted_value, (
-            f"{obj}: obj.formatted_value is not the expected value "
-            + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+        assert UNDEFINED == obj.string_value, (
+            f"{obj}: obj.string_value is not the expected value "
+            + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
         )
     else:
-        assert tst.format.format(tst.value) == obj.formatted_value, (
-            f"{obj}: obj.formatted_value is not the expected value "
-            + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+        assert tst.string_format.format(tst.value) == obj.string_value, (
+            f"{obj}: obj.string_value is not the expected value "
+            + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
         )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.formatted_value in str(
+    assert obj.string_value in str(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.formatted_value in repr(
+    assert obj.string_value in repr(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
 
 
 def check_parseobject(
-    obj: ParseObjectGeneric[Any],
+    obj: ParseBaseGeneric[Any],
     tst: TestData,
 ) -> None:
     check_parseobject_value(
@@ -139,14 +139,14 @@ class TestParseObject:
         tst = TestData(
             name="test",
             value=None,
-            format="{}",
+            string_format="{}",
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
             endian=endian,
             children=OrderedDict(),
         )
-        obj = ParseObject(name=tst.name)
+        obj = ParseBase(name=tst.name)
         check_parseobject(
             obj=obj,
             tst=tst,
@@ -156,27 +156,27 @@ class TestParseObject:
         name = "test"
         data = b"\x00"
         with pytest.raises(NotImplementedError):
-            ParseObject(name=name, data=data)
+            ParseBase(name=name, data=data)
 
     def test_parseobject_create_value(self) -> None:
         name = "test"
         value = 11
         with pytest.raises(NotImplementedError):
-            ParseObject(name=name, value=value)
+            ParseBase(name=name, value=value)
 
     def test_parseobject_set_name(self) -> None:
         endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
             value=None,
-            format="{}",
+            string_format="{}",
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
             endian=endian,
             children=OrderedDict(),
         )
-        obj = ParseObject(name=tst.name)
+        obj = ParseBase(name=tst.name)
         check_parseobject(
             obj=obj,
             tst=tst,
@@ -194,14 +194,14 @@ class TestParseObject:
         tst = TestData(
             name="test",
             value=None,
-            format="{}",
+            string_format="{}",
             byte_data=b"",
             bits_data=bitarray(endian="little"),
             parent=None,
             endian=endian,
             children=OrderedDict(),
         )
-        obj = ParseObject(name=tst.name)
+        obj = ParseBase(name=tst.name)
         check_parseobject(
             obj=obj,
             tst=tst,
@@ -213,7 +213,7 @@ class TestParseObject:
         endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
-            format="{}",
+            string_format="{}",
             value=None,
             byte_data=b"",
             bits_data=bitarray(endian="little"),
@@ -221,7 +221,7 @@ class TestParseObject:
             endian=endian,
             children=OrderedDict(),
         )
-        obj = ParseObject(name=tst.name)
+        obj = ParseBase(name=tst.name)
         check_parseobject(
             obj=obj,
             tst=tst,
@@ -229,7 +229,7 @@ class TestParseObject:
         tst.byte_data = b"\x01"
         tst.bits_data = bitarray(endian="little")
         tst.bits_data.frombytes(tst.byte_data)
-        obj._bits = tst.bits_data
+        obj._bits = tst.bits_data  # pyright:ignore[reportPrivateUsage]
         check_parseobject(
             obj=obj,
             tst=tst,
@@ -241,7 +241,7 @@ class TestParseObject:
         endian: Literal["big", "little"] = "little"
         tst = TestData(
             name="test",
-            format="{}",
+            string_format="{}",
             value=None,
             byte_data=b"",
             bits_data=bitarray(endian="little"),
@@ -249,12 +249,12 @@ class TestParseObject:
             children=OrderedDict(),
             endian=endian,
         )
-        obj = ParseObject(name=tst.name)
+        obj = ParseBase(name=tst.name)
         check_parseobject(
             obj=obj,
             tst=tst,
         )
-        tst.parent = ParseObject(name="parent")
+        tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
         check_parseobject(
             obj=obj,
@@ -263,10 +263,10 @@ class TestParseObject:
 
     def test_parseobject_set_children(self) -> None:
         endian: Literal["big", "little"] = "little"
-        child = ParseObject(name="child")
+        child = ParseBase(name="child")
         tst = TestData(
             name="test",
-            format="{}",
+            string_format="{}",
             value=None,
             byte_data=b"",
             bits_data=bitarray(endian="little"),
@@ -274,7 +274,7 @@ class TestParseObject:
             endian=endian,
             children=OrderedDict(),
         )
-        obj = ParseObject(name=tst.name)
+        obj = ParseBase(name=tst.name)
         check_parseobject(
             obj=obj,
             tst=tst,

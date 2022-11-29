@@ -11,7 +11,7 @@ from test_parse_object import (
     check_parseobject_value,
 )
 
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObject
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.fields.enum import EnumField
 
 
@@ -19,21 +19,21 @@ def check_enum_strings(
     obj: EnumField[IntEnum],
     tst: TestData,
 ) -> None:
-    assert tst.format.format(tst.value.name) == obj.formatted_value, (
-        f"{obj}: obj.formatted_value is not the expected value "
-        + f"({tst.format.format(tst.value)} != expected value: {obj.formatted_value})"
+    assert tst.string_format.format(tst.value.name) == obj.string_value, (
+        f"{obj}: obj.string_value is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
     )
-    assert len(obj.formatted_value) > 0, (
-        f"{obj}: obj.formatted_value is not the expected value " + f"(? != expected value: {obj.formatted_value})"
+    assert len(obj.string_value) > 0, (
+        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.formatted_value in str(
+    assert obj.string_value in str(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's string vale ({obj.formatted_value} not in {str(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.formatted_value in repr(
+    assert obj.string_value in repr(
         obj
-    ), f"{obj}: obj.formatted_value is not in the object's repr vale ({obj.formatted_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -79,7 +79,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -106,7 +106,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -133,7 +133,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -166,7 +166,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value2,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data2,
             bits_data=bits_data2,
             parent=None,
@@ -185,12 +185,12 @@ class TestEnums:
         )
 
     def test_enum_create_invalid(self) -> None:
-        with pytest.raises(ValueError):
+        with pytest.raises(TypeError):
             EnumField(
                 name="enum",
                 bit_count=4,
                 enum_type=TestEnumerating,
-                data="bad_data",  # type:ignore
+                data=tuple((1, 2, "ff")),  # pyright:ignore[reportGeneralTypeIssues]
             )
 
     def test_enum_set_name(self) -> None:
@@ -203,7 +203,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -243,7 +243,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -285,7 +285,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value1,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
@@ -322,7 +322,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -340,7 +340,7 @@ class TestEnums:
             tst=tst,
         )
 
-        tst.parent = ParseObject(name="parent")
+        tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
         check_enum(
             obj=obj,
@@ -357,7 +357,7 @@ class TestEnums:
         tst = TestData(
             name="test",
             value=value,
-            format="{}",
+            string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
@@ -374,6 +374,6 @@ class TestEnums:
             obj=obj,
             tst=tst,
         )
-        child = ParseObject(name="child`")
+        child = ParseBase(name="child`")
         with pytest.raises(NotImplementedError):
             obj.children = OrderedDict({child.name: child})

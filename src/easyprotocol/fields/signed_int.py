@@ -132,6 +132,9 @@ class IntFieldGeneric(ParseBaseGeneric[T]):
     ) -> None:
         raise NotImplementedError()
 
+    def get_string_value(self) -> str:
+        return self._string_format.format(self.value)
+
 
 class IntField(IntFieldGeneric[int]):
     def __init__(

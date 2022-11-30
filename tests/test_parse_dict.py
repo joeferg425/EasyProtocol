@@ -6,12 +6,7 @@ from typing import Any
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import (
-    TestData,
-    check_parseobject,
-    check_parseobject_children,
-    check_parseobject_properties,
-)
+from test_parse_object import TestData, check_parseobject
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, ParseBaseGeneric
 from easyprotocol.base.parse_dict import ParseDict
@@ -23,43 +18,93 @@ def check_parsedict_value(
     obj: ParseDict,
     tst: TestData,
 ) -> None:
-    if obj.value is None:
-        assert False, "object value is not instantiated"
-    else:
-        assert len(obj.value) == len(tst.value), (
-            f"{obj}: len(obj.value) is not the expected value "
-            + f"({len(obj.value)} != expected value: {len(tst.value)})"
+    assert len(obj.value_dict) == len(tst.value), (
+        f"{obj}: len(obj.value) is not the expected value "
+        + f"({len(obj.value_dict)} != expected value: {len(tst.value)})"
+    )
+    assert obj.value_dict.keys() == tst.value.keys(), (
+        f"{obj}: obj.value.keys() is not the expected value "
+        + f"({obj.value_dict.keys()} != expected value: {tst.value.keys()})"
+    )
+    for key in tst.value.keys():
+        assert obj.value_dict[key] == tst.value[key], (
+            f"{obj}: obj.value[key] is not the expected value "
+            + f"({obj.value_dict[key]} != expected value: {tst.value[key]})"
         )
-        assert obj.value.keys() == tst.value.keys(), (
-            f"{obj}: obj.value.keys() is not the expected value "
-            + f"({obj.value.keys()} != expected value: {tst.value.keys()})"
-        )
-        for key in tst.value.keys():
-            assert obj.value[key] == tst.value[key], (
-                f"{obj}: obj.value[key] is not the expected value "
-                + f"({obj.value[key]} != expected value: {tst.value[key]})"
-            )
 
-        for key in obj.value.keys():
-            value = obj[key]
-            assert value.string_value in obj.string_value
-            assert value.string_value in str(obj)
-            assert value.string_value in repr(obj)
+    for key in obj.value_dict.keys():
+        value = obj[key]
+        assert value in obj.string
+        assert value in str(obj)
+        assert value in repr(obj)
+
+
+def check_parsedict_properties(
+    obj: ParseDict,
+    tst: TestData,
+) -> None:
+    assert obj is not None, "Object is None"
+    assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
+    assert (
+        obj.string_format == tst.string_format
+    ), f"{obj}: obj.format is not the expected value ({obj.string_format} != expected value: {tst.string_format})"
+    assert (
+        obj.bits == tst.bits_data
+    ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
+    assert (
+        obj.parent == tst.parent
+    ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
+    assert (
+        bytes(obj) == tst.byte_data
+    ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
+    assert (
+        obj.endian == tst.endian
+    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
+
+
+def check_parsedict_children(
+    obj: ParseDict,
+    tst: TestData,
+) -> None:
+    assert len(obj.children) == len(tst.children), (
+        f"{obj}: len(obj.children) is not the expected value "
+        + f"({len(obj.children)} != expected value: {len(tst.children)})"
+    )
+    assert obj.children.keys() == tst.children.keys(), (
+        f"{obj}: obj.children.keys() is not the expected value "
+        + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
+    )
+    for key in tst.children.keys():
+        assert obj.children[key] == tst.children[key], (
+            f"{obj}: obj.children[key] is not the expected value "
+            + f"({obj.children[key]} != expected value: {tst.children[key]})"
+        )
+        assert obj.children[key].parent == obj, (
+            f"{obj}: obj.children[key].parent is not the expected value "
+            + f"({obj.children[key].parent} != expected value: {obj})"
+        )
+
+    for v in tst.children.values():
+        assert v.string in obj.string
+        assert v.string in str(obj)
+        assert v.string in repr(obj)
+    assert tst.name in str(obj)
+    assert tst.name in repr(obj)
 
 
 def check_parsedict(
     obj: ParseDict,
     tst: TestData,
 ) -> None:
-    check_parseobject_properties(
-        obj=obj,
-        tst=tst,
-    )
-    check_parseobject_children(
+    check_parsedict_properties(
         obj=obj,
         tst=tst,
     )
     check_parsedict_value(
+        obj=obj,
+        tst=tst,
+    )
+    check_parsedict_children(
         obj=obj,
         tst=tst,
     )
@@ -98,10 +143,11 @@ class TestParseDict:
         f1 = UInt8Field(name=f1_name)
         bits_data = f1.bits
         byte_data = bits_data.tobytes()
+        values = OrderedDict({f1.name: f1.value})
         children: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f1.name: f1})
         tst = TestData(
             name="test",
-            value=children,
+            value=values,
             string_format="{}",
             byte_data=byte_data,
             bits_data=bits_data,

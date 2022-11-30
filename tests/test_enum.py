@@ -5,11 +5,8 @@ from typing import Any
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import (
-    TestData,
-    check_parseobject_properties,
-    check_parseobject_value,
-)
+from test_parse_object import TestData
+from test_uint import check_int_properties, check_int_value
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.fields.enum import EnumField
@@ -19,21 +16,19 @@ def check_enum_strings(
     obj: EnumField[IntEnum],
     tst: TestData,
 ) -> None:
-    assert tst.string_format.format(tst.value.name) == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
+    assert tst.string_format.format(tst.value.name) == obj.string, (
+        f"{obj}: obj.string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
     )
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
-    )
+    assert len(obj.string) > 0, f"{obj}: obj.string is not the expected value " + f"(? != expected value: {obj.string})"
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -43,11 +38,11 @@ def check_enum(
     obj: EnumField[Any],
     tst: TestData,
 ) -> None:
-    check_parseobject_value(
+    check_int_value(
         obj=obj,
         tst=tst,
     )
-    check_parseobject_properties(
+    check_int_properties(
         obj=obj,
         tst=tst,
     )

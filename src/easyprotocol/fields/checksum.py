@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import math
-from typing import Literal
+from typing import Literal, cast
 
 from bitarray import bitarray
 from bitarray.util import int2ba
@@ -43,7 +43,9 @@ class ChecksumField(UIntFieldGeneric[int]):
                 byte_data = b""
         else:
             byte_data = input_to_bytes(data=data, bit_count=self._bit_count).tobytes()
-        crc_int = self.crc_calculator.calculate_checksum(byte_data)
+        crc_int = cast(
+            int, self.crc_calculator.calculate_checksum(byte_data)  # pyright:ignore[reportUnknownMemberType]
+        )
         byte_length = math.ceil(self._bit_count / 8)
         crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")
         crc_int = int.from_bytes(crc_bytes, byteorder=self._endian, signed=False)

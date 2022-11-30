@@ -6,12 +6,7 @@ from typing import Any, Literal
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import (
-    TestData,
-    check_parseobject_children,
-    check_parseobject_properties,
-    check_parseobject_strings,
-)
+from test_parse_object import TestData
 from test_uint import TEST_VALUES_32_BIT, get_bitarray
 
 from easyprotocol.base.parse_base import ParseBase
@@ -52,15 +47,89 @@ def check_float_value(
     ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
 
 
+def check_float_properties(
+    obj: FloatField[int],
+    tst: TestData,
+) -> None:
+    assert obj is not None, "Object is None"
+    assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
+    assert (
+        obj.string_format == tst.string_format
+    ), f"{obj}: obj.format is not the expected value ({obj.string_format} != expected value: {tst.string_format})"
+    assert (
+        obj.bits == tst.bits_data
+    ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
+    assert (
+        obj.parent == tst.parent
+    ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
+    assert (
+        bytes(obj) == tst.byte_data
+    ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
+    assert (
+        obj.endian == tst.endian
+    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
+
+
+def check_float_children(
+    obj: FloatField[int],
+    tst: TestData,
+) -> None:
+    assert len(obj.children) == len(tst.children), (
+        f"{obj}: len(obj.children) is not the expected value "
+        + f"({len(obj.children)} != expected value: {len(tst.children)})"
+    )
+    assert obj.children.keys() == tst.children.keys(), (
+        f"{obj}: obj.children.keys() is not the expected value "
+        + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
+    )
+    for key in tst.children.keys():
+        assert obj.children[key] == tst.children[key], (
+            f"{obj}: obj.children[key] is not the expected value "
+            + f"({obj.children[key]} != expected value: {tst.children[key]})"
+        )
+        assert obj.children[key].parent == obj, (
+            f"{obj}: obj.children[key].parent is not the expected value "
+            + f"({obj.children[key].parent} != expected value: {obj})"
+        )
+
+    for v in tst.children.values():
+        assert v.string in obj.string
+        assert v.string in str(obj)
+        assert v.string in repr(obj)
+    assert tst.name in str(obj)
+    assert tst.name in repr(obj)
+
+
+def check_float_strings(
+    obj: FloatField[int],
+    tst: TestData,
+) -> None:
+    assert tst.string_format.format(tst.value) == obj.string, (
+        f"{obj}: obj.string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
+    )
+    assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
+    assert obj.string in str(
+        obj
+    ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
+    assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
+    assert obj.string in repr(
+        obj
+    ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
+    assert obj.__class__.__name__ in repr(
+        obj
+    ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
+
+
 def check_float(
     obj: FloatField[Any],
     tst: TestData,
 ) -> None:
-    check_parseobject_properties(
+    check_float_properties(
         obj=obj,
         tst=tst,
     )
-    check_parseobject_children(
+    check_float_children(
         obj=obj,
         tst=tst,
     )
@@ -68,7 +137,7 @@ def check_float(
         obj=obj,
         tst=tst,
     )
-    check_parseobject_strings(
+    check_float_strings(
         obj=obj,
         tst=tst,
     )

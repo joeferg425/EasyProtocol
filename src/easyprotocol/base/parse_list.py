@@ -89,26 +89,23 @@ class ParseListGeneric(
         for i, v in enumerate(self._children.values()):
             if index == i:
                 if isinstance(value, ParseBaseGeneric):
-                    c[v._name] = value
-                    v.parent = self
+                    c[value._name] = value
+                    value.parent = self
                 else:
-                    c[v._name].value = cast(T, value)
-            if isinstance(value, ParseBaseGeneric):
-                c[v._name] = self._children[v._name]
+                    raise NotImplementedError()
+            c[v._name] = self._children[v._name]
         self._children = c
 
     def append(self, value: T) -> None:
         raise NotImplementedError()
-        # self._children[value._name] = value
-        # value.parent = self
 
-    def get_list(self) -> list[T]:
+    def get_list(self) -> list[ParseBaseGeneric[T]]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return list([v.value for v in self._children.values()])
+        return list([v for v in self._children.values()])
 
     def get_value(self) -> T:
         """Get the parsed value of the field.
@@ -117,12 +114,12 @@ class ParseListGeneric(
             the value of the field
         """
         raise NotImplementedError()
-        # return list([v.value for v in self._children.values()])
 
     def set_list(self, value: list[T] | list[ParseBaseGeneric[T]]) -> None:
         if value is not None:
-            for index, item in enumerate(value):
-                if isinstance(item, ParseBaseGeneric):  # pyright:ignore[reportUnnecessaryIsInstance]
+            for index in range(len(value)):
+                item = value[index]
+                if isinstance(item, ParseBaseGeneric):
                     if index < len(self._children):
                         self[index] = item.value
                         item.parent = self
@@ -131,7 +128,7 @@ class ParseListGeneric(
                         item.parent = self
                 else:
                     # parse_base = self[index]
-                    self[index] = item  # pyright:ignore[reportGeneralTypeIssues]
+                    self[index] = item
 
     def set_value(self, value: T) -> None:
         raise NotImplementedError()
@@ -165,7 +162,7 @@ class ParseListGeneric(
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.string_value}"
+        return f"{self._name}: {self.string}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -189,7 +186,7 @@ class ParseListGeneric(
         self.set_value(value=value)
 
     @property
-    def value_list(self) -> list[T]:
+    def value_list(self) -> list[ParseBaseGeneric[T]]:
         """Get the parsed value of the field.
 
         Returns:
@@ -224,7 +221,7 @@ class ParseListGeneric(
                 self._children.pop(x._name)
         else:
             item.parent = None
-            self._children.pop(item._name)
+            self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
     def __setitem__(self, index: SupportsIndex, value: T) -> None:
@@ -243,8 +240,13 @@ class ParseListGeneric(
                     if existing_key != indexed_keys:
                         c[existing_key] = self._children[existing_key]
                     else:
+                        old = self._children[value._name]
+                        old.parent = None
                         c[value._name] = value
                         value.parent = self
+                else:
+                    c[existing_key] = self._children[existing_key]
+                    c[existing_key].value = value
             else:
                 if isinstance(value, list):
                     for i, sub_key in enumerate(indexed_keys):

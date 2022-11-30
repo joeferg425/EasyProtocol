@@ -48,7 +48,7 @@ class EnumField(UIntFieldGeneric[E]):
         super().set_value(_value)
 
     @property
-    def string_value(self) -> str:
+    def string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:

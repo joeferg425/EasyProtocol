@@ -92,6 +92,9 @@ class UIntFieldGeneric(ParseBaseGeneric[T]):
         bits.frombytes(my_bytes)
         self._bits = bits[: self._bit_count]
 
+    def get_string_value(self) -> str:
+        return self._string_format.format(self.value)
+
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
 

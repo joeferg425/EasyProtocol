@@ -6,43 +6,16 @@ from typing import Any, Literal, OrderedDict, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, ParseBaseGeneric, endianT
+from easyprotocol.base.parse_base import (
+    DEFAULT_ENDIANNESS,
+    ParseBase,
+    ParseBaseGeneric,
+    endianT,
+)
 from easyprotocol.base.parse_field import ParseFieldGeneric
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 T = TypeVar("T", bound=Any)
-# valueVT = OrderedDict[str, T]
-# assignVT = Union[
-#     list[T],
-#     dict[str, T],
-#     dict[str, ParseValueGeneric[T]],
-#     OrderedDict[str, T],
-#     OrderedDict[str, ParseValueGeneric[T]],
-#     None,
-# ]
-# childVT = OrderedDict[str, ParseFieldGeneric[T]]
-# assignChildVT = Union[
-#     OrderedDict[str, ParseValueGeneric[T]],
-#     dict[str, ParseValueGeneric[T]],
-#     list[ParseValueGeneric[T]],
-#     None,
-# ]
-# valueFT = OrderedDict[str, ParseFieldGeneric[T]]
-# assignFT = Union[
-#     list[ParseFieldGeneric[T]],
-#     dict[str, T],
-#     dict[str, ParseFieldGeneric[T]],
-#     OrderedDict[str, T],
-#     OrderedDict[str, ParseFieldGeneric[T]],
-#     None,
-# ]
-# childFT = OrderedDict[str, ParseValueGeneric[T]]
-# assignChildFT = Union[
-#     OrderedDict[str, ParseFieldGeneric[T]],
-#     dict[str, ParseFieldGeneric[T]],
-#     list[ParseFieldGeneric[T]],
-#     None,
-# ]
 
 
 class ParseDictGeneric(
@@ -200,14 +173,13 @@ class ParseDictGeneric(
                 self._children[value._name] = value
                 value.parent = self
 
-    @property
-    def string_value(self) -> str:
+    def get_string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return f'[{", ".join([str(value) for value in self._children.values()])}]'
+        return f'{{{", ".join([str(value) for value in self._children.values()])}}}'
 
     @property
     def value(self) -> T:
@@ -274,7 +246,7 @@ class ParseDictGeneric(
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.string_value}"
+        return f"{self._name}: {self.string}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -298,52 +270,6 @@ class ParseDictGeneric(
 
     def __len__(self) -> int:
         return len(self._children)
-
-
-class ParseValueDict(ParseDictGeneric[Any]):
-    def __init__(
-        self,
-        name: str,
-        value_dict: dict[str, Any] | None = None,
-        data: dataT = None,
-        bit_count: int = -1,
-        string_format: str | None = None,
-        endian: endianT = DEFAULT_ENDIANNESS,
-        parent: ParseBaseGeneric[Any] | None = None,
-        children: OrderedDict[str, ParseBaseGeneric[Any]]
-        | dict[str, ParseBaseGeneric[Any]]
-        | list[ParseBaseGeneric[Any]]
-        | None = None,
-    ) -> None:
-        super().__init__(
-            name=name,
-            value_dict=value_dict,
-            data=data,
-            bit_count=bit_count,
-            string_format=string_format,
-            endian=endian,
-            parent=parent,
-            children=children,
-        )
-
-
-fieldDictT = TypeVar(
-    "fieldDictT",
-    bound=Union[
-        OrderedDict[str, Any],
-        OrderedDict[str, ParseBase],
-    ],
-)
-fieldDictvalueT = OrderedDict[str, ParseBase]
-
-fieldDictAssignT = Union[
-    list[ParseBase],
-    dict[str, Any],
-    dict[str, ParseBase],
-    OrderedDict[str, Any],
-    OrderedDict[str, ParseBase],
-    None,
-]
 
 
 class ParseDict(ParseDictGeneric[Any]):

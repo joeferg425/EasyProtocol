@@ -7,20 +7,15 @@ from typing import Any, Generic, Literal, TypeVar, Union, overload
 from bitarray import bitarray
 from typing_extensions import override
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, UNDEFINED, ParseBaseGeneric, endianT
+from easyprotocol.base.parse_base import (
+    DEFAULT_ENDIANNESS,
+    UNDEFINED,
+    ParseBaseGeneric,
+    endianT,
+)
 from easyprotocol.base.utils import dataT
 
 T = TypeVar("T", bound=ParseBaseGeneric[Any])
-# FT = TypeVar("FT", bound=ParseBaseGeneric[Any])
-# assignT = Union[T, None]
-# parentT = ParseBaseGeneric[Any]
-# childrenT = OrderedDict[str, ParseBaseGeneric[Any]]
-# assignChildrenT = Union[
-#     OrderedDict[str, ParseBaseGeneric[Any]],
-#     dict[str, ParseBaseGeneric[Any]],
-#     list[ParseBaseGeneric[Any]],
-#     None,
-# ]
 
 
 class ParseFieldGeneric(
@@ -63,26 +58,6 @@ class ParseFieldGeneric(
             parent=parent,
             children=children,
         )
-        # self._name: str = ""
-        # self._endian: Literal["little", "big"] = endian
-        # self._bits: bitarray = bitarray(endian="little")
-        # self._parent: parentT = None
-        # self._children: OrderedDict[str, ParseBase] = OrderedDict()
-        # self._bit_count: int = bit_count
-        # self._name = name
-        # if string_format is None:
-        #     self._string_format = "{}"
-        # else:
-        #     self._string_format = string_format
-        # self._parent = parent
-        # if self._string_format is None:
-        #     self._string_format = "{}"
-        # if children is not None:
-        #     self.set_children(children)
-        # if data is not None:
-        #     self.parse(data=data)
-        # elif value is not None:
-        #     self.set_value(value)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse the passed bits or bytes into meaningful data.
@@ -248,7 +223,7 @@ class ParseFieldGeneric(
         return self._endian
 
     @property
-    def bytes_value(self) -> bytes:
+    def bytes(self) -> bytes:
         """Get the byte value of this object.
 
         Returns:
@@ -257,7 +232,7 @@ class ParseFieldGeneric(
         return self.__bytes__()
 
     @property
-    def string_value(self) -> str:
+    def string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -279,7 +254,7 @@ class ParseFieldGeneric(
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.string_value}"
+        return f"{self._name}: {self.string}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.

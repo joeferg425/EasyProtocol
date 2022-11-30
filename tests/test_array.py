@@ -151,9 +151,9 @@ class TestArray:
         f1_name = "count"
         f1 = ParseList(name=f1_name)
         f2_name = "array"
-        f2 = ArrayField(  # pyright:ignore[reportUnknownVariableType]
+        f2 = ArrayField(
             name=f2_name,
-            count=f1,  # pyright:ignore[reportGeneralTypeIssues]
+            count=f1,
             array_item_class=UInt8Field,
         )
         data = b"\x02\x01\x00\x03"

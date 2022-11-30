@@ -44,20 +44,12 @@ class CharField(UIntFieldGeneric[str]):
         return s
 
     def set_value(self, value: str) -> None:
-        super().set_value(ord(value[0]))
-
-    # @property
-    # def string_value(self) -> str:
-    #     """Get a formatted value for the field (for any custom formatting).
-
-    #     Returns:
-    #         the value of the field with custom formatting
-    #     """
-    #     return f'"{self.value}"'
-
-    # @ string_value.setter
-    # def string_value(self,value:str) -> None:
-    #     self.set
+        _value = ord(value[0])
+        byte_count = math.ceil(self._bit_count / 8)
+        my_bytes = int.to_bytes(_value, length=byte_count, byteorder=self.endian, signed=False)
+        bits = bitarray(endian="little")
+        bits.frombytes(my_bytes)
+        self._bits = bits[: self._bit_count]
 
 
 class StringField(ArrayField[str]):
@@ -110,7 +102,7 @@ class StringField(ArrayField[str]):
         self.set_string(value=value)
 
     @property
-    def string_value(self) -> str:
+    def string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -135,12 +127,12 @@ class ByteField(UIntFieldGeneric[bytes]):
             endian=DEFAULT_ENDIANNESS,
             init_to_zero=False,
         )
-        if self.value is None and init_to_zero is True:
+        if value is None and data is None and init_to_zero is True:
             self.value = b"\x00"
 
     @property
     def value(self) -> bytes:
-        return self.bytes_value
+        return self.bytes
 
     @value.setter
     def value(self, value: int | str | bytes | None) -> None:
@@ -152,8 +144,7 @@ class ByteField(UIntFieldGeneric[bytes]):
         bits.frombytes(int.to_bytes(value, length=byte_count, byteorder=self._endian, signed=False))
         self._bits = bits[: self._bit_count]
 
-    @property
-    def string_value(self) -> str:
+    def get_string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -163,7 +154,12 @@ class ByteField(UIntFieldGeneric[bytes]):
         return f'"{h}"'
 
     def set_value(self, value: bytes) -> None:
-        super().set_value(value[0])
+        _value = value[0]
+        byte_count = math.ceil(self._bit_count / 8)
+        my_bytes = int.to_bytes(_value, length=byte_count, byteorder=self.endian, signed=False)
+        bits = bitarray(endian="little")
+        bits.frombytes(my_bytes)
+        self._bits = bits[: self._bit_count]
 
 
 class BytesField(ArrayField[bytes]):
@@ -182,7 +178,7 @@ class BytesField(ArrayField[bytes]):
             parent=None,
             children=None,
         )
-        if self.value is not None and len(self.value) == 0 and value is not None:
+        if value is not None and data is None:
             self.value = value
 
     def get_string(self) -> bytes:
@@ -207,23 +203,10 @@ class BytesField(ArrayField[bytes]):
                 else:
                     f = self.array_item_class(f"#{index}")
                     f.value = bytes([item])
-                    self.append(f)
-
-    # @property  # type:ignore
-    # def value(self) -> bytes:
-    #     """Get the parsed value of the field.
-
-    #     Returns:
-    #         the value of the field
-    #     """
-    #     return self.get_value()
-
-    # @value.setter
-    # def value(self, value: bytes | None) -> None:
-    #     self.set_value(value=value)
+                    self._children[f.name] = f
 
     @property
-    def string_value(self) -> str:
+    def string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:

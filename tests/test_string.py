@@ -5,7 +5,7 @@ from collections import OrderedDict
 
 import pytest  # noqa
 from bitarray import bitarray
-from test_parse_object import TestData, check_parseobject_value
+from test_parse_object import TestData
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import hex
@@ -19,6 +19,15 @@ from easyprotocol.fields.string import (
     CharField,
     StringField,
 )
+
+
+def check_strbyte_value(
+    obj: CharField | StringField | ByteField | BytesField,
+    tst: TestData,
+) -> None:
+    assert (
+        obj.value == tst.value
+    ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
 
 
 def check_strbyte_properties(
@@ -45,21 +54,19 @@ def check_str_strings(
     obj: CharField | StringField,
     tst: TestData,
 ) -> None:
-    assert f'"{tst.value}"' == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
+    assert f'"{tst.value}"' == obj.string, (
+        f"{obj}: obj.string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
     )
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
-    )
+    assert len(obj.string) > 0, f"{obj}: obj.string is not the expected value " + f"(? != expected value: {obj.string})"
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -69,7 +76,7 @@ def check_str(
     obj: CharField | StringField,
     tst: TestData,
 ) -> None:
-    check_parseobject_value(
+    check_strbyte_value(
         obj=obj,
         tst=tst,
     )
@@ -87,21 +94,19 @@ def check_byte_strings(
     obj: ByteField | BytesField,
     tst: TestData,
 ) -> None:
-    assert f'"{hex(tst.value)}"' == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
+    assert f'"{hex(tst.value)}"' == obj.string, (
+        f"{obj}: obj.string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
     )
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
-    )
+    assert len(obj.string) > 0, f"{obj}: obj.string is not the expected value " + f"(? != expected value: {obj.string})"
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -111,7 +116,7 @@ def check_bytes(
     obj: ByteField | BytesField,
     tst: TestData,
 ) -> None:
-    check_parseobject_value(
+    check_strbyte_value(
         obj=obj,
         tst=tst,
     )

@@ -171,7 +171,7 @@ class ModbusCoilArray(ArrayField[bool]):
         return bit_data
 
     @property
-    def string_value(self) -> str:
+    def string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -186,7 +186,7 @@ class ModbusCoilArray(ArrayField[bool]):
             chunks[chunk_key] = vals
         return f"[{', '.join([key+':'+value for key, value in chunks.items()])}]"
 
-    @property  # type:ignore
+    @property
     def value(self) -> list[bool | None]:
         """Get the parsed value of the field.
 
@@ -217,4 +217,4 @@ class ModbusCoilArray(ArrayField[bool]):
                     parse_base.value = True if bits[i] else False
             else:
                 parse_base = self[index]
-                parse_base.value = item  # type:ignore
+                parse_base.value = item

@@ -6,11 +6,7 @@ from typing import Any
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import (
-    TestData,
-    check_parseobject_children,
-    check_parseobject_properties,
-)
+from test_parse_object import TestData
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, ParseBaseGeneric
 from easyprotocol.base.parse_list import ParseList
@@ -18,40 +14,87 @@ from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
 
-def parselist_value(
+def check_parselist_value(
     obj: ParseList,
     tst: TestData,
 ) -> None:
-    if obj.value is None:
-        assert False, "object value is not instantiated"
-    else:
-        assert len(obj.value) == len(tst.value), (
-            f"{obj}: len(obj.value) is not the expected value "
-            + f"({len(obj.value)} != expected value: {len(tst.value)})"
+    assert len(obj.value_list) == len(tst.value), (
+        f"{obj}: len(obj.value) is not the expected value "
+        + f"({len(obj.value_list)} != expected value: {len(tst.value)})"
+    )
+    for i in range(len(tst.value)):
+        assert obj.value_list[i] == tst.value[i], (
+            f"{obj}: obj.value[{i}] is not the expected value "
+            + f"({obj.value_list[i]} != expected value: {tst.value[i]})"
         )
-        for i in range(len(tst.value)):
-            assert obj.value[i] == tst.value[i], (
-                f"{obj}: obj.value[{i}] is not the expected value "
-                + f"({obj.value[i]} != expected value: {tst.value[i]})"
-            )
-            assert obj[i].fmt.format(obj.value[i]) in obj.string_value
-            assert obj[i].fmt.format(obj.value[i]) in str(obj)
-            assert obj[i].fmt.format(obj.value[i]) in repr(obj)
+
+
+def check_parselist_properties(
+    obj: ParseList,
+    tst: TestData,
+) -> None:
+    assert obj is not None, "Object is None"
+    assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
+    assert (
+        obj.string_format == tst.string_format
+    ), f"{obj}: obj.format is not the expected value ({obj.string_format} != expected value: {tst.string_format})"
+    assert (
+        obj.bits == tst.bits_data
+    ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
+    assert (
+        obj.parent == tst.parent
+    ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
+    assert (
+        bytes(obj) == tst.byte_data
+    ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
+    assert (
+        obj.endian == tst.endian
+    ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
+
+
+def check_parselist_children(
+    obj: ParseList,
+    tst: TestData,
+) -> None:
+    assert len(obj.children) == len(tst.children), (
+        f"{obj}: len(obj.children) is not the expected value "
+        + f"({len(obj.children)} != expected value: {len(tst.children)})"
+    )
+    assert obj.children.keys() == tst.children.keys(), (
+        f"{obj}: obj.children.keys() is not the expected value "
+        + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
+    )
+    for key in tst.children.keys():
+        assert obj.children[key] == tst.children[key], (
+            f"{obj}: obj.children[key] is not the expected value "
+            + f"({obj.children[key]} != expected value: {tst.children[key]})"
+        )
+        assert obj.children[key].parent == obj, (
+            f"{obj}: obj.children[key].parent is not the expected value "
+            + f"({obj.children[key].parent} != expected value: {obj})"
+        )
+
+    for v in tst.children.values():
+        assert v.string in obj.string
+        assert v.string in str(obj)
+        assert v.string in repr(obj)
+    assert tst.name in str(obj)
+    assert tst.name in repr(obj)
 
 
 def parselist_tests(
     obj: ParseList,
     tst: TestData,
 ) -> None:
-    check_parseobject_properties(
+    check_parselist_properties(
         obj=obj,
         tst=tst,
     )
-    check_parseobject_children(
+    check_parselist_value(
         obj=obj,
         tst=tst,
     )
-    parselist_value(
+    check_parselist_children(
         obj=obj,
         tst=tst,
     )
@@ -447,25 +490,11 @@ class TestParseList:
         f3_bits = bitarray(endian="little")
         f3_bits.frombytes(f3_data)
         f1_name = "f1"
-        f2_name = "f2"
         f1 = UInt8Field(name=f1_name, value=f1_value)
-        f2 = UInt8Field(name=f2_name, value=f2_value)
         bits_data1 = bitarray(endian="little")
-        bits_data2 = f1_bits
-        bits_data3 = f2_bits
-        bits_data4 = f3_bits
         byte_data1 = b""
-        byte_data2 = f1_data
-        byte_data3 = f2_data
-        byte_data4 = f3_data
         values1: list[Any] = []
-        values2: list[Any] = [f1_value]
-        values3: list[Any] = [f2_value]
-        values4: list[Any] = [f3_value]
         children1: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f1.name: f1})
-        children3: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f2.name: f2})
-        children4: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f2.name: f2})
         tst = TestData(
             name="test",
             value=values1,
@@ -485,7 +514,62 @@ class TestParseList:
             tst=tst,
         )
 
-        obj.value = [f1]
+        with pytest.raises(NotImplementedError):
+            obj.value = [f1]
+
+    def test_parselist_set_value_list(self) -> None:
+        f1_value = 0
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray(endian="little")
+        f1_bits.frombytes(f1_data)
+        f2_value = 2
+        f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f2_bits = bitarray(endian="little")
+        f2_bits.frombytes(f2_data)
+        f3_value = 20
+        f3_data = int.to_bytes(f3_value, length=1, byteorder="big", signed=False)
+        f3_bits = bitarray(endian="little")
+        f3_bits.frombytes(f3_data)
+        f1_name = "f1"
+        f2_name = "f2"
+        f1 = UInt8Field(name=f1_name, value=f1_value)
+        f2 = UInt8Field(name=f2_name, value=f2_value)
+        bits_data1 = bitarray(endian="little")
+        bits_data2 = f1_bits
+        bits_data3 = f2_bits
+        bits_data4 = f3_bits
+        byte_data1 = b""
+        byte_data2 = f1_data
+        byte_data3 = f2_data
+        byte_data4 = f3_data
+        values1: list[Any] = []
+        values2: list[Any] = [f1_value]
+        values3: list[Any] = [f2_value]
+        values4: list[Any] = [f3_value]
+        children1: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict()
+        children2: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f1.name: f1})
+        children3: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f1.name: f1})
+        children4: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict({f1.name: f1})
+        tst = TestData(
+            name="test",
+            value=values1,
+            string_format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=children1,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+        obj = ParseList(
+            name=tst.name,
+        )
+        parselist_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value_list = [f1]
         tst.value = values2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
@@ -495,7 +579,7 @@ class TestParseList:
             tst=tst,
         )
 
-        obj.value = [f2]
+        obj.value_list = [f2]
         tst.value = values3
         tst.byte_data = byte_data3
         tst.bits_data = bits_data3
@@ -505,7 +589,7 @@ class TestParseList:
             tst=tst,
         )
 
-        obj.value = [f3_value]
+        obj.value_list = [f3_value]
         tst.value = values4
         tst.byte_data = byte_data4
         tst.bits_data = bits_data4
@@ -515,9 +599,9 @@ class TestParseList:
             tst=tst,
         )
 
-        value = 1
-        with pytest.raises(TypeError):
-            obj.value = value
+        value = "invalid"
+        with pytest.raises(ValueError):
+            obj.value_list = value  # pyright:ignore[reportGeneralTypeIssues]
 
     def test_parselist_remove(self) -> None:
         name = "test"
@@ -525,13 +609,13 @@ class TestParseList:
         f1 = UInt8Field(name=f1_name)
         f2_name = "f2"
         f2 = UInt8Field(name=f2_name)
-        po = ParseList(name=name, children=[f1, f2])
+        obj = ParseList(name=name, children=[f1, f2])
 
-        assert len(po) == 2
-        assert f1.parent == po
-        assert f2.parent == po
-        po.remove(f2)
-        assert len(po) == 1
+        assert len(obj) == 2
+        assert f1.parent == obj
+        assert f2.parent == obj
+        del obj[1]
+        assert len(obj) == 1
         assert f2.parent is None
 
     def test_parselist_set_item(self) -> None:
@@ -543,20 +627,18 @@ class TestParseList:
         f3_name = "f3"
         f3 = UInt8Field(name=f3_name, value=3)
         f3_also = UInt8Field(name=f3_name, value=17)
-        po = ParseList(name=name, children=[f1, f2, f3])
+        obj = ParseList(name=name, children=[f1, f2, f3])
 
-        assert f1.parent == po
-        assert f2.parent == po
-        assert f3.parent == po
+        assert f1.parent == obj
+        assert f2.parent == obj
+        assert f3.parent == obj
         assert f3_also.parent is None
-        assert len(po) == 3
-        assert po[2] == f3
-        assert po[2].value == f3.value
-        po[2] = f3_also
-        assert f3_also.parent == po
-        assert len(po) == 3
-        assert po[2] == f3_also
-        assert po[2].value == f3_also.value
+        assert len(obj) == 3
+        assert obj[2] == f3.value
+        obj[2] = f3_also
+        assert f3_also.parent == obj
+        assert len(obj) == 3
+        assert obj[2] == f3_also.value
 
     def test_parselist_insert(self) -> None:
         name = "test"
@@ -566,22 +648,17 @@ class TestParseList:
         f2 = UInt8Field(name=f2_name, value=2)
         f3_name = "f3"
         f3 = UInt8Field(name=f3_name, value=3)
-        po = ParseList(name=name, children=[f1, f3])
+        obj = ParseList(name=name, children=[f1, f3])
 
-        assert f1.parent == po
+        assert f1.parent == obj
         assert f2.parent is None
-        assert f3.parent == po
-        assert len(po) == 2
-        assert po[0] == f1
-        assert po[0].value == f1.value
-        assert po[1] == f3
-        assert po[1].value == f3.value
-        po.insert(1, f2)
-        assert f2.parent == po
-        assert len(po) == 3
-        assert po[0] == f1
-        assert po[0].value == f1.value
-        assert po[1] == f2
-        assert po[1].value == f2.value
-        assert po[2] == f3
-        assert po[2].value == f3.value
+        assert f3.parent == obj
+        assert len(obj) == 2
+        assert obj[0] == f1.value
+        assert obj[1] == f3.value
+        obj.insert(1, f2)
+        assert f2.parent == obj
+        assert len(obj) == 3
+        assert obj[0] == f1.value
+        assert obj[1] == f2.value
+        assert obj[2] == f3.value

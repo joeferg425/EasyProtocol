@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from enum import Enum, IntFlag
+from types import MappingProxyType
 from typing import Generic, Literal, TypeVar, Union, cast
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
@@ -49,17 +50,17 @@ class FlagsField(UIntFieldGeneric[F]):
             _value = value
         super().set_value(_value)
 
-    @property
-    def string_value(self) -> str:
+    def get_string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
         value = self.value
-        flags: list[IntFlag] = list(
-            self._flags_type.__members__.values()  # pyright:ignore[reportUnknownMemberType,reportUnknownArgumentType,reportGeneralTypeIssues]
+        flags_dict: dict[str, IntFlag] = dict(
+            self._flags_type._member_map_  # pyright:ignore[reportUnknownMemberType,reportUnknownArgumentType,reportGeneralTypeIssues]
         )
+        flags: list[IntFlag] = list(flags_dict.values())
         if isinstance(value, IntFlag):
             return "|".join([v.name for v in flags if v in value and v.name])
         else:

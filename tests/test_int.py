@@ -4,13 +4,14 @@ from typing import Literal
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import TestData, check_parseobject
+from test_parse_object import TestData
 from test_uint import (
     TEST_VALUES_08_BIT,
     TEST_VALUES_16_BIT,
     TEST_VALUES_24_BIT,
     TEST_VALUES_32_BIT,
     TEST_VALUES_64_BIT,
+    check_int,
     get_bitarray,
 )
 
@@ -137,7 +138,7 @@ class TestIntField:
             bit_count=8,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -162,7 +163,7 @@ class TestIntField:
             bit_count=8,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -188,14 +189,14 @@ class TestIntField:
             endian=tst.endian,
             value=tst.value,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
 
         tst.name = "new_name"
         obj.name = tst.name
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -225,7 +226,7 @@ class TestIntField:
             endian=tst.endian,
             value=tst.value,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -234,7 +235,7 @@ class TestIntField:
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -264,7 +265,7 @@ class TestIntField:
             endian=tst.endian,
             value=tst.value,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -273,7 +274,7 @@ class TestIntField:
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -299,13 +300,13 @@ class TestIntField:
             endian=tst.endian,
             value=tst.value,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
         tst.parent = ParseBase(name="parent")
         obj.parent = tst.parent
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -332,7 +333,7 @@ class TestIntField:
             endian=tst.endian,
             value=tst.value,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -360,7 +361,7 @@ class TestInt08:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -384,7 +385,7 @@ class TestInt08:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -411,7 +412,7 @@ class TestInt08:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -442,7 +443,7 @@ class TestInt08:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -471,7 +472,7 @@ class TestInt08:
             data=tst.bits_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -500,7 +501,7 @@ class TestInt08:
             data=tst.bits_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -521,7 +522,7 @@ class TestInt08:
         )
 
         assert obj.bits == bits_data2
-        assert obj.bytes_value == byte_data2
+        assert obj.bytes == byte_data2
 
     @pytest.mark.parametrize(
         ["byte_data", "value", "bits_data", "endian"],
@@ -547,7 +548,7 @@ class TestInt08:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -576,7 +577,7 @@ class TestInt08:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -620,7 +621,7 @@ class TestInt16:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -644,7 +645,7 @@ class TestInt16:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -673,7 +674,7 @@ class TestInt16:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -702,7 +703,7 @@ class TestInt16:
             data=byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -731,7 +732,7 @@ class TestInt16:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -760,7 +761,7 @@ class TestInt16:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -804,7 +805,7 @@ class TestInt24:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -828,7 +829,7 @@ class TestInt24:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -857,7 +858,7 @@ class TestInt24:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -886,7 +887,7 @@ class TestInt24:
             data=byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -915,7 +916,7 @@ class TestInt24:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -944,7 +945,7 @@ class TestInt24:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -988,7 +989,7 @@ class TestInt32:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1012,7 +1013,7 @@ class TestInt32:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1041,7 +1042,7 @@ class TestInt32:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1070,7 +1071,7 @@ class TestInt32:
             data=byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1101,7 +1102,7 @@ class TestInt32:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1130,7 +1131,7 @@ class TestInt32:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1174,7 +1175,7 @@ class TestInt64:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1198,7 +1199,7 @@ class TestInt64:
             name=tst.name,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1227,7 +1228,7 @@ class TestInt64:
             data=tst.byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1256,7 +1257,7 @@ class TestInt64:
             data=byte_data,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1285,7 +1286,7 @@ class TestInt64:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )
@@ -1314,7 +1315,7 @@ class TestInt64:
             value=tst.value,
             endian=tst.endian,
         )
-        check_parseobject(
+        check_int(
             obj=obj,
             tst=tst,
         )

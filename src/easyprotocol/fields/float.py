@@ -131,6 +131,9 @@ class Float32IEEFieldGeneric(FloatField[F]):
     ) -> None:
         raise NotImplementedError()
 
+    def get_string_value(self) -> str:
+        return self.string_format.format(self.value)
+
 
 class Float32IEEField(Float32IEEFieldGeneric[float]):
     ...

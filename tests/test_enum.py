@@ -5,16 +5,16 @@ from typing import Any
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import TestData
+from parse_data import ParseData
 from test_uint import check_int_properties, check_int_value
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
 from easyprotocol.fields.enum import EnumField
 
 
 def check_enum_strings(
     obj: EnumField[IntEnum],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert tst.string_format.format(tst.value.name) == obj.string, (
         f"{obj}: obj.string is not the expected value "
@@ -36,7 +36,7 @@ def check_enum_strings(
 
 def check_enum(
     obj: EnumField[Any],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     check_int_value(
         obj=obj,
@@ -71,7 +71,7 @@ class TestEnums:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         bits_data = bits_data[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -85,6 +85,7 @@ class TestEnums:
             name=tst.name,
             bit_count=bit_count,
             enum_type=TestEnumerating,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -98,7 +99,7 @@ class TestEnums:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         bits_data = bits_data[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -112,6 +113,7 @@ class TestEnums:
             name=tst.name,
             bit_count=bit_count,
             enum_type=TestEnumerating,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -125,7 +127,7 @@ class TestEnums:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         bits_data = bits_data[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -140,6 +142,7 @@ class TestEnums:
             bit_count=bit_count,
             enum_type=TestEnumerating,
             data=tst.byte_data,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -158,7 +161,7 @@ class TestEnums:
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
         bits_data2 = bits_data2[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value2,
             string_format="{}",
@@ -173,6 +176,7 @@ class TestEnums:
             bit_count=bit_count,
             enum_type=TestEnumerating,
             data=byte_data1,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -195,7 +199,7 @@ class TestEnums:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         bits_data = bits_data[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -210,6 +214,7 @@ class TestEnums:
             bit_count=bit_count,
             enum_type=TestEnumerating,
             data=tst.byte_data,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -235,7 +240,7 @@ class TestEnums:
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
         bits_data2 = bits_data2[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value1,
             string_format="{}",
@@ -250,6 +255,7 @@ class TestEnums:
             bit_count=bit_count,
             enum_type=TestEnumerating,
             data=tst.byte_data,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -277,7 +283,7 @@ class TestEnums:
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
         bits_data2 = bits_data2[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value1,
             string_format="{}",
@@ -292,6 +298,7 @@ class TestEnums:
             bit_count=bit_count,
             enum_type=TestEnumerating,
             data=tst.byte_data,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
@@ -314,7 +321,7 @@ class TestEnums:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         bits_data = bits_data[:bit_count]
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -329,46 +336,22 @@ class TestEnums:
             bit_count=bit_count,
             enum_type=TestEnumerating,
             data=tst.byte_data,
+            default=TestEnumerating.ZERO,
         )
         check_enum(
             obj=obj,
             tst=tst,
         )
 
-        tst.parent = ParseBase(name="parent")
+        tst.parent = EnumField(
+            name="parent",
+            bit_count=bit_count,
+            enum_type=TestEnumerating,
+            data=tst.byte_data,
+            default=TestEnumerating.ZERO,
+        )
         obj.parent = tst.parent
         check_enum(
             obj=obj,
             tst=tst,
         )
-
-    def test_enum_set_children(self) -> None:
-        value = TestEnumerating.TWO
-        bit_count = 4
-        byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
-        tst = TestData(
-            name="test",
-            value=value,
-            string_format="{}",
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
-        )
-        obj = EnumField(
-            name=tst.name,
-            bit_count=bit_count,
-            enum_type=TestEnumerating,
-            data=tst.byte_data,
-        )
-        check_enum(
-            obj=obj,
-            tst=tst,
-        )
-        child = ParseBase(name="child`")
-        with pytest.raises(NotImplementedError):
-            obj.children = OrderedDict({child.name: child})

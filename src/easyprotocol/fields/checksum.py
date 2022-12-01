@@ -7,7 +7,7 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Configuration, CrcCalculator
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -18,17 +18,17 @@ class ChecksumField(UIntFieldGeneric[int]):
         name: str,
         bit_count: int,
         crc_configuration: Configuration,
+        default: int = 0,
         data: dataT | None = None,
-        value: int | None = None,
-        format: str | None = "{:X}(hex)",
+        string_format: str = "{:X}(hex)",
         endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=bit_count,
             data=data,
-            value=value,
-            format=format,
+            default=default,
+            string_format=string_format,
             endian=endian,
         )
         self.crc_calculator = CrcCalculator(

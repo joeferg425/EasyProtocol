@@ -14,21 +14,20 @@ endianT = Literal["little", "big"]
 T = TypeVar("T", bound=Any)
 
 
-class ParseBaseGeneric(SupportsBytes, Generic[T]):
+class ParseGeneric(SupportsBytes, Generic[T]):
     """The base parsing object for handling parsing in a convenient (to modify) package."""
 
     def __init__(
         self,
         name: str,
-        value: T | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
-        parent: ParseBaseGeneric[Any] | None = None,
-        children: OrderedDict[str, "ParseBaseGeneric[Any]"]
-        | dict[str, "ParseBaseGeneric[Any]"]
-        | list["ParseBaseGeneric[Any]"]
+        parent: ParseGeneric[Any] | None = None,
+        children: OrderedDict[str, "ParseGeneric[Any]"]
+        | dict[str, "ParseGeneric[Any]"]
+        | list["ParseGeneric[Any]"]
         | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
@@ -47,18 +46,16 @@ class ParseBaseGeneric(SupportsBytes, Generic[T]):
         self._bit_count: int = bit_count
         self._name = name
         self._initialized = False
-        self._parent: ParseBaseGeneric[Any] | None = parent
-        self._children: OrderedDict[str, ParseBaseGeneric[Any]] = OrderedDict()
+        self._parent: ParseGeneric[Any] | None = parent
+        self._children: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
         if string_format is None:
             self._string_format = "{}"
         else:
             self._string_format = string_format
         if children is not None:
-            self.set_children(children)
+            self._set_children_generic(children)
         if data is not None:
             self.parse(data=data)
-        elif value is not None:
-            self.set_value(value)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse the passed bits or bytes into meaningful data.
@@ -77,33 +74,24 @@ class ParseBaseGeneric(SupportsBytes, Generic[T]):
     def set_name(self, value: str) -> None:
         self._name = value
 
-    def get_value(self) -> T:
-        raise NotImplementedError()
-
-    def set_value(self, value: T) -> None:
-        raise NotImplementedError()
-
     def get_bits(self) -> bitarray:
         return self._bits
 
     def set_bits(self, bits: bitarray) -> None:
         raise NotImplementedError()
 
-    def get_parent(self) -> ParseBaseGeneric[Any] | None:
+    def _get_parent_generic(self) -> ParseGeneric[Any] | None:
         return self._parent
 
-    def set_parent(self, parent: ParseBaseGeneric[Any] | None) -> None:
+    def _set_parent_generic(self, parent: ParseGeneric[Any] | None) -> None:
         self._parent = parent
 
-    def get_children(self) -> OrderedDict[str, ParseBaseGeneric[T]]:
+    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[T]]:
         return self._children
 
-    def set_children(
+    def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseBaseGeneric[T]]
-        | dict[str, ParseBaseGeneric[T]]
-        | list[ParseBaseGeneric[T]]
-        | None,
+        children: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]] | None,
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict, OrderedDict)):
@@ -111,11 +99,11 @@ class ParseBaseGeneric(SupportsBytes, Generic[T]):
             for key in keys:
                 value = children[key]
                 self._children[key] = value
-                value.parent = self
+                value._set_parent_generic(self)
         elif isinstance(children, list):
             for value in children:
                 self._children[value._name] = value
-                value.parent = self
+                value._set_parent_generic(self)
 
     def get_string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
@@ -145,19 +133,6 @@ class ParseBaseGeneric(SupportsBytes, Generic[T]):
         self._name = name
 
     @property
-    def value(self) -> T:
-        """Get the parsed value of the field.
-
-        Returns:
-            the value of the field
-        """
-        return self.get_value()
-
-    @value.setter
-    def value(self, value: T) -> None:
-        self.set_value(value)
-
-    @property
     def bits(self) -> bitarray:
         """Get the bit value of the field.
 
@@ -169,38 +144,6 @@ class ParseBaseGeneric(SupportsBytes, Generic[T]):
     @bits.setter
     def bits(self, bits: bitarray) -> None:
         self.set_bits(bits)
-
-    @property
-    def parent(self) -> ParseBaseGeneric[T] | None:
-        """Get the parent of the field.
-
-        Returns:
-            the parent of the field
-        """
-        return self.get_parent()
-
-    @parent.setter
-    def parent(self, parent: ParseBaseGeneric[T] | None) -> None:
-        self.set_parent(parent)
-
-    @property
-    def children(self) -> OrderedDict[str, ParseBaseGeneric[T]]:
-        """Get the parse objects that are contained by this one.
-
-        Returns:
-            the parse objects that are contained by this one
-        """
-        return self.get_children()
-
-    @children.setter
-    def children(
-        self,
-        children: OrderedDict[str, "ParseBaseGeneric[T]"]
-        | dict[str, "ParseBaseGeneric[T]"]
-        | list["ParseBaseGeneric[T]"]
-        | None,
-    ) -> None:
-        self.set_children(children=children)
 
     @property
     def string_format(self) -> str:
@@ -271,28 +214,27 @@ class ParseBaseGeneric(SupportsBytes, Generic[T]):
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
 
-class ParseBase(ParseBaseGeneric[Any]):
-    def __init__(
-        self,
-        name: str,
-        value: Any | None = None,
-        data: dataT = None,
-        bit_count: int = -1,
-        string_format: str | None = None,
-        endian: endianT = DEFAULT_ENDIANNESS,
-        parent: ParseBaseGeneric[Any] | None = None,
-        children: OrderedDict[str, "ParseBaseGeneric[Any]"]
-        | dict[str, "ParseBaseGeneric[Any]"]
-        | list["ParseBaseGeneric[Any]"]
-        | None = None,
-    ) -> None:
-        super().__init__(
-            name,
-            value,
-            data,
-            bit_count,
-            string_format,
-            endian,
-            parent,
-            children,
-        )
+# class ParseBase(ParseGeneric[Any]):
+#     def __init__(
+#         self,
+#         name: str,
+#         value: Any | None = None,
+#         data: dataT = None,
+#         bit_count: int = -1,
+#         string_format: str | None = None,
+#         endian: endianT = DEFAULT_ENDIANNESS,
+#         parent: ParseGeneric[Any] | None = None,
+#         children: OrderedDict[str, "ParseGeneric[Any]"]
+#         | dict[str, "ParseGeneric[Any]"]
+#         | list["ParseGeneric[Any]"]
+#         | None = None,
+#     ) -> None:
+#         super().__init__(
+#             name=name,
+#             data=data,
+#             bit_count=bit_count,
+#             string_format=string_format,
+#             endian=endian,
+#             parent=parent,
+#             children=children,
+#         )

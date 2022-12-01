@@ -4,7 +4,7 @@ from typing import Literal
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import TestData
+from parse_data import ParseData
 from test_uint import (
     TEST_VALUES_08_BIT,
     TEST_VALUES_16_BIT,
@@ -15,7 +15,7 @@ from test_uint import (
     get_bitarray,
 )
 
-from easyprotocol.base.parse_base import ParseBase
+# from easyprotocol.base.parse_base import ParseBase
 from easyprotocol.fields.signed_int import (
     Int8Field,
     Int16Field,
@@ -123,7 +123,7 @@ class TestIntField:
         byte_data = struct.pack(">b", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -148,7 +148,7 @@ class TestIntField:
         byte_data = struct.pack("<b", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -173,7 +173,7 @@ class TestIntField:
         byte_data = struct.pack("b", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -187,7 +187,7 @@ class TestIntField:
             name=tst.name,
             bit_count=8,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_int(
             obj=obj,
@@ -210,7 +210,7 @@ class TestIntField:
         byte_data2 = struct.pack("b", value2)
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value1,
             string_format="{}",
@@ -224,7 +224,7 @@ class TestIntField:
             name=tst.name,
             bit_count=8,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_int(
             obj=obj,
@@ -249,7 +249,7 @@ class TestIntField:
         byte_data2 = struct.pack("b", value2)
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value1,
             string_format="{}",
@@ -263,7 +263,7 @@ class TestIntField:
             name=tst.name,
             bit_count=8,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_int(
             obj=obj,
@@ -284,7 +284,7 @@ class TestIntField:
         byte_data = struct.pack("b", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -298,47 +298,18 @@ class TestIntField:
             name=tst.name,
             bit_count=8,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_int(
             obj=obj,
             tst=tst,
         )
-        tst.parent = ParseBase(name="parent")
+        tst.parent = Int8Field(name="parent")
         obj.parent = tst.parent
         check_int(
             obj=obj,
             tst=tst,
         )
-
-    def test_intfield_set_children(self) -> None:
-        child = ParseBase(name="child")
-        value = 0
-        byte_data = struct.pack("b", value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        tst = TestData(
-            name="test",
-            value=value,
-            string_format="{}",
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian="big",
-            children=OrderedDict(),
-        )
-        obj = IntField(
-            name=tst.name,
-            bit_count=8,
-            endian=tst.endian,
-            value=tst.value,
-        )
-        check_int(
-            obj=obj,
-            tst=tst,
-        )
-        with pytest.raises(NotImplementedError):
-            obj.children = OrderedDict({child.name: child})
 
 
 class TestInt08:
@@ -347,7 +318,7 @@ class TestInt08:
         byte_data = struct.pack(">b", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=0,
             string_format="{}",
@@ -371,7 +342,7 @@ class TestInt08:
         byte_data = struct.pack("<b", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -397,7 +368,7 @@ class TestInt08:
     def test_int8_create_parse_bytes_big_endian(
         self, byte_data: bytes, value: int, bits_data: bitarray, endian: Literal["big", "little"]
     ) -> None:
-        tst = TestData(
+        tst = ParseData(
             name="test",
             string_format="{}",
             value=value,
@@ -428,7 +399,7 @@ class TestInt08:
         bits_data.frombytes(byte_data)
         data = bitarray(endian="little")
         data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             string_format="{}",
             value=value,
@@ -457,7 +428,7 @@ class TestInt08:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             string_format="{}",
             value=value,
@@ -486,7 +457,7 @@ class TestInt08:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             string_format="{}",
             value=value,
@@ -533,7 +504,7 @@ class TestInt08:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             string_format="{}",
             value=value,
@@ -545,7 +516,7 @@ class TestInt08:
         )
         obj = Int8Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -562,7 +533,7 @@ class TestInt08:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             string_format="{}",
             value=value,
@@ -574,7 +545,7 @@ class TestInt08:
         )
         obj = Int8Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -607,7 +578,7 @@ class TestInt16:
         byte_data = struct.pack(">h", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -631,7 +602,7 @@ class TestInt16:
         byte_data = struct.pack("<h", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -659,7 +630,7 @@ class TestInt16:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -688,7 +659,7 @@ class TestInt16:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -717,7 +688,7 @@ class TestInt16:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -729,7 +700,7 @@ class TestInt16:
         )
         obj = Int16Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -746,7 +717,7 @@ class TestInt16:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -758,7 +729,7 @@ class TestInt16:
         )
         obj = Int16Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -791,7 +762,7 @@ class TestInt24:
         byte_data = struct.pack(">i", value)[1:]
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -815,7 +786,7 @@ class TestInt24:
         byte_data = struct.pack("<i", value)[:-1]
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -843,7 +814,7 @@ class TestInt24:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -872,7 +843,7 @@ class TestInt24:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -901,7 +872,7 @@ class TestInt24:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -913,7 +884,7 @@ class TestInt24:
         )
         obj = Int24Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -930,7 +901,7 @@ class TestInt24:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -942,7 +913,7 @@ class TestInt24:
         )
         obj = Int24Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -975,7 +946,7 @@ class TestInt32:
         byte_data = struct.pack(">i", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -999,7 +970,7 @@ class TestInt32:
         byte_data = struct.pack("<i", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1027,7 +998,7 @@ class TestInt32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1056,7 +1027,7 @@ class TestInt32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1087,7 +1058,7 @@ class TestInt32:
         byte_data = struct.pack(">i", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1099,7 +1070,7 @@ class TestInt32:
         )
         obj = Int32Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -1116,7 +1087,7 @@ class TestInt32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1128,7 +1099,7 @@ class TestInt32:
         )
         obj = Int32Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -1161,7 +1132,7 @@ class TestInt64:
         byte_data = struct.pack(">q", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1185,7 +1156,7 @@ class TestInt64:
         byte_data = struct.pack("<q", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1213,7 +1184,7 @@ class TestInt64:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1242,7 +1213,7 @@ class TestInt64:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1271,7 +1242,7 @@ class TestInt64:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1283,7 +1254,7 @@ class TestInt64:
         )
         obj = Int64Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(
@@ -1300,7 +1271,7 @@ class TestInt64:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format="{}",
@@ -1312,7 +1283,7 @@ class TestInt64:
         )
         obj = Int64Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_int(

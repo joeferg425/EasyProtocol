@@ -6,10 +6,10 @@ from typing import Any, Literal
 
 import pytest
 from bitarray import bitarray
-from test_parse_object import TestData
+from parse_data import ParseData
 from test_uint import TEST_VALUES_32_BIT, get_bitarray
 
-from easyprotocol.base.parse_base import ParseBase
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
 from easyprotocol.fields.float import FLOAT_STRING_FORMAT, Float32Field, FloatField
 
 TEST_VALUES_32_BIT_FLOAT_LE = [
@@ -40,7 +40,7 @@ TEST_VALUES_32_BIT_FLOAT_BE = [
 
 def check_float_value(
     obj: FloatField[Any],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert (
         obj.value == tst.value
@@ -49,7 +49,7 @@ def check_float_value(
 
 def check_float_properties(
     obj: FloatField[int],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
     assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
@@ -63,7 +63,7 @@ def check_float_properties(
         obj.parent == tst.parent
     ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
     assert (
-        bytes(obj) == tst.byte_data
+        obj.bytes == tst.byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
         obj.endian == tst.endian
@@ -72,24 +72,24 @@ def check_float_properties(
 
 def check_float_children(
     obj: FloatField[int],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
-    assert len(obj.children) == len(tst.children), (
+    assert len(obj._children) == len(tst.children), (  # pyright:ignore[reportPrivateUsage]
         f"{obj}: len(obj.children) is not the expected value "
-        + f"({len(obj.children)} != expected value: {len(tst.children)})"
+        + f"({len(obj._children)} != expected value: {len(tst.children)})"  # pyright:ignore[reportPrivateUsage]
     )
-    assert obj.children.keys() == tst.children.keys(), (
+    assert obj._children.keys() == tst.children.keys(), (  # pyright:ignore[reportPrivateUsage]
         f"{obj}: obj.children.keys() is not the expected value "
-        + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
+        + f"({obj._children.keys()} != expected value: {tst.children.keys()})"  # pyright:ignore[reportPrivateUsage]
     )
     for key in tst.children.keys():
-        assert obj.children[key] == tst.children[key], (
+        assert obj._children[key] == tst.children[key], (  # pyright:ignore[reportPrivateUsage]
             f"{obj}: obj.children[key] is not the expected value "
-            + f"({obj.children[key]} != expected value: {tst.children[key]})"
+            + f"({obj._children[key]} != expected value: {tst.children[key]})"  # pyright:ignore[reportPrivateUsage]
         )
-        assert obj.children[key].parent == obj, (
+        assert obj._children[key]._parent == obj, (  # pyright:ignore[reportPrivateUsage]
             f"{obj}: obj.children[key].parent is not the expected value "
-            + f"({obj.children[key].parent} != expected value: {obj})"
+            + f"({obj._children[key]._parent} != expected value: {obj})"  # pyright:ignore[reportPrivateUsage]
         )
 
     for v in tst.children.values():
@@ -102,7 +102,7 @@ def check_float_children(
 
 def check_float_strings(
     obj: FloatField[int],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert tst.string_format.format(tst.value) == obj.string, (
         f"{obj}: obj.string is not the expected value "
@@ -123,7 +123,7 @@ def check_float_strings(
 
 def check_float(
     obj: FloatField[Any],
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     check_float_properties(
         obj=obj,
@@ -149,7 +149,7 @@ class TestFloat32:
         byte_data = struct.pack(">f", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -173,7 +173,7 @@ class TestFloat32:
         byte_data = struct.pack("<f", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -201,7 +201,7 @@ class TestFloat32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -230,7 +230,7 @@ class TestFloat32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -259,7 +259,7 @@ class TestFloat32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -271,7 +271,7 @@ class TestFloat32:
         )
         obj = Float32Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_float(
@@ -288,7 +288,7 @@ class TestFloat32:
     ) -> None:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -300,7 +300,7 @@ class TestFloat32:
         )
         obj = Float32Field(
             name=tst.name,
-            value=tst.value,
+            default=tst.value,
             endian=tst.endian,
         )
         check_float(
@@ -313,7 +313,7 @@ class TestFloat32:
         byte_data = struct.pack(">f", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -326,7 +326,7 @@ class TestFloat32:
         obj = Float32Field(
             name=tst.name,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_float(
             obj=obj,
@@ -349,7 +349,7 @@ class TestFloat32:
         byte_data2 = struct.pack(">f", value2)
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value1,
             string_format=FLOAT_STRING_FORMAT,
@@ -362,7 +362,7 @@ class TestFloat32:
         obj = Float32Field(
             name=tst.name,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_float(
             obj=obj,
@@ -387,7 +387,7 @@ class TestFloat32:
         byte_data2 = struct.pack(">f", value2)
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value1,
             string_format=FLOAT_STRING_FORMAT,
@@ -400,7 +400,7 @@ class TestFloat32:
         obj = Float32Field(
             name=tst.name,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_float(
             obj=obj,
@@ -421,7 +421,7 @@ class TestFloat32:
         byte_data = struct.pack(">f", value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=FLOAT_STRING_FORMAT,
@@ -434,43 +434,19 @@ class TestFloat32:
         obj = Float32Field(
             name=tst.name,
             endian=tst.endian,
-            value=tst.value,
+            default=tst.value,
         )
         check_float(
             obj=obj,
             tst=tst,
         )
-        tst.parent = ParseBase(name="parent")
+        tst.parent = Float32Field(
+            name="parent",
+            endian=tst.endian,
+            default=tst.value,
+        )
         obj.parent = tst.parent
         check_float(
             obj=obj,
             tst=tst,
         )
-
-    def test_float32field_set_children(self) -> None:
-        child = ParseBase(name="child")
-        value = 0.0
-        byte_data = struct.pack(">f", value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        tst = TestData(
-            name="test",
-            value=value,
-            string_format=FLOAT_STRING_FORMAT,
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian="big",
-            children=OrderedDict(),
-        )
-        obj = Float32Field(
-            name=tst.name,
-            endian=tst.endian,
-            value=tst.value,
-        )
-        check_float(
-            obj=obj,
-            tst=tst,
-        )
-        with pytest.raises(NotImplementedError):
-            obj.children = OrderedDict({child.name: child})

@@ -2,35 +2,35 @@ from __future__ import annotations
 
 import math
 import struct
-from collections import OrderedDict
-from typing import Any, Generic, Literal, TypeVar, Union, cast
+from typing import Any, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBaseGeneric
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_value_generic import ParseValueGeneric
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 F = TypeVar("F", bound=Union[float, Any])
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(ParseBaseGeneric[F]):
+class FloatField(ParseValueGeneric[F]):
     """The base parsing object for unsigned floating point values."""
 
     def __init__(
         self,
         name: str,
         bit_count: int,
+        default: F = 0.0,
         data: dataT | None = None,
-        value: F | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         self.bit_count = bit_count
         super().__init__(
             name=name,
             data=data,
-            value=value,
+            default=default,
             string_format=format,
             endian=endian,
         )
@@ -40,22 +40,19 @@ class Float32IEEFieldGeneric(FloatField[F]):
     def __init__(
         self,
         name: str,
+        default: F = 0.0,
         data: dataT | None = None,
-        value: F | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
-        init_to_zero: bool = True,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name,
             bit_count=32,
             data=data,
-            value=value,
+            default=default,
             format=format,
             endian=endian,
         )
-        if value is None and data is None and init_to_zero is True:
-            self.value = cast(F, 0.0)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -112,7 +109,7 @@ class Float32IEEFieldGeneric(FloatField[F]):
         return self._bits.tobytes()
 
     def set_bits(self, bits: bitarray) -> None:
-        if bits.endian() != Literal["little"]:
+        if bits.endian() != "little":
             v = bits.tobytes()
             _bits = bitarray(endian="little")
             _bits.frombytes(v)
@@ -121,15 +118,6 @@ class Float32IEEFieldGeneric(FloatField[F]):
         if len(_bits) < self.bit_count:
             _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self.bit_count]
-
-    def set_children(
-        self,
-        children: OrderedDict[str, ParseBaseGeneric[Any]]
-        | dict[str, ParseBaseGeneric[Any]]
-        | list[ParseBaseGeneric[Any]]
-        | None,
-    ) -> None:
-        raise NotImplementedError()
 
     def get_string_value(self) -> str:
         return self.string_format.format(self.value)

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
-from enum import Enum, IntFlag
-from types import MappingProxyType
-from typing import Generic, Literal, TypeVar, Union, cast
+from enum import IntFlag
+from typing import TypeVar, Union, cast
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -17,24 +16,20 @@ class FlagsField(UIntFieldGeneric[F]):
         name: str,
         bit_count: int,
         flags_type: type[F],
+        default: F,
         data: dataT | None = None,
-        value: F | None = None,
-        format: str = "{}",
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
-        init_value: bool = True,
+        string_format: str = "{}",
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         self._flags_type: type[F] = flags_type
         super().__init__(
             name=name,
             bit_count=bit_count,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
-            format=format,
-            init_to_zero=False,
+            string_format=string_format,
         )
-        if value is None and data is None and init_value is True:
-            self.value = cast(F, 0)
 
     def get_value(self) -> F:
         v = super().get_value()
@@ -85,16 +80,16 @@ class UInt8FlagsField(FlagsField[F]):
         self,
         name: str,
         enum_type: type[F],
+        default: F,
         data: dataT | None = None,
-        value: F | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=8,
             flags_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )
 
@@ -104,16 +99,16 @@ class UInt16FlagsField(FlagsField[F]):
         self,
         name: str,
         enum_type: type[F],
+        default: F,
         data: dataT | None = None,
-        value: F | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=16,
             flags_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )
 
@@ -123,16 +118,16 @@ class UInt24FlagsField(FlagsField[F]):
         self,
         name: str,
         enum_type: type[F],
+        default: F,
         data: dataT | None = None,
-        value: F | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=24,
             flags_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )
 
@@ -142,15 +137,15 @@ class UInt32FlagsField(FlagsField[F]):
         self,
         name: str,
         enum_type: type[F],
+        default: F,
         data: dataT | None = None,
-        value: F | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=32,
             flags_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )

@@ -1,9 +1,9 @@
 """Define common field types in an easy to modify manner."""
-from easyprotocol.base.parse_base import ParseBase as ParseBase  # noqa
-from easyprotocol.base.parse_base import ParseBaseGeneric as ParseBaseGeneric  # noqa
+# from easyprotocol.base.parse_generic import ParseBase as ParseBase  # noqa
+from easyprotocol.base.parse_generic import ParseGeneric as ParseGeneric  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa
 from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
-from easyprotocol.fields.array import ArrayField as ArrayField  # noqa
+from easyprotocol.fields.array import ParseArrayField as ParseArrayField  # noqa
 from easyprotocol.fields.checksum import ChecksumField as ChecksumField  # noqa
 from easyprotocol.fields.enum import EnumField as EnumField  # noqa
 from easyprotocol.fields.enum import UInt8EnumField as UInt8EnumField  # noqa

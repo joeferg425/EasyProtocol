@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from enum import IntEnum
-from typing import Generic, Literal, TypeVar, Union, cast
+from typing import TypeVar, Union
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -16,21 +16,19 @@ class EnumField(UIntFieldGeneric[E]):
         name: str,
         bit_count: int,
         enum_type: type[E],
+        default: E,
         data: dataT | None = None,
-        value: E | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
-        format: str = "{}",
-        init_value: bool = True,
+        endian: endianT = DEFAULT_ENDIANNESS,
+        string_format: str = "{}",
     ) -> None:
         self._enum_type: type[E] = enum_type
         super().__init__(
             name=name,
             bit_count=bit_count,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
-            format=format,
-            init_to_zero=init_value,
+            string_format=string_format,
         )
 
     def get_value(self) -> E:
@@ -79,16 +77,16 @@ class UInt8EnumField(EnumField[E]):
         self,
         name: str,
         enum_type: type[E],
+        default: E,
         data: dataT | None = None,
-        value: E | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=8,
             enum_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )
 
@@ -98,16 +96,16 @@ class UInt16EnumField(EnumField[E]):
         self,
         name: str,
         enum_type: type[E],
+        default: E,
         data: dataT | None = None,
-        value: E | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=16,
             enum_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )
 
@@ -117,16 +115,16 @@ class UInt24EnumField(EnumField[E]):
         self,
         name: str,
         enum_type: type[E],
+        default: E,
         data: dataT | None = None,
-        value: E | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=24,
             enum_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )
 
@@ -136,15 +134,15 @@ class UInt32EnumField(EnumField[E]):
         self,
         name: str,
         enum_type: type[E],
+        default: E,
         data: dataT | None = None,
-        value: E | None = None,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
             bit_count=32,
             enum_type=enum_type,
             data=data,
-            value=value,
+            default=default,
             endian=endian,
         )

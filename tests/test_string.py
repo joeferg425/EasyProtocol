@@ -5,9 +5,9 @@ from collections import OrderedDict
 
 import pytest  # noqa
 from bitarray import bitarray
-from test_parse_object import TestData
+from parse_data import ParseData
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import hex
 from easyprotocol.fields.string import (
     DEFAULT_BYTE_FORMAT,
@@ -23,7 +23,7 @@ from easyprotocol.fields.string import (
 
 def check_strbyte_value(
     obj: CharField | StringField | ByteField | BytesField,
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert (
         obj.value == tst.value
@@ -32,7 +32,7 @@ def check_strbyte_value(
 
 def check_strbyte_properties(
     obj: CharField | StringField | ByteField | BytesField,
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
     assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
@@ -52,7 +52,7 @@ def check_strbyte_properties(
 
 def check_str_strings(
     obj: CharField | StringField,
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     assert f'"{tst.value}"' == obj.string, (
         f"{obj}: obj.string is not the expected value "
@@ -74,7 +74,7 @@ def check_str_strings(
 
 def check_str(
     obj: CharField | StringField,
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     check_strbyte_value(
         obj=obj,
@@ -92,9 +92,9 @@ def check_str(
 
 def check_byte_strings(
     obj: ByteField | BytesField,
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
-    assert f'"{hex(tst.value)}"' == obj.string, (
+    assert f'"{hex(tst.value)}"(bytes)' == obj.string, (
         f"{obj}: obj.string is not the expected value "
         + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
     )
@@ -114,7 +114,7 @@ def check_byte_strings(
 
 def check_bytes(
     obj: ByteField | BytesField,
-    tst: TestData,
+    tst: ParseData,
 ) -> None:
     check_strbyte_value(
         obj=obj,
@@ -136,7 +136,7 @@ class TestChar:
         byte_data = b"\x00"
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_CHAR_FORMAT,
@@ -160,7 +160,7 @@ class TestChar:
         byte_data = struct.pack("B", ord(value[0]))
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_CHAR_FORMAT,
@@ -185,7 +185,7 @@ class TestChar:
         byte_data = struct.pack("B", ord(value[0]))
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_CHAR_FORMAT,
@@ -197,7 +197,7 @@ class TestChar:
         )
         obj = CharField(
             name=tst.name,
-            value=value,
+            default=value,
         )
 
         check_str(
@@ -213,7 +213,7 @@ class TestString:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         count = 0
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_STRING_FORMAT,
@@ -239,7 +239,7 @@ class TestString:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         count = 5
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_STRING_FORMAT,
@@ -260,32 +260,6 @@ class TestString:
             tst=tst,
         )
 
-    def test_string_create_init_value(self) -> None:
-        value = "tacocat"
-        byte_data = value.encode("latin1")
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        tst = TestData(
-            name="test",
-            value=value,
-            string_format=DEFAULT_STRING_FORMAT,
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
-        )
-        obj = StringField(
-            name=tst.name,
-            count=7,
-            value=value,
-        )
-
-        check_str(
-            obj=obj,
-            tst=tst,
-        )
-
 
 class TestByte:
     def test_byte_create_empty(self) -> None:
@@ -293,7 +267,7 @@ class TestByte:
         byte_data = bytes(value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_BYTE_FORMAT,
@@ -317,7 +291,7 @@ class TestByte:
         byte_data = bytes(value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_BYTE_FORMAT,
@@ -342,7 +316,7 @@ class TestByte:
         byte_data = bytes(value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_BYTE_FORMAT,
@@ -354,7 +328,7 @@ class TestByte:
         )
         obj = ByteField(
             name=tst.name,
-            value=value,
+            default=value,
         )
 
         check_bytes(
@@ -370,7 +344,7 @@ class TestBytes:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         count = 0
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_BYTES_FORMAT,
@@ -396,7 +370,7 @@ class TestBytes:
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
         count = 5
-        tst = TestData(
+        tst = ParseData(
             name="test",
             value=value,
             string_format=DEFAULT_BYTES_FORMAT,
@@ -410,32 +384,6 @@ class TestBytes:
             name=tst.name,
             count=count,
             data=byte_data,
-        )
-
-        check_bytes(
-            obj=obj,
-            tst=tst,
-        )
-
-    def test_bytes_create_init_value(self) -> None:
-        value = b"tacocat"
-        byte_data = bytes(value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        tst = TestData(
-            name="test",
-            value=value,
-            string_format=DEFAULT_BYTES_FORMAT,
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
-        )
-        obj = BytesField(
-            name=tst.name,
-            count=7,
-            value=value,
         )
 
         check_bytes(

@@ -7,14 +7,14 @@ from typing import Any, TypeVar, Union, cast
 from bitarray import bitarray
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_value_generic import ParseValueGeneric
+from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 F = TypeVar("F", bound=Union[float, Any])
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(ParseValueGeneric[F]):
+class FloatField(ParseGenericValue[F]):
     """The base parsing object for unsigned floating point values."""
 
     def __init__(

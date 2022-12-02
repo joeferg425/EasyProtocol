@@ -2,33 +2,34 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Literal, OrderedDict, TypeVar, Union, cast
+from typing import Any, Generic, Mapping, OrderedDict, Sequence, TypeVar, cast
 
 from bitarray import bitarray
 
-# from easyprotocol.base.parse_field import ParseFieldGeneric
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric, endianT
+
+# from easyprotocol.base.parse_generic_value import _T
 from easyprotocol.base.utils import dataT, input_to_bytes
 
-T = TypeVar("T", bound=Any)
+_T = TypeVar("_T")
+K = TypeVar("K")
 
 
-class ParseDictGeneric(
-    ParseGeneric[T],
-    OrderedDict[str, ParseGeneric[T]],
+class ParseGenericDict(
+    ParseGeneric[_T],
+    Mapping[K, ParseGeneric[_T]],
+    Generic[K, _T],
 ):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
-        value: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]] | None = None,
+        default: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]] | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
-        parent: ParseGeneric[Any] | None = None,
-        children: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]] | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -43,14 +44,10 @@ class ParseDictGeneric(
             bit_count=bit_count,
             string_format=string_format,
             endian=endian,
-            parent=parent,
         )
-        if children is not None:
-            self._set_children_generic(children=children)
+        self._set_children_generic(children=default)
         if data is not None:
             self.parse(data)
-        elif value is not None:
-            self.set_value(value=value)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -66,7 +63,7 @@ class ParseDictGeneric(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self, last: bool = False) -> tuple[str, ParseGeneric[T]]:
+    def popitem(self, last: bool = False) -> tuple[K, ParseGeneric[_T]]:
         """Remove item from list.
 
         Args:
@@ -75,9 +72,9 @@ class ParseDictGeneric(
         Returns:
             the popped item
         """
-        return cast(tuple[str, ParseGeneric[T]], self._children.popitem(last=last))
+        return cast(tuple[K, ParseGeneric[_T]], self._children.popitem(last=last))
 
-    def pop(self, name: str, default: ParseGeneric[T] | None = None) -> ParseGeneric[T] | None:
+    def pop(self, name: str, default: ParseGeneric[_T] | None = None) -> ParseGeneric[_T] | None:
         """Pop item from dictionary by name.
 
         Args:
@@ -97,7 +94,7 @@ class ParseDictGeneric(
 
     def get_value(
         self,
-    ) -> OrderedDict[str, ParseGeneric[T]]:
+    ) -> OrderedDict[str, ParseGeneric[_T]]:
         """Get the parsed value of the field.
 
         Returns:
@@ -107,7 +104,7 @@ class ParseDictGeneric(
 
     def set_value(
         self,
-        value: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]],
+        value: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]],
     ) -> None:
         if isinstance(value, dict):
             for key, item in value.items():
@@ -126,12 +123,12 @@ class ParseDictGeneric(
             data += value.bits
         return data
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[T]]:
+    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[_T]]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]] | None,
+        children: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]] | None,
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict)):
@@ -154,7 +151,7 @@ class ParseDictGeneric(
         return f'{{{", ".join([str(value) for value in self._children.values()])}}}'
 
     @property
-    def value(self) -> OrderedDict[str, ParseGeneric[T]]:
+    def value(self) -> OrderedDict[str, ParseGeneric[_T]]:
         """Get the parsed value of the field.
 
         Returns:
@@ -165,12 +162,12 @@ class ParseDictGeneric(
     @value.setter
     def value(
         self,
-        value: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]],
+        value: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]],
     ) -> None:
         self.set_value(value)
 
     @property
-    def children(self) -> OrderedDict[str, ParseGeneric[T]]:
+    def children(self) -> OrderedDict[str, ParseGeneric[_T]]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -181,7 +178,7 @@ class ParseDictGeneric(
     @children.setter
     def children(
         self,
-        children: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]] | None,
+        children: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]] | None,
     ) -> None:
         self._set_children_generic(children=children)
 
@@ -209,15 +206,15 @@ class ParseDictGeneric(
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, name: str, value: ParseGeneric[T]) -> None:
+    def __setitem__(self, name: object, value: ParseGeneric[_T]) -> None:
         value._set_parent_generic(self)
-        return self._children.__setitem__(name, value)
+        return self._children.__setitem__(str(name), value)
 
-    def __getitem__(self, name: str) -> ParseGeneric[T]:
-        return self._children.__getitem__(name)
+    def __getitem__(self, name: object) -> ParseGeneric[_T]:
+        return self._children.__getitem__(str(name))
 
-    def __delitem__(self, name: str) -> None:
-        return self._children.__delitem__(name)
+    def __delitem__(self, name: object) -> None:
+        return self._children.__delitem__(str(name))
 
     def __len__(self) -> int:
         return len(self._children)

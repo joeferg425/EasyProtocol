@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from enum import IntFlag
-from typing import TypeVar, Union, cast
+from typing import Sequence, TypeVar, Union, cast
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import dataT
@@ -55,7 +55,7 @@ class FlagsField(UIntFieldGeneric[F]):
         flags_dict: dict[str, IntFlag] = dict(
             self._flags_type._member_map_  # pyright:ignore[reportUnknownMemberType,reportUnknownArgumentType,reportGeneralTypeIssues]
         )
-        flags: list[IntFlag] = list(flags_dict.values())
+        flags: Sequence[IntFlag] = list(flags_dict.values())
         if isinstance(value, IntFlag):
             return "|".join([v.name for v in flags if v in value and v.name])
         else:

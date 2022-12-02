@@ -7,7 +7,7 @@ from typing import Generic, TypeVar, Union, cast
 from bitarray import bitarray
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_value_generic import ParseValueGeneric
+from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, hex
 from easyprotocol.fields.array import ParseArrayField
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
@@ -59,17 +59,21 @@ class StringField(ParseArrayField[str]):
         data: dataT | None = None,
         string_format: str = '"{}"',
         string_encoding: str = "latin1",
+        default: str = "",
+        char_default: str = "\x00",
     ) -> None:
         self._string_encoding: str = string_encoding
         super().__init__(
             name=name,
             count=count,
             array_item_class=CharField,
+            array_item_default=char_default,
+            default=[s for s in default],
             data=data,
             string_format=string_format,
         )
 
-    def get_value(self) -> str:  # pyright:ignore[reportIncompatibleMethodOverride]
+    def get_value(self) -> str:
         return "".join([v.value for v in self.children.values()])
 
     def set_value(self, value: str) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
@@ -80,12 +84,12 @@ class StringField(ParseArrayField[str]):
                 kid = cast(CharField, self[index])
                 kid.value = item
             else:
-                f = self.array_item_class(f"#{index}")
+                f = self._array_item_class(f"#{index}", default=self._array_item_default)
                 f.value = item
                 self._children[f.name] = f
 
     @property
-    def value(self) -> str:  # pyright:ignore[reportIncompatibleMethodOverride]
+    def value(self) -> str:
         return self.get_value()
 
     @value.setter
@@ -144,12 +148,20 @@ class ByteField(UIntFieldGeneric[bytes]):
 
 class BytesField(ParseArrayField[bytes]):
     def __init__(
-        self, name: str, count: UIntField | int, data: dataT | None = None, string_format: str = '"{}"(bytes)'
+        self,
+        name: str,
+        count: UIntField | int,
+        default: bytes = b"",
+        byte_default: bytes = b"\x00",
+        data: dataT | None = None,
+        string_format: str = '"{}"(bytes)',
     ) -> None:
         super().__init__(
             name=name,
             count=count,
             array_item_class=ByteField,
+            array_item_default=byte_default,
+            default=[bytes([b]) for b in default],
             data=data,
             string_format=string_format,
         )
@@ -163,7 +175,10 @@ class BytesField(ParseArrayField[bytes]):
                 kid = cast(ByteField, self[index])
                 kid.value = item
             else:
-                f = self.array_item_class(f"#{index}")
+                f = self._array_item_class(
+                    name=f"#{index}",
+                    default=self._array_item_default,
+                )
                 f.value = bytes([item])
                 self._children[f.name] = f
 

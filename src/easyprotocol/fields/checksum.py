@@ -5,7 +5,7 @@ from typing import Literal, cast
 
 from bitarray import bitarray
 from bitarray.util import int2ba
-from crc import Configuration, CrcCalculator
+from crc import Calculator, Configuration
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import dataT, input_to_bytes
@@ -31,7 +31,7 @@ class ChecksumField(UIntFieldGeneric[int]):
             string_format=string_format,
             endian=endian,
         )
-        self.crc_calculator = CrcCalculator(
+        self.crc_calculator = Calculator(
             configuration=crc_configuration,
         )
 
@@ -43,9 +43,7 @@ class ChecksumField(UIntFieldGeneric[int]):
                 byte_data = b""
         else:
             byte_data = input_to_bytes(data=data, bit_count=self._bit_count).tobytes()
-        crc_int = cast(
-            int, self.crc_calculator.calculate_checksum(byte_data)  # pyright:ignore[reportUnknownMemberType]
-        )
+        crc_int = self.crc_calculator.checksum(byte_data)
         byte_length = math.ceil(self._bit_count / 8)
         crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")
         crc_int = int.from_bytes(crc_bytes, byteorder=self._endian, signed=False)

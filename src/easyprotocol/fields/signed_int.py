@@ -7,7 +7,7 @@ from typing import Any, TypeVar, Union, cast
 from bitarray import bitarray
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_value_generic import ParseValueGeneric
+from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 INT_STRING_FORMAT = "{}"
@@ -20,7 +20,7 @@ INT64_STRING_FORMAT = "{}"
 T = TypeVar("T", bound=Union[int, Any])
 
 
-class IntFieldGeneric(ParseValueGeneric[T]):
+class IntFieldGeneric(ParseGenericValue[T]):
     """The base parsing object for unsigned integers."""
 
     def __init__(

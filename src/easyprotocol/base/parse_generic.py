@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Generic, Literal, NewType, SupportsBytes, TypeVar, cast
+from typing import Any, Generic, Literal, Sequence, SupportsBytes, TypeVar, Union
 
 from bitarray import bitarray
 
@@ -11,7 +11,7 @@ from easyprotocol.base.utils import dataT, hex
 DEFAULT_ENDIANNESS: Literal["big", "little"] = "little"
 UNDEFINED = "?UNDEFINED?"
 endianT = Literal["little", "big"]
-T = TypeVar("T", bound=Any)
+T = TypeVar("T", bound=Any, covariant=True)
 
 
 class ParseGeneric(SupportsBytes, Generic[T]):
@@ -24,11 +24,6 @@ class ParseGeneric(SupportsBytes, Generic[T]):
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
-        parent: ParseGeneric[Any] | None = None,
-        children: OrderedDict[str, "ParseGeneric[Any]"]
-        | dict[str, "ParseGeneric[Any]"]
-        | list["ParseGeneric[Any]"]
-        | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -46,14 +41,12 @@ class ParseGeneric(SupportsBytes, Generic[T]):
         self._bit_count: int = bit_count
         self._name = name
         self._initialized = False
-        self._parent: ParseGeneric[Any] | None = parent
+        self._parent: ParseGeneric[Any] | None = None
         self._children: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
         if string_format is None:
             self._string_format = "{}"
         else:
             self._string_format = string_format
-        if children is not None:
-            self._set_children_generic(children)
         if data is not None:
             self.parse(data=data)
 
@@ -86,12 +79,12 @@ class ParseGeneric(SupportsBytes, Generic[T]):
     def _set_parent_generic(self, parent: ParseGeneric[Any] | None) -> None:
         self._parent = parent
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[T]]:
+    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[Any]]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseGeneric[T]] | dict[str, ParseGeneric[T]] | list[ParseGeneric[T]] | None,
+        children: OrderedDict[str, ParseGeneric[Any]] | Sequence[ParseGeneric[Any]],
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict, OrderedDict)):
@@ -212,29 +205,3 @@ class ParseGeneric(SupportsBytes, Generic[T]):
             a nicely formatted string describing this field
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
-
-
-# class ParseBase(ParseGeneric[Any]):
-#     def __init__(
-#         self,
-#         name: str,
-#         value: Any | None = None,
-#         data: dataT = None,
-#         bit_count: int = -1,
-#         string_format: str | None = None,
-#         endian: endianT = DEFAULT_ENDIANNESS,
-#         parent: ParseGeneric[Any] | None = None,
-#         children: OrderedDict[str, "ParseGeneric[Any]"]
-#         | dict[str, "ParseGeneric[Any]"]
-#         | list["ParseGeneric[Any]"]
-#         | None = None,
-#     ) -> None:
-#         super().__init__(
-#             name=name,
-#             data=data,
-#             bit_count=bit_count,
-#             string_format=string_format,
-#             endian=endian,
-#             parent=parent,
-#             children=children,
-#         )

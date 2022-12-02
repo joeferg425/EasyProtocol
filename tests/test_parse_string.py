@@ -3,7 +3,6 @@ from __future__ import annotations
 import struct
 from collections import OrderedDict
 
-import pytest  # noqa
 from bitarray import bitarray
 from parse_data import ParseData
 
@@ -21,7 +20,7 @@ from easyprotocol.fields.string import (
 )
 
 
-def check_strbyte_value(
+def check_str_byte_value(
     obj: CharField | StringField | ByteField | BytesField,
     tst: ParseData,
 ) -> None:
@@ -30,7 +29,7 @@ def check_strbyte_value(
     ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
 
 
-def check_strbyte_properties(
+def check_str_byte_properties(
     obj: CharField | StringField | ByteField | BytesField,
     tst: ParseData,
 ) -> None:
@@ -76,11 +75,11 @@ def check_str(
     obj: CharField | StringField,
     tst: ParseData,
 ) -> None:
-    check_strbyte_value(
+    check_str_byte_value(
         obj=obj,
         tst=tst,
     )
-    check_strbyte_properties(
+    check_str_byte_properties(
         obj=obj,
         tst=tst,
     )
@@ -116,11 +115,11 @@ def check_bytes(
     obj: ByteField | BytesField,
     tst: ParseData,
 ) -> None:
-    check_strbyte_value(
+    check_str_byte_value(
         obj=obj,
         tst=tst,
     )
-    check_strbyte_properties(
+    check_str_byte_properties(
         obj=obj,
         tst=tst,
     )

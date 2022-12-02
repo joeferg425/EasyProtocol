@@ -57,7 +57,8 @@
 					"-m",
 					"pip",
 					"install",
-					".[dev]"
+					"-e",
+					"."
 				],
 				"dependsOn": [
 					"update"

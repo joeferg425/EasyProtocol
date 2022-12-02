@@ -1,25 +1,22 @@
 import struct
 from collections import OrderedDict
-from enum import IntEnum
+from enum import IntFlag
 from typing import Any
 
 import pytest
 from bitarray import bitarray
 from parse_data import ParseData
-from test_uint import check_int_properties, check_int_value
+from test_parse_uint import check_int_properties, check_int_value
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
-from easyprotocol.fields.enum import EnumField
+from easyprotocol.fields.flags import FlagsField
 
 
-def check_enum_strings(
-    obj: EnumField[IntEnum],
+def check_flags_strings(
+    obj: FlagsField[IntFlag],
     tst: ParseData,
 ) -> None:
-    assert tst.string_format.format(tst.value.name) == obj.string, (
-        f"{obj}: obj.string is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
-    )
+
     assert len(obj.string) > 0, f"{obj}: obj.string is not the expected value " + f"(? != expected value: {obj.string})"
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
     assert obj.string in str(
@@ -34,8 +31,8 @@ def check_enum_strings(
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
 
 
-def check_enum(
-    obj: EnumField[Any],
+def check_flags(
+    obj: FlagsField[Any],
     tst: ParseData,
 ) -> None:
     check_int_value(
@@ -46,27 +43,24 @@ def check_enum(
         obj=obj,
         tst=tst,
     )
-    check_enum_strings(
+    check_flags_strings(
         obj=obj,
         tst=tst,
     )
 
 
-class TestEnumerating(IntEnum):
-    ZERO = 0b000
-    ONE = 0b001
-    TWO = 0b010
-    THREE = 0b011
-    FOUR = 0b100
-    FIVE = 0b101
-    SIX = 0b110
-    SEVEN = 0b111
+class TestingFlags(IntFlag):
+    NONE = 0
+    ONE = 1
+    TWO = 2
+    FOUR = 4
+    EIGHT = 8
 
 
-class TestEnums:
-    def test_enum_create_empty_big_endian(self) -> None:
-        value = TestEnumerating.ZERO
+class TestFlags:
+    def test_flags_create_empty(self) -> None:
         bit_count = 2
+        value = TestingFlags.NONE
         byte_data = struct.pack("B", value.value)
         bits_data = bitarray(endian="little")
         bits_data.frombytes(byte_data)
@@ -81,19 +75,19 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
-            default=TestEnumerating.ZERO,
+            flags_type=TestingFlags,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-    def test_enum_create_empty_little_endian(self) -> None:
-        value = TestEnumerating.ZERO
+    def test_flags_create_parse_one(self) -> None:
+        value = TestingFlags.ONE
         bit_count = 2
         byte_data = struct.pack("B", value.value)
         bits_data = bitarray(endian="little")
@@ -109,54 +103,55 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
-            default=TestEnumerating.ZERO,
-        )
-        check_enum(
-            obj=obj,
-            tst=tst,
-        )
-
-    def test_enum_create_parse(self) -> None:
-        value = TestEnumerating.THREE
-        bit_count = 2
-        byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
-        bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
-        tst = ParseData(
-            name="test",
-            value=value,
-            string_format="{}",
-            byte_data=byte_data,
-            bits_data=bits_data,
-            parent=None,
-            endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
-        )
-        obj = EnumField(
-            name=tst.name,
-            bit_count=bit_count,
-            enum_type=TestEnumerating,
+            flags_type=TestingFlags,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-    def test_enum_create_truncate(self) -> None:
+    def test_flags_create_parse_multiple(self) -> None:
+        value = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        bit_count = 4
+        byte_data = struct.pack("B", value.value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:bit_count]
+        tst = ParseData(
+            name="test",
+            value=value,
+            string_format="{}",
+            byte_data=byte_data,
+            bits_data=bits_data,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=OrderedDict(),
+        )
+        obj = FlagsField(
+            name=tst.name,
+            bit_count=bit_count,
+            flags_type=TestingFlags,
+            data=tst.byte_data,
+            default=TestingFlags.NONE,
+        )
+        check_flags(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_flags_create_truncate(self) -> None:
+        value1 = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        value2 = TestingFlags.ONE | TestingFlags.TWO
         bit_count = 2
-        value1 = TestEnumerating.SEVEN
         byte_data1 = struct.pack("B", value1.value)
         bits_data1 = bitarray(endian="little")
         bits_data1.frombytes(byte_data1)
         bits_data1 = bits_data1[:bit_count]
-        value2 = TestEnumerating.THREE
         byte_data2 = struct.pack("B", value2.value)
         bits_data2 = bitarray(endian="little")
         bits_data2.frombytes(byte_data2)
@@ -171,29 +166,29 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
-            data=byte_data1,
-            default=TestEnumerating.ZERO,
+            flags_type=TestingFlags,
+            data=byte_data2,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-    def test_enum_create_invalid(self) -> None:
+    def test_flags_create_invalid(self) -> None:
         with pytest.raises(TypeError):
-            EnumField(
-                name="enum",
+            FlagsField(
+                name="invalid",
                 bit_count=4,
-                enum_type=TestEnumerating,
-                data=tuple((1, 2, "ff")),  # pyright:ignore[reportGeneralTypeIssues]
+                flags_type=TestingFlags,
+                data="pickles",  # pyright:ignore[reportGeneralTypeIssues]
             )
 
-    def test_enum_set_name(self) -> None:
-        value = TestEnumerating.SEVEN
+    def test_flags_set_name(self) -> None:
+        value = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
         bit_count = 4
         byte_data = struct.pack("B", value.value)
         bits_data = bitarray(endian="little")
@@ -209,28 +204,28 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            flags_type=TestingFlags,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
         tst.name = "new_name"
         obj.name = tst.name
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-    def test_enum_set_value(self) -> None:
-        value1 = TestEnumerating.ONE
-        value2 = TestEnumerating.FOUR
+    def test_flags_set_value(self) -> None:
+        value1 = TestingFlags.ONE
+        value2 = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
         bit_count = 4
         byte_data1 = struct.pack("B", value1.value)
         bits_data1 = bitarray(endian="little")
@@ -250,14 +245,14 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            flags_type=TestingFlags,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
@@ -266,14 +261,14 @@ class TestEnums:
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-    def test_enum_set_bits(self) -> None:
-        value1 = TestEnumerating.ONE
-        value2 = TestEnumerating.SIX
+    def test_flags_set_bits(self) -> None:
+        value1 = TestingFlags.ONE
+        value2 = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
         bit_count = 4
         byte_data1 = struct.pack("B", value1.value)
         bits_data1 = bitarray(endian="little")
@@ -293,14 +288,14 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            flags_type=TestingFlags,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
@@ -309,13 +304,13 @@ class TestEnums:
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-    def test_enum_set_parent(self) -> None:
-        value = TestEnumerating.FIVE
+    def test_flags_set_parent(self) -> None:
+        value = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
         bit_count = 4
         byte_data = struct.pack("B", value.value)
         bits_data = bitarray(endian="little")
@@ -331,27 +326,28 @@ class TestEnums:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = EnumField(
+        obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            flags_type=TestingFlags,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=TestingFlags.NONE,
         )
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )
 
-        tst.parent = EnumField(
+        tst.parent = FlagsField(
             name="parent",
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            flags_type=TestingFlags,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=TestingFlags.NONE,
         )
+
         obj.parent = tst.parent
-        check_enum(
+        check_flags(
             obj=obj,
             tst=tst,
         )

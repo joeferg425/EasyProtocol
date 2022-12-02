@@ -7,7 +7,7 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 from parse_data import ParseData
-from test_uint import TEST_VALUES_32_BIT, get_bitarray
+from test_parse_uint import TEST_VALUES_32_BIT, get_bitarray
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
 from easyprotocol.fields.float import FLOAT_STRING_FORMAT, Float32Field, FloatField

@@ -1,27 +1,24 @@
 from __future__ import annotations
 
-from collections import OrderedDict
-from typing import Any, TypeVar
+from typing import Any, Generic, TypeVar
 
-from easyprotocol.base.parse_generic import ParseGeneric, dataT, endianT
+from easyprotocol.base.parse_generic import ParseGeneric, T, dataT, endianT
 
-T = TypeVar("T", bound=Any)
+_T = TypeVar("_T")
 
 
-class ParseValueGeneric(ParseGeneric[T]):
+class ParseGenericValue(
+    ParseGeneric[_T],
+    Generic[_T],
+):
     def __init__(
         self,
         name: str,
-        default: T | None = None,
+        default: _T = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = ...,
-        parent: ParseGeneric[Any] | None = None,
-        children: OrderedDict[str, "ParseGeneric[Any]"]
-        | dict[str, "ParseGeneric[Any]"]
-        | list["ParseGeneric[Any]"]
-        | None = None,
     ) -> None:
         super().__init__(
             name,
@@ -29,20 +26,18 @@ class ParseValueGeneric(ParseGeneric[T]):
             bit_count,
             string_format,
             endian,
-            parent,
-            children,
         )
         if data is None and default is not None:
             self.value = default
 
-    def get_value(self) -> T:
+    def get_value(self) -> _T:
         raise NotImplementedError()
 
-    def set_value(self, value: T) -> None:
+    def set_value(self, value: _T) -> None:
         raise NotImplementedError()
 
     @property
-    def value(self) -> T:
+    def value(self) -> _T:
         """Get the parsed value of the field.
 
         Returns:
@@ -51,7 +46,7 @@ class ParseValueGeneric(ParseGeneric[T]):
         return self.get_value()
 
     @value.setter
-    def value(self, value: T) -> None:
+    def value(self, value: _T) -> None:
         self.set_value(value)
 
     @property
@@ -64,5 +59,5 @@ class ParseValueGeneric(ParseGeneric[T]):
         return self._get_parent_generic()
 
     @parent.setter
-    def parent(self, value: ParseGeneric[Any] | None) -> None:
+    def parent(self, value: ParseGeneric[Any]) -> None:
         self._set_parent_generic(value)

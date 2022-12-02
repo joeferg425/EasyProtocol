@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 import math
-from typing import Any, TypeVar, Union, cast
+from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_value_generic import ParseValueGeneric
+from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 UINT_STRING_FORMAT = "{:X}(hex)"
@@ -16,17 +16,21 @@ UINT16_STRING_FORMAT = "{:04X}(hex)"
 UINT24_STRING_FORMAT = "{:06X}(hex)"
 UINT32_STRING_FORMAT = "{:08X}(hex)"
 UINT64_STRING_FORMAT = "{:016X}(hex)"
-T = TypeVar("T", bound=Union[int, Any])
+
+_T = TypeVar("_T", bound=Union[Any, int])
 
 
-class UIntFieldGeneric(ParseValueGeneric[T]):
+class UIntFieldGeneric(
+    ParseGenericValue[_T],
+    Generic[_T],
+):
     """The base parsing object for unsigned integers."""
 
     def __init__(
         self,
         name: str,
         bit_count: int,
-        default: T | None = 0,
+        default: _T = 0,
         data: dataT = None,
         string_format: str = UINT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
@@ -59,7 +63,7 @@ class UIntFieldGeneric(ParseValueGeneric[T]):
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
         elif len(bit_mask) > len(bits):
             bit_mask = bit_mask[: len(bits)]
-        if len(bits) < len(bit_mask):
+        if len(bits) < len(bit_mask) or len(bits) == 0:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
         temp_bits = bitarray(my_bits, endian="little")
@@ -72,11 +76,11 @@ class UIntFieldGeneric(ParseValueGeneric[T]):
         else:
             return bitarray(endian="little")
 
-    def get_value(self) -> T:
+    def get_value(self) -> _T:
         b = self.bits.tobytes()
-        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
+        return cast(_T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
-    def set_value(self, value: T) -> None:
+    def set_value(self, value: _T) -> None:
         if value is None:
             _value = 0
         elif not isinstance(value, int):
@@ -101,7 +105,7 @@ class UIntFieldGeneric(ParseValueGeneric[T]):
         return self._bits.tobytes()
 
     @property
-    def value(self) -> T:
+    def value(self) -> _T:
         """Get the parsed value of the field.
 
         Returns:
@@ -110,7 +114,7 @@ class UIntFieldGeneric(ParseValueGeneric[T]):
         return self.get_value()
 
     @value.setter
-    def value(self, value: T) -> None:
+    def value(self, value: _T) -> None:
         self.set_value(value)
 
     def set_bits(self, bits: bitarray) -> None:

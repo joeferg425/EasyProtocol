@@ -1,37 +1,41 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, TypeVar, Union
+from typing import Any, Sequence, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_field_dict import ParseDictGeneric
-from easyprotocol.base.parse_field_list import ParseValueList
-from easyprotocol.base.parse_list_generic import ParseListGeneric
-from easyprotocol.base.parse_value_generic import ParseValueGeneric
+from easyprotocol.base.parse_generic import ParseGeneric, T
+from easyprotocol.base.parse_generic_dict import ParseGenericDict
+from easyprotocol.base.parse_generic_list import ParseGenericList
+from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.parse_value_list import ParseGenericUnion, ParseValueListGeneric
 from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
-T = TypeVar("T", bound=Any)
-ParseGenericUnion = Union[ParseValueGeneric[T], ParseDictGeneric[T], ParseListGeneric[T]]
 
-
-class ParseArrayField(ParseValueList[T]):
+class ParseArrayField(ParseValueListGeneric[T]):
     def __init__(
         self,
         name: str,
         count: UIntFieldGeneric[int] | int,
-        array_item_class: type[ParseValueGeneric[T]],
+        array_item_class: type[ParseGenericValue[T]],
+        array_item_default: T,
+        default: Sequence[T] | Sequence[ParseGenericValue[T]] = list(),
         data: dataT | None = None,
         string_format: str = "{}",
     ) -> None:
         self._count = count
-        self.array_item_class = array_item_class
+        self._array_item_class = array_item_class
+        self._array_item_default = array_item_default
         super().__init__(
             name=name,
-            data=data,
+            data=None,
             string_format=string_format,
         )
+        self.create_default(default=default)
+        if data is not None:
+            self.parse(data=data)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -49,27 +53,51 @@ class ParseArrayField(ParseValueList[T]):
             count = self._count
         if count is not None:
             for i in range(count):
-                f = self.array_item_class(f"#{i}")
+                f = self._array_item_class(
+                    name=f"#{i}",
+                    default=self._array_item_default,
+                )
                 bit_data = f.parse(data=bit_data)
                 self._children[f.name] = f
         return bit_data
 
+    def create_default(self, default: Sequence[T] | Sequence[ParseGenericValue[T]]) -> None:
+        for i, item in enumerate(default):
+            if isinstance(item, ParseGeneric):  # pyright:ignore[reportUnnecessaryIsInstance]
+                f = self._array_item_class(
+                    name=f"#{i}",
+                    default=item.value,
+                )
+            else:
+                f = self._array_item_class(
+                    name=f"#{i}",
+                    default=cast(T, item),
+                )
+            self._children[f.name] = f
 
-class ParseValueArrayField(ParseValueList[T]):
+
+class ParseValueArrayField(ParseValueListGeneric[T]):
     def __init__(
         self,
         name: str,
         count: UIntFieldGeneric[int] | int,
-        array_item_class: type[ParseValueGeneric[T]],
-        default: list[T] | dict[str, ParseGenericUnion[T]] | OrderedDict[str, ParseGenericUnion[T]] | None = None,
+        array_item_class: type[ParseGenericValue[T]],
+        array_item_default: T,
+        default: Sequence[ParseGenericValue[T]] | Sequence[T] = list(),
+        string_format: str = "{}",
         data: dataT | None = None,
     ) -> None:
         self._count = count
-        self.array_item_class = array_item_class
+        self._array_item_class = array_item_class
+        self._array_item_default = array_item_default
         super().__init__(
             name=name,
-            data=data,
+            data=None,
+            string_format=string_format,
         )
+        self.create_default(default=default)
+        if data is not None:
+            self.parse(data=data)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -87,12 +115,26 @@ class ParseValueArrayField(ParseValueList[T]):
             count = self._count
         if count is not None:
             for i in range(count):
-                f = self.array_item_class(f"#{i}")
+                f = self._array_item_class(name=f"#{i}", default=self._array_item_default)
                 bit_data = f.parse(data=bit_data)
                 self._children[f.name] = f
         return bit_data
 
-    # def get_value(self) -> list[T]:
+    def create_default(self, default: Sequence[T] | Sequence[ParseGenericValue[T]]) -> None:
+        for i, item in enumerate(default):
+            if isinstance(item, ParseGeneric):  # pyright:ignore[reportUnnecessaryIsInstance]
+                f = self._array_item_class(
+                    name=f"#{i}",
+                    default=item.value,
+                )
+            else:
+                f = self._array_item_class(
+                    name=f"#{i}",
+                    default=cast(T, item),
+                )
+            self._children[f.name] = f
+
+    # def get_value(self) -> Sequence[T]:
     #     return [v for v in self.children.values()]
 
     # def set_value(self, value: str) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]

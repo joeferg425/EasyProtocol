@@ -4,9 +4,9 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Literal
 
-import pytest
 from bitarray import bitarray
 
+# from easyprotocol.base.parse_field_list import ParseGenericUnion
 from easyprotocol.base.parse_generic import UNDEFINED, ParseGeneric
 
 
@@ -19,7 +19,7 @@ class ParseData:
     bits_data: bitarray
     byte_data: bytes | bytearray
     parent: ParseGeneric[Any] | None
-    children: OrderedDict[str, ParseGeneric[Any]]
+    children: OrderedDict[str, Any]
 
 
 # def check_parseobject_properties(

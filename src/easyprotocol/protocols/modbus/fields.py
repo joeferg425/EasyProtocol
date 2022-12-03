@@ -1,14 +1,16 @@
 from __future__ import annotations
 
 import math
+import struct
 from collections import OrderedDict
-from typing import Any
+from typing import Any, Sequence
 
 import crc
 from bitarray import bitarray
 from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
+from easyprotocol.base.parse_generic import ParseGeneric
 from easyprotocol.fields import (
     BoolField,
     ChecksumField,
@@ -18,7 +20,10 @@ from easyprotocol.fields import (
     UInt16Field,
     UIntField,
 )
-from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunctionEnum
+from easyprotocol.protocols.modbus.constants import (
+    ModbusFieldNamesEnum,
+    ModbusFunctionEnum,
+)
 
 
 class ModbusDeviceId(UInt8Field):
@@ -28,7 +33,7 @@ class ModbusDeviceId(UInt8Field):
         data: dataT | None = None,
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.DeviceID,
+            name=ModbusFieldNamesEnum.DeviceID.value,
             data=data,
             default=default,
             endian="big",
@@ -42,7 +47,7 @@ class ModbusFunction(UInt8EnumField[ModbusFunctionEnum]):
         data: dataT | None = None,
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.FunctionCode,
+            name=ModbusFieldNamesEnum.FunctionCode.value,
             enum_type=ModbusFunctionEnum,
             default=default,
             data=data,
@@ -57,7 +62,7 @@ class ModbusAddress(UInt16Field):
         data: dataT | None = None,
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.Address,
+            name=ModbusFieldNamesEnum.Address.value,
             default=default,
             data=data,
             endian="little",
@@ -71,7 +76,7 @@ class ModbusCount(UInt16Field):
         data: dataT | None = None,
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.Count,
+            name=ModbusFieldNamesEnum.Count.value,
             default=default,
             data=data,
             endian="little",
@@ -86,7 +91,7 @@ class ModbusByteCount(UInt8Field):
         data: dataT | None = None,
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.ByteCount,
+            name=ModbusFieldNamesEnum.ByteCount.value,
             default=default,
             data=data,
             endian="big",
@@ -101,7 +106,7 @@ class ModbusCRC(ChecksumField):
         data: dataT | None = None,
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.CRC,
+            name=ModbusFieldNamesEnum.CRC.value,
             bit_count=16,
             default=default,
             crc_configuration=crc.Configuration(
@@ -131,16 +136,38 @@ class ModbusCRC(ChecksumField):
 
 class ModbusCoilArray(ParseArrayField[bool]):
     def __init__(
-        self,
-        count: int | UIntField,
-        data: dataT | None = None,
+        self, count: int | UIntField, data: dataT | None = None, default: Sequence[bool] | Sequence[int] = list()
     ) -> None:
         super().__init__(
-            name=ModbusFieldNames.CoilArray,
+            name=ModbusFieldNamesEnum.CoilArray.value,
             count=count,
             array_item_class=BoolField,
+            array_item_default=False,
             data=data,
         )
+        if default:
+            self.set_value(default)
+
+    def set_value(  # pyright:ignore[reportIncompatibleMethodOverride]
+        self, value: Sequence[bool] | Sequence[int]
+    ) -> None:
+        if isinstance(value[0], bool):
+            _value = value
+        else:
+            bit_array = bitarray(endian="little")
+            for v in value:
+                bit_array.frombytes(struct.pack("B", v))
+            _value = [True if b else False for b in bit_array]
+        keys = list(self._children.keys())
+        for i, b in enumerate(_value):
+            if i < len(self.children):
+                self.children[keys[i]].value = b
+            else:
+                f = self._array_item_class(
+                    name=f"+{i}",
+                    default=self._array_item_default,
+                )
+                self.append(f)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -160,7 +187,10 @@ class ModbusCoilArray(ParseArrayField[bool]):
             else:
                 _count = self._count.value * 8
         for i in range(_count):
-            f = self._array_item_class(f"+{i}")
+            f = self._array_item_class(
+                f"+{i}",
+                self._array_item_default,
+            )
             bit_data = f.parse(data=bit_data)
             self.append(f)
         return bit_data
@@ -172,44 +202,30 @@ class ModbusCoilArray(ParseArrayField[bool]):
         Returns:
             the value of the field with custom formatting
         """
-        chunks = {}
+        chunks: list[str] = []
         keys = list(self._children.keys())
         bits_per_chunk = 8
         for i in range(0, len(keys), bits_per_chunk):
             chunk_key = keys[i]
-            vals = "".join(["1" if self._children[keys[j]].value else "0" for j in range(i, i + bits_per_chunk)])
-            chunks[chunk_key] = vals
-        return f"[{', '.join([key+':'+value for key, value in chunks.items()])}]"
+            vals = "".join(["1" if self.children[keys[j]].value else "0" for j in range(i, i + bits_per_chunk)])
+            chunks.append(chunk_key + ":" + vals)
+        return f"[{', '.join( chunks)}]"
 
     @property
-    def value(self) -> list[bool | None]:
+    def value(self) -> list[bool]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return list([v.value for f, v in self._children.items()])
+        return list([v.value for v in self.children.values()])
 
     @value.setter
-    def value(self, value: list[ParseBase[Any]] | list[bool] | list[int]) -> None:
-        if not isinstance(value, list):
-            raise TypeError(f"{self.__class__.__name__} cannot be assigned value {value} of type {type(value)}")
+    def value(self, value: Sequence[bool]) -> None:
         temp = UInt8Field(name="temp", endian="little")
         for index, item in enumerate(value):
-            if isinstance(item, ParseBase):
-                if index < len(self._children):
-                    self[index] = item
-                    item.parent = self
-                else:
-                    self.append(item)
-                    item.parent = self
-            elif isinstance(item, int):
-                temp.value = item
-                bits = temp.bits
-                bits.reverse()
-                for i in range(len(bits)):
-                    parse_base = self[index * 8 + i]
-                    parse_base.value = True if bits[i] else False
-            else:
-                parse_base = self[index]
-                parse_base.value = item
+            temp.value = item
+            bits = temp.bits_lsb
+            bits.reverse()
+            for i in range(len(bits)):
+                self[index * 8 + i] = True if bits[i] else False

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, TypeVar, Union, cast
+from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
@@ -17,31 +17,32 @@ INT24_STRING_FORMAT = "{}"
 INT32_STRING_FORMAT = "{}"
 INT64_STRING_FORMAT = "{}"
 
-T = TypeVar("T", bound=Union[int, Any])
+_T = TypeVar("_T", bound=Union[int, Any])
 
 
-class IntFieldGeneric(ParseGenericValue[T]):
+class IntFieldGeneric(
+    ParseGenericValue[_T],
+    Generic[_T],
+):
     """The base parsing object for unsigned integers."""
 
     def __init__(
         self,
         name: str,
         bit_count: int,
-        default: T = 0,
-        data: dataT | None = None,
-        format: str | None = INT_STRING_FORMAT,
+        default: _T = 0,
+        data: dataT = None,
+        string_format: str = INT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
+            default=default,
             bit_count=bit_count,
             data=data,
-            default=default,
-            string_format=format,
+            string_format=string_format,
             endian=endian,
         )
-        if data is None:
-            self.value = default
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -62,33 +63,42 @@ class IntFieldGeneric(ParseGenericValue[T]):
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
         elif len(bit_mask) > len(bits):
             bit_mask = bit_mask[: len(bits)]
-        if len(bits) < len(bit_mask):
+        if len(bits) < len(bit_mask) or len(bits) == 0:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
-        temp_bits = bitarray(my_bits, endian="little")
-        byte_count = math.ceil(self._bit_count / 8)
-        if len(temp_bits) < byte_count * 8:
-            temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
+        # byte_count = math.ceil(self._bit_count / 8)
+        # temp_bits = bitarray(my_bits, endian="little")
+        # if len(temp_bits) < byte_count * 8:
+        #     temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
         self._bits = my_bits[: self._bit_count]
         if len(bits) >= self._bit_count:
             return bits[self._bit_count :]
         else:
             return bitarray(endian="little")
 
-    def get_value(self) -> T:
-        b = self.bits.tobytes()
-        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
+    def get_value(self) -> _T:
+        bits = self.bits_lsb
+        m = len(bits) % 8
+        if m != 0:
+            bits = bitarray([False] * (8 - m)) + bits
+        b = bits.tobytes()
+        return cast(_T, int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
 
-    def set_value(self, value: T) -> None:
-        if isinstance(value, int):
-            _value = value
-        else:
+    def set_value(self, value: _T) -> None:
+        if value is None:
+            _value = 0
+        elif not isinstance(value, int):
             _value = int(value)
+        else:
+            _value = value
         byte_count = math.ceil(self._bit_count / 8)
         my_bytes = int.to_bytes(_value, length=byte_count, byteorder=self.endian, signed=True)
         bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
         self._bits = bits[: self._bit_count]
+
+    def get_string_value(self) -> str:
+        return self._string_format.format(self.value)
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -99,7 +109,7 @@ class IntFieldGeneric(ParseGenericValue[T]):
         return self._bits.tobytes()
 
     @property
-    def value(self) -> T:
+    def value(self) -> _T:
         """Get the parsed value of the field.
 
         Returns:
@@ -108,11 +118,14 @@ class IntFieldGeneric(ParseGenericValue[T]):
         return self.get_value()
 
     @value.setter
-    def value(self, value: T) -> None:
+    def value(self, value: _T) -> None:
         self.set_value(value)
 
-    def set_bits(self, bits: bitarray) -> None:
+    def set_bits_lsb(self, bits: bitarray) -> None:
         if bits.endian() != "little":
+            m = len(bits) % 8
+            if m != 0:
+                bits = bitarray([False] * (8 - m)) + bits
             v = bits.tobytes()
             _bits = bitarray(endian="little")
             _bits.frombytes(v)
@@ -122,9 +135,6 @@ class IntFieldGeneric(ParseGenericValue[T]):
             _bits = _bits + bitarray("0" * (self._bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self._bit_count]
 
-    def get_string_value(self) -> str:
-        return self._string_format.format(self.value)
-
 
 class IntField(IntFieldGeneric[int]):
     def __init__(
@@ -133,15 +143,15 @@ class IntField(IntFieldGeneric[int]):
         bit_count: int,
         default: int = 0,
         data: dataT | None = None,
-        format: str | None = INT_STRING_FORMAT,
+        string_format: str = INT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,
-            bit_count=bit_count,
-            data=data,
             default=default,
-            format=format,
+            data=data,
+            bit_count=bit_count,
+            string_format=string_format,
             endian=endian,
         )
 
@@ -154,7 +164,7 @@ class Int8Field(IntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        format: str | None = INT8_STRING_FORMAT,
+        string_format: str = INT8_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -162,7 +172,7 @@ class Int8Field(IntField):
             data=data,
             default=default,
             bit_count=8,
-            format=format,
+            string_format=string_format,
             endian=endian,
         )
 
@@ -175,7 +185,7 @@ class Int16Field(IntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        format: str | None = INT16_STRING_FORMAT,
+        string_format: str = INT16_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -183,7 +193,7 @@ class Int16Field(IntField):
             data=data,
             default=default,
             bit_count=16,
-            format=format,
+            string_format=string_format,
             endian=endian,
         )
 
@@ -196,7 +206,7 @@ class Int24Field(IntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        format: str | None = INT24_STRING_FORMAT,
+        string_format: str = INT24_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -204,7 +214,7 @@ class Int24Field(IntField):
             data=data,
             default=default,
             bit_count=24,
-            format=format,
+            string_format=string_format,
             endian=endian,
         )
 
@@ -217,7 +227,7 @@ class Int32Field(IntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        format: str | None = INT32_STRING_FORMAT,
+        string_format: str = INT32_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -225,7 +235,7 @@ class Int32Field(IntField):
             data=data,
             default=default,
             bit_count=32,
-            format=format,
+            string_format=string_format,
             endian=endian,
         )
 
@@ -238,7 +248,7 @@ class Int64Field(IntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        format: str | None = INT64_STRING_FORMAT,
+        string_format: str = INT64_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
@@ -246,6 +256,6 @@ class Int64Field(IntField):
             data=data,
             default=default,
             bit_count=64,
-            format=format,
+            string_format=string_format,
             endian=endian,
         )

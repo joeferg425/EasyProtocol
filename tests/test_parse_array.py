@@ -89,7 +89,7 @@ class TestArray:
     def test_array_create_empty_int_count(self) -> None:
         value: list[Any] = []
         byte_data = b""
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         count = 0
         tst = ParseData(
             name="test",
@@ -116,7 +116,7 @@ class TestArray:
     def test_array_create_empty_field_count(self) -> None:
         value: list[Any] = []
         byte_data = b""
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         count = UInt8Field(name="count")
         tst = ParseData(
             name="test",
@@ -207,7 +207,7 @@ class TestArray:
         )
         value = 0b10100010
         byte_data = struct.pack("B", value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
         # obj = ParseList(name=name, children=[f2])
         obj.parse(data=byte_data)
@@ -218,7 +218,7 @@ class TestArray:
     def test_array_set_name(self) -> None:
         value: list[Any] = []
         byte_data = b""
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         count = 0
         tst = ParseData(
             name="test",
@@ -251,7 +251,7 @@ class TestArray:
     def test_array_set_parent(self) -> None:
         value: list[Any] = []
         byte_data1 = bytes(value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         count = 2
         tst = ParseData(
             name="test",

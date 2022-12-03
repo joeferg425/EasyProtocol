@@ -49,7 +49,7 @@ def check_flags(
     )
 
 
-class TestingFlags(IntFlag):
+class ExampleFlags(IntFlag):
     NONE = 0
     ONE = 1
     TWO = 2
@@ -60,11 +60,11 @@ class TestingFlags(IntFlag):
 class TestFlags:
     def test_flags_create_empty(self) -> None:
         bit_count = 2
-        value = TestingFlags.NONE
+        value = ExampleFlags.NONE
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -78,8 +78,8 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
-            default=TestingFlags.NONE,
+            flags_type=ExampleFlags,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -87,12 +87,12 @@ class TestFlags:
         )
 
     def test_flags_create_parse_one(self) -> None:
-        value = TestingFlags.ONE
+        value = ExampleFlags.ONE
         bit_count = 2
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -106,9 +106,9 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -116,12 +116,12 @@ class TestFlags:
         )
 
     def test_flags_create_parse_multiple(self) -> None:
-        value = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        value = ExampleFlags.ONE | ExampleFlags.TWO | ExampleFlags.FOUR | ExampleFlags.EIGHT
         bit_count = 4
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -135,9 +135,9 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -145,17 +145,17 @@ class TestFlags:
         )
 
     def test_flags_create_truncate(self) -> None:
-        value1 = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
-        value2 = TestingFlags.ONE | TestingFlags.TWO
+        value1 = ExampleFlags.ONE | ExampleFlags.TWO | ExampleFlags.FOUR | ExampleFlags.EIGHT
+        value2 = ExampleFlags.ONE | ExampleFlags.TWO
         bit_count = 2
         byte_data1 = struct.pack("B", value1.value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data1 = bits_data1[:bit_count]
+        bits_data1 = bits_data1[-bit_count:]
         byte_data2 = struct.pack("B", value2.value)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        bits_data2 = bits_data2[:bit_count]
+        bits_data2 = bits_data2[-bit_count:]
         tst = ParseData(
             name="test",
             value=value2,
@@ -169,9 +169,9 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=byte_data2,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -183,17 +183,17 @@ class TestFlags:
             FlagsField(
                 name="invalid",
                 bit_count=4,
-                flags_type=TestingFlags,
+                flags_type=ExampleFlags,
                 data="pickles",  # pyright:ignore[reportGeneralTypeIssues]
             )
 
     def test_flags_set_name(self) -> None:
-        value = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        value = ExampleFlags.ONE | ExampleFlags.TWO | ExampleFlags.FOUR | ExampleFlags.EIGHT
         bit_count = 4
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -207,9 +207,9 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -224,17 +224,17 @@ class TestFlags:
         )
 
     def test_flags_set_value(self) -> None:
-        value1 = TestingFlags.ONE
-        value2 = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        value1 = ExampleFlags.ONE
+        value2 = ExampleFlags.ONE | ExampleFlags.TWO | ExampleFlags.FOUR | ExampleFlags.EIGHT
         bit_count = 4
         byte_data1 = struct.pack("B", value1.value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data1 = bits_data1[:bit_count]
+        bits_data1 = bits_data1[-bit_count:]
         byte_data2 = struct.pack("B", value2.value)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        bits_data2 = bits_data2[:bit_count]
+        bits_data2 = bits_data2[-bit_count:]
         tst = ParseData(
             name="test",
             value=value1,
@@ -248,9 +248,9 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -267,17 +267,17 @@ class TestFlags:
         )
 
     def test_flags_set_bits(self) -> None:
-        value1 = TestingFlags.ONE
-        value2 = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        value1 = ExampleFlags.ONE
+        value2 = ExampleFlags.ONE | ExampleFlags.TWO | ExampleFlags.FOUR | ExampleFlags.EIGHT
         bit_count = 4
         byte_data1 = struct.pack("B", value1.value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data1 = bits_data1[:bit_count]
+        bits_data1 = bits_data1[-bit_count:]
         byte_data2 = struct.pack("B", value2.value)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        bits_data2 = bits_data2[:bit_count]
+        bits_data2 = bits_data2[-bit_count:]
         tst = ParseData(
             name="test",
             value=value1,
@@ -291,16 +291,16 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
             tst=tst,
         )
 
-        obj.bits = bits_data2
+        obj.bits_lsb = bits_data2
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
@@ -310,12 +310,12 @@ class TestFlags:
         )
 
     def test_flags_set_parent(self) -> None:
-        value = TestingFlags.ONE | TestingFlags.TWO | TestingFlags.FOUR | TestingFlags.EIGHT
+        value = ExampleFlags.ONE | ExampleFlags.TWO | ExampleFlags.FOUR | ExampleFlags.EIGHT
         bit_count = 4
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -329,9 +329,9 @@ class TestFlags:
         obj = FlagsField(
             name=tst.name,
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
         check_flags(
             obj=obj,
@@ -341,9 +341,9 @@ class TestFlags:
         tst.parent = FlagsField(
             name="parent",
             bit_count=bit_count,
-            flags_type=TestingFlags,
+            flags_type=ExampleFlags,
             data=tst.byte_data,
-            default=TestingFlags.NONE,
+            default=ExampleFlags.NONE,
         )
 
         obj.parent = tst.parent

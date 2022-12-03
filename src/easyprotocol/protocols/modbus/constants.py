@@ -1,7 +1,7 @@
-from enum import IntEnum, Enum
+from enum import Enum, IntEnum
 
 
-class ModbusFieldNames(str, Enum):
+class ModbusFieldNamesEnum(str, Enum):
     DeviceID = "id"
     FunctionCode = "function"
     Address = "address"

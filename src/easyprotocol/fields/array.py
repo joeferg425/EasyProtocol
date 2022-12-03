@@ -75,6 +75,9 @@ class ParseArrayField(ParseValueListGeneric[T]):
                 )
             self._children[f.name] = f
 
+    def append(self, value: ParseGenericValue[T]) -> None:
+        self.children[value.name] = value
+
 
 class ParseValueArrayField(ParseValueListGeneric[T]):
     def __init__(

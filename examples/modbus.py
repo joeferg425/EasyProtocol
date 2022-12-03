@@ -4,7 +4,11 @@ from collections import OrderedDict
 
 from easyprotocol.base.utils import hex
 from easyprotocol.protocols.modbus import (
-    ModbusFieldNames,
+    ModbusAddress,
+    ModbusCount,
+    ModbusDeviceId,
+    ModbusFieldNamesEnum,
+    ModbusFunction,
     ModbusReadCoilsRequest,
     ModbusReadCoilsResponse,
     ModbusReadDiscreteInputsRequest,
@@ -13,8 +17,8 @@ from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum
 
 
 def ReadCoils(check_crc: bool = False) -> None:
-    print(f"┐  {ModbusFunctionEnum.ReadCoils.name}")
-    print(f'├─┐  {ModbusFunctionEnum.ReadCoils.name} - {"Request"}')
+    print(f"┐  {ModbusFunctionEnum.ReadCoils.value}")
+    print(f'├─┐  {ModbusFunctionEnum.ReadCoils.value} - {"Request"}')
     readCoilsRequestBytes = bytearray(b"\x11\x01\x00\x13\x00\x25\x0E\x84")
     print(f"│ ├─ input:\t\t{hex(bytes(readCoilsRequestBytes))}")
     print("│ │")
@@ -37,10 +41,10 @@ def ReadCoils(check_crc: bool = False) -> None:
     readCoilsRequest.set_value(
         OrderedDict(
             {
-                ModbusFieldNames.DeviceID.name: 17,
-                ModbusFieldNames.FunctionCode.name: 1,
-                ModbusFieldNames.Address.name: 19,
-                ModbusFieldNames.Count.name: 37,
+                ModbusFieldNamesEnum.DeviceID.value: ModbusDeviceId(default=17),
+                ModbusFieldNamesEnum.FunctionCode.value: ModbusFunction(default=ModbusFunctionEnum.ReadCoils),
+                ModbusFieldNamesEnum.Address.value: ModbusAddress(default=19),
+                ModbusFieldNamesEnum.Count.value: ModbusCount(default=37),
             }
         )
     )
@@ -74,16 +78,10 @@ def ReadCoils(check_crc: bool = False) -> None:
         print("│ │")
 
     print("│ ├─┐  Changing Frame data")
-    readCoilsResponse.set_value(
-        OrderedDict(
-            {
-                ModbusFieldNames.DeviceID.name: 17,
-                ModbusFieldNames.FunctionCode.name: 1,
-                ModbusFieldNames.ByteCount.name: 5,
-                ModbusFieldNames.CoilArray.name: [0, 1, 2, 3, 4],
-            }
-        )
-    )
+    readCoilsResponse.deviceId.set_value(17)
+    readCoilsResponse.functionCode.set_value(ModbusFunctionEnum.ReadCoils)
+    readCoilsResponse.byteCount.set_value(5)
+    readCoilsResponse.coilArray.set_value([0, 1, 2, 3, 4])
     print(f"│ │ ├─ parser:\t\t{readCoilsResponse}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
     print("│ │ │")
@@ -118,16 +116,10 @@ def ReadDiscreteInputs(check_crc: bool = False) -> None:
         print("│ ├─┘")
 
     print("│ ├─┐  Changing Frame data")
-    readDiscreteInputsRequest.set_value(
-        OrderedDict(
-            {
-                ModbusFieldNames.DeviceID.name: 11,
-                ModbusFieldNames.FunctionCode.name: 2,
-                ModbusFieldNames.Address.name: 0xC400,
-                ModbusFieldNames.Count.name: 16,
-            }
-        )
-    )
+    readDiscreteInputsRequest.deviceId.set_value(11)
+    readDiscreteInputsRequest.functionCode.set_value(ModbusFunctionEnum.ReadDiscreteInputs)
+    readDiscreteInputsRequest.address.set_value(0xC400)
+    readDiscreteInputsRequest.count.set_value(16)
     print(f"│ │ ├─ parser:\t\t{readDiscreteInputsRequest}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")
     print("│ │ ├─┐  Recalculating CRC")

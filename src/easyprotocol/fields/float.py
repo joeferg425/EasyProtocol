@@ -85,7 +85,7 @@ class Float32IEEFieldGeneric(FloatField[F]):
             return bitarray(endian="little")
 
     def get_value(self) -> F:
-        b = self.bits.tobytes()
+        b = self.bits_lsb.tobytes()
         if self.endian == "little":
             return cast(F, struct.unpack("<f", b)[0])
         else:
@@ -108,7 +108,7 @@ class Float32IEEFieldGeneric(FloatField[F]):
         """
         return self._bits.tobytes()
 
-    def set_bits(self, bits: bitarray) -> None:
+    def set_bits_lsb(self, bits: bitarray) -> None:
         if bits.endian() != "little":
             v = bits.tobytes()
             _bits = bitarray(endian="little")

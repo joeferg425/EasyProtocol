@@ -7,7 +7,7 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Calculator, Configuration
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -21,7 +21,7 @@ class ChecksumField(UIntFieldGeneric[int]):
         default: int = 0,
         data: dataT | None = None,
         string_format: str = "{:X}(hex)",
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name=name,

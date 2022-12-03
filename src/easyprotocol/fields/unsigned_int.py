@@ -66,10 +66,10 @@ class UIntFieldGeneric(
         if len(bits) < len(bit_mask) or len(bits) == 0:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
-        temp_bits = bitarray(my_bits, endian="little")
-        byte_count = math.ceil(self._bit_count / 8)
-        if len(temp_bits) < byte_count * 8:
-            temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
+        # byte_count = math.ceil(self._bit_count / 8)
+        # temp_bits = bitarray(my_bits, endian="little")
+        # if len(temp_bits) < byte_count * 8:
+        #     temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
         self._bits = my_bits[: self._bit_count]
         if len(bits) >= self._bit_count:
             return bits[self._bit_count :]
@@ -77,7 +77,11 @@ class UIntFieldGeneric(
             return bitarray(endian="little")
 
     def get_value(self) -> _T:
-        b = self.bits.tobytes()
+        bits = self.bits_lsb
+        m = len(bits) % 8
+        if m != 0:
+            bits = bitarray([False] * (8 - m)) + bits
+        b = bits.tobytes()
         return cast(_T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
     def set_value(self, value: _T) -> None:
@@ -117,8 +121,11 @@ class UIntFieldGeneric(
     def value(self, value: _T) -> None:
         self.set_value(value)
 
-    def set_bits(self, bits: bitarray) -> None:
+    def set_bits_lsb(self, bits: bitarray) -> None:
         if bits.endian() != "little":
+            m = len(bits) % 8
+            if m != 0:
+                bits = bitarray([False] * (8 - m)) + bits
             v = bits.tobytes()
             _bits = bitarray(endian="little")
             _bits.frombytes(v)

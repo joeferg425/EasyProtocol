@@ -157,7 +157,7 @@ class TestChar:
     def test_char_create_parse(self) -> None:
         value = "G"
         byte_data = struct.pack("B", ord(value[0]))
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         tst = ParseData(
             name="test",
@@ -182,7 +182,7 @@ class TestChar:
     def test_char_create_init_value(self) -> None:
         value = "!"
         byte_data = struct.pack("B", ord(value[0]))
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         tst = ParseData(
             name="test",
@@ -235,7 +235,7 @@ class TestString:
     def test_string_create_parse(self) -> None:
         value = "\x00bob\x03"
         byte_data = value.encode("latin1")
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         count = 5
         tst = ParseData(
@@ -264,7 +264,7 @@ class TestByte:
     def test_byte_create_empty(self) -> None:
         value = b"\x00"
         byte_data = bytes(value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         tst = ParseData(
             name="test",
@@ -288,7 +288,7 @@ class TestByte:
     def test_byte_create_parse(self) -> None:
         value = b"G"
         byte_data = bytes(value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         tst = ParseData(
             name="test",
@@ -313,7 +313,7 @@ class TestByte:
     def test_byte_create_init_value(self) -> None:
         value = b"!"
         byte_data = bytes(value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         tst = ParseData(
             name="test",
@@ -366,7 +366,7 @@ class TestBytes:
     def test_bytes_create_parse(self) -> None:
         value = b"\x00bob\x03"
         byte_data = bytes(value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray(endian="big")
         bits_data.frombytes(byte_data)
         count = 5
         tst = ParseData(

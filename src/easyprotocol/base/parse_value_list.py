@@ -108,11 +108,11 @@ class ParseValueListGeneric(
                     # parse_base = self[index]
                     self[index] = item.value
 
-    def get_bits(self) -> bitarray:
+    def get_bits_lsb(self) -> bitarray:
         data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
-            data += value.bits
+            data += value.bits_lsb
         return data
 
     def get_string_value(self) -> str:
@@ -129,7 +129,7 @@ class ParseValueListGeneric(
         Returns:
             the bytes of this field
         """
-        return self.bits.tobytes()
+        return self.bits_lsb.tobytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.

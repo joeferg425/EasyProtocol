@@ -1,6 +1,7 @@
 """The base parsing object for handling parsing in a convenient (to modify) package."""
 from __future__ import annotations
 
+import math
 from collections import OrderedDict
 from typing import Any, Generic, Literal, Sequence, SupportsBytes, TypeVar, Union
 
@@ -8,7 +9,7 @@ from bitarray import bitarray
 
 from easyprotocol.base.utils import dataT, hex
 
-DEFAULT_ENDIANNESS: Literal["big", "little"] = "little"
+DEFAULT_ENDIANNESS: Literal["big", "little"] = "big"
 UNDEFINED = "?UNDEFINED?"
 endianT = Literal["little", "big"]
 T = TypeVar("T", bound=Any, covariant=True)
@@ -67,10 +68,16 @@ class ParseGeneric(SupportsBytes, Generic[T]):
     def set_name(self, value: str) -> None:
         self._name = value
 
-    def get_bits(self) -> bitarray:
+    def get_bits_lsb(self) -> bitarray:
         return self._bits
 
-    def set_bits(self, bits: bitarray) -> None:
+    def get_bits(self) -> bitarray:
+        b = self.get_bits_lsb().tobytes()
+        bits = bitarray(endian="big")
+        bits.frombytes(b)
+        return bits
+
+    def set_bits_lsb(self, bits: bitarray) -> None:
         raise NotImplementedError()
 
     def _get_parent_generic(self) -> ParseGeneric[Any] | None:
@@ -126,17 +133,27 @@ class ParseGeneric(SupportsBytes, Generic[T]):
         self._name = name
 
     @property
-    def bits(self) -> bitarray:
+    def bits_lsb(self) -> bitarray:
         """Get the bit value of the field.
 
         Returns:
             the bit value of the field
         """
-        return self.get_bits()
+        return self.get_bits_lsb()
 
-    @bits.setter
-    def bits(self, bits: bitarray) -> None:
-        self.set_bits(bits)
+    @bits_lsb.setter
+    def bits_lsb(self, bits: bitarray) -> None:
+        self.set_bits_lsb(bits)
+
+    @property
+    def bits(self) -> bitarray:
+        b = self.get_bits_lsb().tobytes()
+        bits = bitarray(endian="big")
+        bits.frombytes(b)
+        if self._bit_count != -1:
+            return bits[-self._bit_count :]
+        else:
+            return bits
 
     @property
     def string_format(self) -> str:

@@ -52,7 +52,7 @@ def check_enum(
     )
 
 
-class TestEnumerating(IntEnum):
+class ExampleEnum(IntEnum):
     ZERO = 0b000
     ONE = 0b001
     TWO = 0b010
@@ -65,12 +65,12 @@ class TestEnumerating(IntEnum):
 
 class TestEnums:
     def test_enum_create_empty_big_endian(self) -> None:
-        value = TestEnumerating.ZERO
+        value = ExampleEnum.ZERO
         bit_count = 2
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -84,8 +84,8 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
-            default=TestEnumerating.ZERO,
+            enum_type=ExampleEnum,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -93,12 +93,12 @@ class TestEnums:
         )
 
     def test_enum_create_empty_little_endian(self) -> None:
-        value = TestEnumerating.ZERO
+        value = ExampleEnum.ZERO
         bit_count = 2
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -112,8 +112,8 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
-            default=TestEnumerating.ZERO,
+            enum_type=ExampleEnum,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -121,12 +121,12 @@ class TestEnums:
         )
 
     def test_enum_create_parse(self) -> None:
-        value = TestEnumerating.THREE
+        value = ExampleEnum.THREE
         bit_count = 2
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -140,9 +140,9 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -151,16 +151,16 @@ class TestEnums:
 
     def test_enum_create_truncate(self) -> None:
         bit_count = 2
-        value1 = TestEnumerating.SEVEN
+        value1 = ExampleEnum.SEVEN
         byte_data1 = struct.pack("B", value1.value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data1 = bits_data1[:bit_count]
-        value2 = TestEnumerating.THREE
+        bits_data1 = bits_data1[-bit_count:]
+        value2 = ExampleEnum.THREE
         byte_data2 = struct.pack("B", value2.value)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        bits_data2 = bits_data2[:bit_count]
+        bits_data2 = bits_data2[-bit_count:]
         tst = ParseData(
             name="test",
             value=value2,
@@ -174,9 +174,9 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=byte_data1,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -188,17 +188,17 @@ class TestEnums:
             EnumField(
                 name="enum",
                 bit_count=4,
-                enum_type=TestEnumerating,
+                enum_type=ExampleEnum,
                 data=tuple((1, 2, "ff")),  # pyright:ignore[reportGeneralTypeIssues]
             )
 
     def test_enum_set_name(self) -> None:
-        value = TestEnumerating.SEVEN
+        value = ExampleEnum.SEVEN
         bit_count = 4
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -212,9 +212,9 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -229,17 +229,17 @@ class TestEnums:
         )
 
     def test_enum_set_value(self) -> None:
-        value1 = TestEnumerating.ONE
-        value2 = TestEnumerating.FOUR
+        value1 = ExampleEnum.ONE
+        value2 = ExampleEnum.FOUR
         bit_count = 4
         byte_data1 = struct.pack("B", value1.value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data1 = bits_data1[:bit_count]
+        bits_data1 = bits_data1[-bit_count:]
         byte_data2 = struct.pack("B", value2.value)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        bits_data2 = bits_data2[:bit_count]
+        bits_data2 = bits_data2[-bit_count:]
         tst = ParseData(
             name="test",
             value=value1,
@@ -253,9 +253,9 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -272,17 +272,17 @@ class TestEnums:
         )
 
     def test_enum_set_bits(self) -> None:
-        value1 = TestEnumerating.ONE
-        value2 = TestEnumerating.SIX
+        value1 = ExampleEnum.ONE
+        value2 = ExampleEnum.SIX
         bit_count = 4
         byte_data1 = struct.pack("B", value1.value)
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data1 = bits_data1[:bit_count]
+        bits_data1 = bits_data1[-bit_count:]
         byte_data2 = struct.pack("B", value2.value)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        bits_data2 = bits_data2[:bit_count]
+        bits_data2 = bits_data2[-bit_count:]
         tst = ParseData(
             name="test",
             value=value1,
@@ -296,16 +296,16 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
             tst=tst,
         )
 
-        obj.bits = bits_data2
+        obj.bits_lsb = bits_data2
         tst.value = value2
         tst.byte_data = byte_data2
         tst.bits_data = bits_data2
@@ -315,12 +315,12 @@ class TestEnums:
         )
 
     def test_enum_set_parent(self) -> None:
-        value = TestEnumerating.FIVE
+        value = ExampleEnum.FIVE
         bit_count = 4
         byte_data = struct.pack("B", value.value)
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         bits_data.frombytes(byte_data)
-        bits_data = bits_data[:bit_count]
+        bits_data = bits_data[-bit_count:]
         tst = ParseData(
             name="test",
             value=value,
@@ -334,9 +334,9 @@ class TestEnums:
         obj = EnumField(
             name=tst.name,
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         check_enum(
             obj=obj,
@@ -346,9 +346,9 @@ class TestEnums:
         tst.parent = EnumField(
             name="parent",
             bit_count=bit_count,
-            enum_type=TestEnumerating,
+            enum_type=ExampleEnum,
             data=tst.byte_data,
-            default=TestEnumerating.ZERO,
+            default=ExampleEnum.ZERO,
         )
         obj.parent = tst.parent
         check_enum(

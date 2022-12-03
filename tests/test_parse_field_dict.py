@@ -10,7 +10,7 @@ from parse_data import ParseData
 from test_parse_uint import check_int
 
 from easyprotocol.base.parse_field_dict import ParseFieldDict
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField
@@ -115,7 +115,7 @@ class TestParseDict:
     def test_parsedict_create_empty(self) -> None:
         values: OrderedDict[str, Any] = OrderedDict()
         byte_data = b""
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         tst = ParseData(
             name="test",
             value=values,
@@ -139,7 +139,7 @@ class TestParseDict:
         f1_value = 0
         f1_value = 0
         f1_bytes = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(f1_bytes)
         f1 = UInt8Field(name=f1_name)
         bits_data = f1.bits
@@ -169,7 +169,7 @@ class TestParseDict:
         f1_name = "child"
         f1_value = 0
         f1_bytes = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(f1_bytes)
         f1 = UInt8Field(name=f1_name)
         children: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1.name: f1})
@@ -200,20 +200,20 @@ class TestParseDict:
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
         f_children: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
-        f2_bits = bitarray(endian="little")
+        f2_bits = bitarray()
         f2_bits.frombytes(f2_data)
         f2 = UInt8Field(name=f2_name)
         f3_name = "f3"
         f3_value = 204
         f3_data = b"\xcc"
-        f3_bits = bitarray(endian="little")
+        f3_bits = bitarray()
         f3_bits.frombytes(f3_data)
         f3 = UInt8Field(name=f3_name)
         byte_data = f1_data + f2_data + f3_data
@@ -280,20 +280,20 @@ class TestParseDict:
 
     def test_parsedict_parse_single_field(self) -> None:
         f1_data0 = b"\x00"
-        f1_bits0 = bitarray(endian="little")
+        f1_bits0 = bitarray()
         f1_bits0.frombytes(f1_data0)
         f1_name = "f1"
         f1_value = 255
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big")
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
         byte_data1 = int.to_bytes(0, length=1, byteorder="big")
         byte_data2 = f1_data
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
         bits_data2 = f1_bits
-        left_over = bitarray(endian="little")
+        left_over = bitarray()
         children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1_name: f1})
         children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1_name: f1})
         tst = ParseData(
@@ -328,34 +328,34 @@ class TestParseDict:
 
     def test_parsedict_parse_multi_field(self) -> None:
         u_data = b"\x00"
-        u_bits = bitarray(endian="little")
+        u_bits = bitarray()
         u_bits.frombytes(u_data)
 
         init_value = 0
         init_data = int.to_bytes(init_value, length=1, byteorder="big")
-        init_bits = bitarray(endian="little")
+        init_bits = bitarray()
         init_bits.frombytes(init_data)
 
         f1_name = "f1"
         f1_value = 170
         f1_data = b"\xaa"
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
         f_children: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
-        f2_bits = bitarray(endian="little")
+        f2_bits = bitarray()
         f2_bits.frombytes(f2_data)
         f2 = UInt8Field(name=f2_name)
         f3_name = "f3"
         f3_value = 204
         f3_data = b"\xcc"
-        f3_bits = bitarray(endian="little")
+        f3_bits = bitarray()
         f3_bits.frombytes(f3_data)
         f3 = UInt8Field(name=f3_name)
-        left_over = bitarray(endian="little")
+        left_over = bitarray()
         byte_data1 = init_data + init_data + init_data
         byte_data2 = f1_data + f2_data + f3_data
         bits_data1 = u_bits + u_bits + u_bits
@@ -478,9 +478,9 @@ class TestParseDict:
         f1_name = "f1"
         f1_value = 0b11
         f1_byte = struct.pack("B", f1_value)
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(f1_byte)
-        f1_bits = f1_bits[:f1_bit_count]
+        f1_bits = f1_bits[-f1_bit_count:]
         f1 = UIntField(
             name=f1_name,
             bit_count=f1_bit_count,
@@ -491,9 +491,9 @@ class TestParseDict:
         f2_name = "f2"
         f2_value = 0b00000
         f2_data = struct.pack("B", f2_value)
-        f2_bits = bitarray(endian="little")
+        f2_bits = bitarray()
         f2_bits.frombytes(f2_data)
-        f2_bits = f2_bits[:f2_bit_count]
+        f2_bits = f2_bits[-f2_bit_count:]
         f2 = UIntField(
             name=f2_name,
             bit_count=f2_bit_count,
@@ -503,10 +503,10 @@ class TestParseDict:
         f3_bit_count = 9
         f3_name = "f3"
         f3_value = 0b111111111
-        f3_data = struct.pack("<H", f3_value)
-        f3_bits = bitarray(endian="little")
+        f3_data = struct.pack(">H", f3_value)
+        f3_bits = bitarray()
         f3_bits.frombytes(f3_data)
-        f3_bits = f3_bits[:f3_bit_count]
+        f3_bits = f3_bits[-f3_bit_count:]
         f3 = UIntField(
             name=f3_name,
             bit_count=f3_bit_count,
@@ -515,12 +515,12 @@ class TestParseDict:
 
         f_children: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
 
-        left_over = bitarray(endian="little")
+        left_over = bitarray()
         byte_data1 = b"\x00\x00"
         byte_data2 = b"\x83\xFF"
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         bits_data1.frombytes(byte_data1)
-        bits_data2 = bitarray(endian="little")
+        bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
         children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1_name: f1, f2_name: f2, f3_name: f3})
         children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1_name: f1, f2_name: f2, f3_name: f3})
@@ -596,7 +596,7 @@ class TestParseDict:
         name1 = "test"
         name2 = "new_name"
         byte_data = b""
-        bits_data = bitarray(endian="little")
+        bits_data = bitarray()
         values: OrderedDict[str, Any] = OrderedDict()
         tst = ParseData(
             name=name1,
@@ -630,17 +630,17 @@ class TestParseDict:
         byte_data1 = b""
         byte_data2 = int.to_bytes(v2, length=1, byteorder="big")
         byte_data3 = int.to_bytes(v3, length=1, byteorder="big")
-        bits_data1 = bitarray(endian="little")
-        bits_data2 = bitarray(endian="little")
-        bits_data3 = bitarray(endian="little")
+        bits_data1 = bitarray()
+        bits_data2 = bitarray()
+        bits_data3 = bitarray()
         bits_data2.frombytes(byte_data2)
         bits_data3.frombytes(byte_data3)
         f1 = UInt8Field(name=f1_name, default=v2)
         values1: OrderedDict[str, Any] = OrderedDict()
-        values3: OrderedDict[str, Any] = OrderedDict({f1_name: v3})
+        # values3: OrderedDict[str, Any] = OrderedDict({f1_name: v3})
         children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
         children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1.name: f1})
-        children3: OrderedDict[str, ParseGenericValue[Any]] = children2.copy()
+        # children3: OrderedDict[str, ParseGenericValue[Any]] = children2.copy()
         tst = ParseData(
             name="test",
             value=values1,
@@ -678,17 +678,17 @@ class TestParseDict:
     def test_parsedict_set_parent(self) -> None:
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big")
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(b"\x00")
         f1_name = "parent"
         byte_data1 = b""
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         byte_data2 = f1_data
         bits_data2 = f1_bits
         f1 = UInt8Field(name=f1_name)
-        values1: OrderedDict[Any] = OrderedDict()
-        children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1_name: f1})
+        values1: OrderedDict[str, Any] = OrderedDict()
+        children1: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
+        children2: OrderedDict[str, ParseGeneric[Any]] = OrderedDict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=values1,
@@ -721,18 +721,18 @@ class TestParseDict:
     def test_parsedict_set_children(self) -> None:
         f1_value = 0
         f1_data = int.to_bytes(f1_value, length=1, byteorder="big")
-        f1_bits = bitarray(endian="little")
+        f1_bits = bitarray()
         f1_bits.frombytes(b"\x00")
         f1_name = "parent"
         byte_data1 = b""
-        bits_data1 = bitarray(endian="little")
+        bits_data1 = bitarray()
         byte_data2 = f1_data
         bits_data2 = f1_bits
         f1 = UInt8Field(name=f1_name)
-        values1: OrderedDict[Any] = OrderedDict()
-        values2: OrderedDict[Any] = OrderedDict({f1.name: f1.value})
-        children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f1_name: f1})
+        values1: OrderedDict[str, Any] = OrderedDict()
+        values2: OrderedDict[str, Any] = OrderedDict({f1.name: f1.value})
+        children1: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
+        children2: OrderedDict[str, ParseGeneric[Any]] = OrderedDict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=values1,

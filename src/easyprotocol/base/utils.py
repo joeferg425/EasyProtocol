@@ -27,7 +27,10 @@ def input_to_bytes(
         if len(bits) < (8 * len(data)):
             bits = bits + bitarray("0" * ((8 * len(data)) - len(bits)), endian="little")
     elif isinstance(data, bitarray):
-        bits = bitarray(data, endian="little")
+        bit_length = len(data)
+        bits = bitarray(endian="little")
+        bits.frombytes(data.tobytes())
+        bits = bits[:bit_length]
     else:
         raise TypeError()
     if bit_count is not None:

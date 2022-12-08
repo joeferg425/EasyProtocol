@@ -1,17 +1,14 @@
 """The base parsing object for handling parsing in a convenient (to modify) package."""
 from __future__ import annotations
 
-import math
 from collections import OrderedDict
-from typing import Any, Generic, Literal, Sequence, SupportsBytes, TypeVar, Union
+from typing import Any, Generic, Literal, Sequence, SupportsBytes, TypeVar
 
 from bitarray import bitarray
 
-from easyprotocol.base.utils import dataT, hex
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, hex
 
-DEFAULT_ENDIANNESS: Literal["big", "little"] = "big"
 UNDEFINED = "?UNDEFINED?"
-endianT = Literal["little", "big"]
 T = TypeVar("T", bound=Any, covariant=True)
 
 
@@ -75,7 +72,10 @@ class ParseGeneric(SupportsBytes, Generic[T]):
         b = self.get_bits_lsb().tobytes()
         bits = bitarray(endian="big")
         bits.frombytes(b)
-        return bits
+        if self._bit_count != -1:
+            return bits[-self._bit_count :]
+        else:
+            return bits
 
     def set_bits_lsb(self, bits: bitarray) -> None:
         raise NotImplementedError()
@@ -147,13 +147,15 @@ class ParseGeneric(SupportsBytes, Generic[T]):
 
     @property
     def bits(self) -> bitarray:
-        b = self.get_bits_lsb().tobytes()
-        bits = bitarray(endian="big")
-        bits.frombytes(b)
-        if self._bit_count != -1:
-            return bits[-self._bit_count :]
-        else:
-            return bits
+        return self.get_bits()
+
+    @property
+    def bits_str(self) -> str:
+        return f"{self.bits.to01()}:<b"
+
+    @property
+    def bits_str_lsb(self) -> str:
+        return f"b>:{self.bits_lsb.to01()}"
 
     @property
     def string_format(self) -> str:

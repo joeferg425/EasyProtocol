@@ -56,7 +56,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
         if data is not None:
             self.parse(data)
         elif default is not None:
-            self.set_value(default)  # pyright:ignore[reportGeneralTypeIssues]
+            self.set_value(default)
 
     def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
@@ -67,7 +67,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bytes(data=data, endian=self.endian)
         for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data
@@ -97,10 +97,10 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
 
     def set_value(
         self,
-        value: Sequence[ParseGenericUnion[K, T]]
+        value: Sequence[ParseGeneric[T]]
         | OrderedDict[
             str,
-            ParseGenericUnion[K, T],
+            ParseGeneric[T],
         ],
     ) -> None:
         if isinstance(value, (dict, OrderedDict)):
@@ -193,7 +193,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
         Returns:
             the bytes of this field
         """
-        return self.bits_lsb.tobytes()
+        return self.bits.tobytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -222,7 +222,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
 
     @value.setter
     def value(self, value: Sequence[ParseGeneric[T]]) -> None:
-        self.set_value(value=value)  # pyright:ignore[reportGeneralTypeIssues]
+        self.set_value(value=value)
 
     @overload
     def __getitem__(self, index: int) -> ParseGenericUnion[K, T]:
@@ -250,11 +250,11 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
             self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
-    def __setitem__(self, index: SupportsIndex, value: ParseGenericUnion[K, T]) -> None:
+    def __setitem__(self, index: SupportsIndex, value: ParseGeneric[T]) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: int | slice, value: Iterable[ParseGenericUnion[K, T]]) -> None:
+    def __setitem__(self, index: int | slice, value: Iterable[ParseGeneric[T]]) -> None:
         ...
 
     def __setitem__(

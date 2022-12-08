@@ -15,11 +15,11 @@ from typing import (
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric, T, endianT
+from easyprotocol.base.parse_generic import ParseGeneric, T
 from easyprotocol.base.parse_generic_dict import K, ParseGenericDict
 from easyprotocol.base.parse_generic_list import ParseGenericList
 from easyprotocol.base.parse_generic_value import ParseGenericValue
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
 
 ParseGenericUnion = Union[ParseGenericValue[T], ParseGenericDict[K, T], ParseGenericList[T]]
 
@@ -65,7 +65,7 @@ class ParseValueListGeneric(
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bytes(data=data, endian=self.endian)
         for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data

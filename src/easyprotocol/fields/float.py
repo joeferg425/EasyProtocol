@@ -62,6 +62,7 @@ class Float32IEEFieldGeneric(FloatField[F]):
         """
         bits = input_to_bytes(
             data=data,
+            endian=self.endian,
             bit_count=self.bit_count,
         )
         _bit_mask = (2**self.bit_count) - 1

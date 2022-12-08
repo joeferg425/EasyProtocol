@@ -52,6 +52,7 @@ class IntFieldGeneric(
         """
         bits = input_to_bytes(
             data=data,
+            endian=self.endian,
             bit_count=self._bit_count,
         )
         _bit_mask = (2**self._bit_count) - 1

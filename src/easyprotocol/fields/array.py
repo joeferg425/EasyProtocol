@@ -46,7 +46,7 @@ class ParseArrayField(ParseValueListGeneric[T]):
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bytes(data=data, endian=self.endian)
         if isinstance(self._count, UIntFieldGeneric):
             count = self._count.value
         else:
@@ -111,7 +111,7 @@ class ParseValueArrayField(ParseValueListGeneric[T]):
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bytes(data=data, endian=self.endian)
         if isinstance(self._count, UIntFieldGeneric):
             count = self._count.value
         else:
@@ -136,26 +136,3 @@ class ParseValueArrayField(ParseValueListGeneric[T]):
                     default=cast(T, item),
                 )
             self._children[f.name] = f
-
-    # def get_value(self) -> Sequence[T]:
-    #     return [v for v in self.children.values()]
-
-    # def set_value(self, value: str) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
-    #     if value is None:
-    #         return
-    #     for index, item in enumerate(value):
-    #         if index < len(self._children):
-    #             kid = cast(CharField, self[index])
-    #             kid.value = item
-    #         else:
-    #             f = self.array_item_class(f"#{index}")
-    #             f.value = item
-    #             self._children[f.name] = f
-
-    # @property
-    # def value(self) -> str:  # pyright:ignore[reportIncompatibleMethodOverride]
-    #     return self.get_value()
-
-    # @value.setter
-    # def value(self, value: str) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
-    #     self.set_value(value=value)

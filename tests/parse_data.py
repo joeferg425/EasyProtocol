@@ -1,13 +1,24 @@
 from __future__ import annotations
 
+import math
+import struct
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Literal
 
+import pytest
 from bitarray import bitarray
 
-# from easyprotocol.base.parse_field_list import ParseGenericUnion
 from easyprotocol.base.parse_generic import UNDEFINED, ParseGeneric
+from easyprotocol.base.utils import hex
+
+PARAMETER_NAMES = [
+    "value",
+    "bit_count",
+    "byte_data",
+    "bits_data",
+    "endian",
+]
 
 
 @dataclass
@@ -22,268 +33,317 @@ class ParseData:
     children: OrderedDict[str, Any]
 
 
-# def check_parseobject_properties(
-#     obj: ParseBaseGeneric[Any],
-#     tst: TestData,
-# ) -> None:
-#     assert obj is not None, "Object is None"
-#     assert obj.name == tst.name, f"{obj}: obj.name is not the expected value ({obj.name} != expected value: {tst.name})"
-#     assert (
-#         obj.string_format == tst.string_format
-#     ), f"{obj}: obj.format is not the expected value ({obj.string_format} != expected value: {tst.string_format})"
-#     assert (
-#         obj.bits == tst.bits_data
-#     ), f"{obj}: obj.bits is not the expected value ({obj.bits} != expected value: {tst.bits_data})"
-#     assert (
-#         obj.parent == tst.parent
-#     ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
-#     assert (
-#         bytes(obj) == tst.byte_data
-#     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
-#     assert (
-#         obj.endian == tst.endian
-#     ), f"{obj}: obj.endian is not the expected value ({obj.endian} != expected value: {tst.endian})"
+def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:
+    mask = (2**bit_count) - 1
+    length = math.ceil(bit_count / 8)
+    byte_val = int.to_bytes(mask, length=length, byteorder="little", signed=False)
+    mask = int.from_bytes(byte_val, byteorder=endian, signed=False)
+    return value & mask
 
 
-# def check_parseobject_children(
-#     obj: ParseBaseGeneric[Any],
-#     tst: TestData,
-# ) -> None:
-#     assert len(obj.children) == len(tst.children), (
-#         f"{obj}: len(obj.children) is not the expected value "
-#         + f"({len(obj.children)} != expected value: {len(tst.children)})"
-#     )
-#     assert obj.children.keys() == tst.children.keys(), (
-#         f"{obj}: obj.children.keys() is not the expected value "
-#         + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
-#     )
-#     for key in tst.children.keys():
-#         assert obj.children[key] == tst.children[key], (
-#             f"{obj}: obj.children[key] is not the expected value "
-#             + f"({obj.children[key]} != expected value: {tst.children[key]})"
-#         )
-#         assert obj.children[key].parent == obj, (
-#             f"{obj}: obj.children[key].parent is not the expected value "
-#             + f"({obj.children[key].parent} != expected value: {obj})"
-#         )
-
-#     for v in tst.children.values():
-#         assert v.string in obj.string
-#         assert v.string in str(obj)
-#         assert v.string in repr(obj)
-#     assert tst.name in str(obj)
-#     assert tst.name in repr(obj)
+def get_bitarray(value: int, bit_count: int, endian: Literal["little", "big"]) -> bitarray:
+    byte_val = get_bytes(value=value, bit_count=bit_count, endian=endian)
+    # _byte_val = bytearray(byte_val)
+    # _byte_val.reverse()
+    bits = bitarray(endian="big")
+    bits.frombytes(byte_val)
+    if bit_count == 0:
+        b = bitarray(endian="big")
+    elif bit_count == -1:
+        b = bits
+    else:
+        b = bits[-bit_count:]
+        # if bit_count <= 8:
+        # elif bit_count <= 16:
+        #     if endian == "big":
+        #         b = bits[-bit_count:]
+        #     else:
+        #         b = bits[:8] + bits[-(bit_count - 8) :]
+        # else:
+        #     b = bits
+    return b
 
 
-# def check_parseobject_value(
-#     obj: ParseBaseGeneric[Any],
-#     tst: TestData,
-# ) -> None:
-#     with pytest.raises(NotImplementedError):
-#         assert (
-#             obj.value == tst.value
-#         ), f"{obj}: obj.value is not the expected value ({obj.value} != expected value: {tst.value})"
+def get_bytes(value: int, bit_count: int, endian: Literal["little", "big"]) -> bytes:
+    if value < 0x100 and bit_count <= 8:
+        if endian == "big":
+            b = struct.pack(">B", value)
+        else:
+            b = struct.pack("<B", value)
+    elif value < 0x10000 and bit_count <= 16:
+        if endian == "big":
+            b = struct.pack(">H", value)
+            if bit_count > 8:
+                b = b
+            else:
+                b = b[1:]
+        else:
+            b = struct.pack("<H", value)
+            if bit_count > 8:
+                b = b
+            else:
+                b = b[:1]
+    else:
+        b = b""
+    # b = bytearray(b)
+    # b.reverse()
+    # b = bytes(b)
+    if bit_count > 0:
+        return b
+    else:
+        return b""
 
 
-# def check_parseobject_strings(
-#     obj: ParseBaseGeneric[Any],
-#     tst: TestData,
-# ) -> None:
-#     with pytest.raises(NotImplementedError):
-#         if obj.value is None:
-#             assert UNDEFINED == obj.string, (
-#                 f"{obj}: obj.string is not the expected value "
-#                 + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
-#             )
-#         else:
-#             assert tst.string_format.format(tst.value) == obj.string, (
-#                 f"{obj}: obj.string is not the expected value "
-#                 + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
-#             )
-#     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-#     assert obj.string in str(
-#         obj
-#     ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
-#     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-#     assert obj.string in repr(
-#         obj
-#     ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
-#     assert obj.__class__.__name__ in repr(
-#         obj
-#     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
+_TEST_VALUES_08_BIT = list(
+    set(list([2**i for i in range(0, 8, 2)]) + list([(2**i) - 1 for i in range(0, 8 + 1, 2)]))
+)
+_TEST_VALUES_08_BIT.sort()
+TEST_VALUES_08_BIT = [(value, 8) for value in _TEST_VALUES_08_BIT]
+TEST_VALUES_08_BIT_COUNTS = list(
+    set(
+        [
+            (((2**bit_count) - 1) & value, bit_count)
+            for bit_count in range(2, 8 + 1, 2)
+            if bit_count > 0
+            for value in _TEST_VALUES_08_BIT
+        ]
+    )
+)
+TEST_VALUES_08_BIT_COUNTS.sort()
+_TEST_VALUES_08_BIT_UINT_BE = [
+    (value, bit_count)
+    for value, bit_count in TEST_VALUES_08_BIT_COUNTS
+    if get_uint_value(value=value, bit_count=bit_count, endian="big") == value
+]
+_TEST_VALUES_08_BIT_UINT_LE = [
+    (value, bit_count)
+    for value, bit_count in TEST_VALUES_08_BIT_COUNTS
+    if get_uint_value(value=value, bit_count=bit_count, endian="little") == value
+]
+_TEST_VALUES_08_BIT_UINT_BE.sort()
+_TEST_VALUES_08_BIT_UINT_LE.sort()
+TEST_VALUES_08_BIT_UINT_BE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        "big",
+        id=f'{value:03d} ({bit_count} bits), hex: "{hex(get_bytes(value=value,bit_count=bit_count,endian= "big"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "big").to01()}":<, "big"',
+    )
+    for value, bit_count in TEST_VALUES_08_BIT
+]
+TEST_VALUES_08_BIT_UINT_LE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        "little",
+        id=f'{value:03d} ({bit_count} bits), hex: "{hex(get_bytes(value=value,bit_count=bit_count,endian= "little"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "little").to01()}":<, "little"',
+    )
+    for value, bit_count in TEST_VALUES_08_BIT
+]
+TEST_VALUES_08_BIT_UINT_BE_VARIABLE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        "big",
+        id=f'{value:03d} ({bit_count} bits), hex: "{hex(get_bytes(value= value, bit_count=bit_count,endian= "big"))}":<, bin: "{get_bitarray(value= value, bit_count=bit_count,endian= "big").to01()}":<, "big"',
+    )
+    for value, bit_count in TEST_VALUES_08_BIT_COUNTS
+]
+TEST_VALUES_08_BIT_UINT_LE_VARIABLE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        "little",
+        id=f'{value:03d} ({bit_count} bits), hex: "{hex(get_bytes(value= value, bit_count=bit_count, endian="little"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "little").to01()}":<, "little"',
+    )
+    for value, bit_count in TEST_VALUES_08_BIT_COUNTS
+]
 
 
-# def check_parseobject(
-#     obj: ParseBaseGeneric[Any],
-#     tst: TestData,
-# ) -> None:
-#     check_parseobject_value(
-#         obj=obj,
-#         tst=tst,
-#     )
-#     check_parseobject_properties(
-#         obj=obj,
-#         tst=tst,
-#     )
-#     check_parseobject_children(
-#         obj=obj,
-#         tst=tst,
-#     )
-#     check_parseobject_strings(
-#         obj=obj,
-#         tst=tst,
-#     )
+_TEST_VALUES_16_BIT = list(
+    set(
+        list([(2**i) for i in range(0, 16, 4) if (2**i) < 0x10000])
+        + list([(2**i) - 1 for i in range(0, 16 + 4, 4)])
+    )
+)
+_TEST_VALUES_16_BIT.sort()
+TEST_VALUES_16_BIT = [(value, 16) for value in _TEST_VALUES_16_BIT]
+TEST_VALUES_16_BIT_COUNTS = list(
+    set(
+        [
+            (((2**bit_count) - 1) & value, bit_count)
+            for bit_count in range(4, 16 + 4, 4)
+            for value in _TEST_VALUES_16_BIT
+        ]
+    )
+)
+TEST_VALUES_16_BIT_COUNTS.sort()
+_TEST_VALUES_16_BIT_UINT_BE = [
+    (value, bit_count)
+    for value, bit_count in TEST_VALUES_16_BIT_COUNTS
+    if get_uint_value(value=value, bit_count=bit_count, endian="big") == value
+]
+_TEST_VALUES_16_BIT_UINT_LE = [
+    (value, bit_count)
+    for value, bit_count in TEST_VALUES_16_BIT_COUNTS
+    if get_uint_value(value=value, bit_count=bit_count, endian="little") == value
+]
+_TEST_VALUES_16_BIT_UINT_BE.sort()
+_TEST_VALUES_16_BIT_UINT_LE.sort()
+TEST_VALUES_16_BIT_UINT_BE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        "big",
+        id=f'{value:05d} ({bit_count:02d} bits), hex: "{hex(get_bytes(value=value,bit_count=bit_count, endian="big"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "big").to01()}":<, "big"',
+    )
+    for value, bit_count in TEST_VALUES_16_BIT
+]
+TEST_VALUES_16_BIT_UINT_LE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        "little",
+        id=f'{value:05d} ({bit_count:02d} bits), hex: "{hex(get_bytes(value=value,bit_count=bit_count,endian= "little"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "little").to01()}":<, "little"',
+    )
+    for value, bit_count in TEST_VALUES_16_BIT
+]
+TEST_VALUES_16_BIT_UINT_BE_VARIABLE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        "big",
+        id=f'{value:05d} ({bit_count:02d} bits), hex: "{hex(get_bytes(value=value,bit_count=bit_count, endian="big"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "big").to01()}":<, "big"',
+    )
+    for value, bit_count in _TEST_VALUES_16_BIT_UINT_BE
+]
+TEST_VALUES_16_BIT_UINT_LE_VARIABLE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        "little",
+        id=f'{value:05d} ({bit_count:02d} bits), hex: "{hex(get_bytes(value=value,bit_count=bit_count,endian= "little"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "little").to01()}":<, "little"',
+    )
+    for value, bit_count in _TEST_VALUES_16_BIT_UINT_LE
+]
 
-
-# class TestParseObject:
-#     def test_parseobject_create_empty(self) -> None:
-#         endian: Literal["big", "little"] = "little"
-#         tst = TestData(
-#             name="test",
-#             value=None,
-#             string_format="{}",
-#             byte_data=b"",
-#             bits_data=bitarray(endian="little"),
-#             parent=None,
-#             endian=endian,
-#             children=OrderedDict(),
-#         )
-#         obj = ParseBase(name=tst.name)
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-
-#     def test_parseobject_create_parse(self) -> None:
-#         name = "test"
-#         data = b"\x00"
-#         with pytest.raises(NotImplementedError):
-#             ParseBase(name=name, data=data)
-
-#     def test_parseobject_create_value(self) -> None:
-#         name = "test"
-#         value = 11
-#         with pytest.raises(NotImplementedError):
-#             ParseBase(name=name, value=value)
-
-#     def test_parseobject_set_name(self) -> None:
-#         endian: Literal["big", "little"] = "little"
-#         tst = TestData(
-#             name="test",
-#             value=None,
-#             string_format="{}",
-#             byte_data=b"",
-#             bits_data=bitarray(endian="little"),
-#             parent=None,
-#             endian=endian,
-#             children=OrderedDict(),
-#         )
-#         obj = ParseBase(name=tst.name)
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-#         tst.name = "new_name"
-#         obj.name = tst.name
-
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-
-#     def test_parseobject_set_value(self) -> None:
-#         endian: Literal["big", "little"] = "little"
-#         tst = TestData(
-#             name="test",
-#             value=None,
-#             string_format="{}",
-#             byte_data=b"",
-#             bits_data=bitarray(endian="little"),
-#             parent=None,
-#             endian=endian,
-#             children=OrderedDict(),
-#         )
-#         obj = ParseBase(name=tst.name)
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-#         with pytest.raises(NotImplementedError):
-#             obj.value = 1
-
-#     def test_parseobject_set_bits(self) -> None:
-#         endian: Literal["big", "little"] = "little"
-#         tst = TestData(
-#             name="test",
-#             string_format="{}",
-#             value=None,
-#             byte_data=b"",
-#             bits_data=bitarray(endian="little"),
-#             parent=None,
-#             endian=endian,
-#             children=OrderedDict(),
-#         )
-#         obj = ParseBase(name=tst.name)
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-#         tst.byte_data = b"\x01"
-#         tst.bits_data = bitarray(endian="little")
-#         tst.bits_data.frombytes(tst.byte_data)
-#         obj._bits = tst.bits_data  # pyright:ignore[reportPrivateUsage]
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-#         with pytest.raises(NotImplementedError):
-#             obj.bits = tst.bits_data
-
-#     def test_parseobject_set_parent(self) -> None:
-#         endian: Literal["big", "little"] = "little"
-#         tst = TestData(
-#             name="test",
-#             string_format="{}",
-#             value=None,
-#             byte_data=b"",
-#             bits_data=bitarray(endian="little"),
-#             parent=None,
-#             children=OrderedDict(),
-#             endian=endian,
-#         )
-#         obj = ParseBase(name=tst.name)
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-#         tst.parent = ParseBase(name="parent")
-#         obj.parent = tst.parent
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-
-#     def test_parseobject_set_children(self) -> None:
-#         endian: Literal["big", "little"] = "little"
-#         child = ParseBase(name="child")
-#         tst = TestData(
-#             name="test",
-#             string_format="{}",
-#             value=None,
-#             byte_data=b"",
-#             bits_data=bitarray(endian="little"),
-#             parent=None,
-#             endian=endian,
-#             children=OrderedDict(),
-#         )
-#         obj = ParseBase(name=tst.name)
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
-#         tst.children = OrderedDict({child.name: child})
-#         obj.children = tst.children
-#         check_parseobject(
-#             obj=obj,
-#             tst=tst,
-#         )
+TEST_VALUES_N_BIT_COUNTS_BE = list(set(_TEST_VALUES_08_BIT_UINT_BE + _TEST_VALUES_16_BIT_UINT_BE))
+TEST_VALUES_N_BIT_COUNTS_LE = list(set(_TEST_VALUES_08_BIT_UINT_LE + _TEST_VALUES_16_BIT_UINT_LE))
+TEST_VALUES_N_BIT_UINT_BE_VARIABLE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="big",
+        ),
+        "big",
+        id=f'{value:05d} ({bit_count:02d} bits), hex: "{hex(get_bytes(value= value, bit_count=bit_count,endian= "big"))}":<, bin: "{get_bitarray(value= value, bit_count=bit_count,endian="big",).to01()}":<, "big"',
+    )
+    for value, bit_count in TEST_VALUES_N_BIT_COUNTS_BE
+]
+TEST_VALUES_N_BIT_UINT_LE_VARIABLE = [
+    pytest.param(
+        value,
+        bit_count,
+        get_bytes(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        get_bitarray(
+            value=value,
+            bit_count=bit_count,
+            endian="little",
+        ),
+        "little",
+        id=f'{value:03d} ({bit_count:02d} bits), hex: "{hex(get_bytes(value= value, bit_count=bit_count, endian="little"))}":<, bin: "{get_bitarray(value=value,bit_count=bit_count,endian= "little").to01()}":<, "little"',
+    )
+    for value, bit_count in TEST_VALUES_N_BIT_COUNTS_LE
+]

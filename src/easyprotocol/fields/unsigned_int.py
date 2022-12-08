@@ -52,6 +52,7 @@ class UIntFieldGeneric(
         """
         bits = input_to_bytes(
             data=data,
+            endian=self.endian,
             bit_count=self._bit_count,
         )
         _bit_mask = (2**self._bit_count) - 1
@@ -66,10 +67,6 @@ class UIntFieldGeneric(
         if len(bits) < len(bit_mask) or len(bits) == 0:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
-        # byte_count = math.ceil(self._bit_count / 8)
-        # temp_bits = bitarray(my_bits, endian="little")
-        # if len(temp_bits) < byte_count * 8:
-        #     temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
         self._bits = my_bits[: self._bit_count]
         if len(bits) >= self._bit_count:
             return bits[self._bit_count :]
@@ -77,10 +74,12 @@ class UIntFieldGeneric(
             return bitarray(endian="little")
 
     def get_value(self) -> _T:
-        bits = self.bits_lsb
-        m = len(bits) % 8
+        _bits = self.bits_lsb
+        m = len(_bits) % 8
         if m != 0:
-            bits = bitarray([False] * (8 - m)) + bits
+            bits = _bits + bitarray([False] * (8 - m))
+        else:
+            bits = _bits
         b = bits.tobytes()
         return cast(_T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
@@ -95,7 +94,19 @@ class UIntFieldGeneric(
         my_bytes = int.to_bytes(_value, length=byte_count, byteorder=self.endian, signed=False)
         bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
-        self._bits = bits[: self._bit_count]
+        if self._bit_count % 8 == 0:
+            self._bits = bits[: self._bit_count]
+        elif self.endian == DEFAULT_ENDIANNESS:
+            if self._bit_count < 8:
+                self._bits = bits[: self._bit_count]
+            elif self._bit_count < 16:
+                c1 = self._bit_count - 8
+                self._bits = bits[:8] + bits[8 : 8 + c1]
+        else:
+            if self._bit_count <= 8:
+                self._bits = bits[: self._bit_count]
+            elif self._bit_count <= 16:
+                self._bits = bits[: self._bit_count]
 
     def get_string_value(self) -> str:
         return self._string_format.format(self.value)

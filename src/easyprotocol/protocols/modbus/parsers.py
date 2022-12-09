@@ -1,10 +1,14 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, cast
+from typing import Any, Mapping, Sequence, cast
 
-from easyprotocol.base import I, ParseDict, ParseObject
-from easyprotocol.protocols.modbus.constants import ModbusFieldNames, ModbusFunctionEnum
+from easyprotocol.base import ParseFieldDict, dataT
+from easyprotocol.base.parse_generic import ParseGeneric
+from easyprotocol.protocols.modbus.constants import (
+    ModbusFieldNamesEnum,
+    ModbusFunctionEnum,
+)
 from easyprotocol.protocols.modbus.fields import (
     ModbusAddress,
     ModbusByteCount,
@@ -16,13 +20,12 @@ from easyprotocol.protocols.modbus.fields import (
 )
 
 
-class ModbusHeader(ParseDict):
+class ModbusHeader(ParseFieldDict):
     def __init__(
         self,
         name: str = "modbusHeader",
-        data: I | None = None,
-        children: list[ParseObject[Any]]
-        | OrderedDict[str, ParseObject[Any]] = [
+        data: dataT | None = None,
+        children: Sequence[ParseGeneric[Any]] = [
             ModbusDeviceId(),
             ModbusFunction(),
             ModbusAddress(),
@@ -32,59 +35,74 @@ class ModbusHeader(ParseDict):
         super().__init__(
             name=name,
             data=data,
-            parent=None,
-            children=children,
+            default=children,
         )
 
     @property
     def deviceId(self) -> ModbusDeviceId:
-        return cast(ModbusDeviceId, self[ModbusFieldNames.DeviceID])
+        return cast(ModbusDeviceId, self[ModbusFieldNamesEnum.DeviceID.value])
 
     @deviceId.setter
-    def deviceId(self, value: ModbusDeviceId | int) -> None:
+    def deviceId(self, value: int) -> None:
         if isinstance(value, ModbusDeviceId):
-            self[ModbusFieldNames.DeviceID] = value
+            self[ModbusFieldNamesEnum.DeviceID.value] = value
         else:
-            self[ModbusFieldNames.DeviceID].value = value
+            id = cast(ModbusDeviceId, self[ModbusFieldNamesEnum.DeviceID.value])
+            id.value = value
 
     @property
     def functionCode(self) -> ModbusFunction:
-        return cast(ModbusFunction, self[ModbusFieldNames.FunctionCode])
+        return cast(ModbusFunction, self[ModbusFieldNamesEnum.FunctionCode.value])
 
     @functionCode.setter
-    def functionCode(self, value: ModbusFunction | int | ModbusFunctionEnum) -> None:
+    def functionCode(self, value: ModbusFunctionEnum) -> None:
         if isinstance(value, ModbusFunction):
-            self[ModbusFieldNames.FunctionCode] = value
+            self[ModbusFieldNamesEnum.FunctionCode.value] = value
         else:
-            self[ModbusFieldNames.FunctionCode].value = value
+            func = cast(ModbusFunction, self[ModbusFieldNamesEnum.FunctionCode.value])
+            func.value = value
 
     @property
     def address(self) -> ModbusAddress:
-        return cast(ModbusAddress, self[ModbusFieldNames.Address])
+        return cast(ModbusAddress, self[ModbusFieldNamesEnum.Address.value])
 
     @address.setter
-    def address(self, value: ModbusAddress | int) -> None:
+    def address(self, value: int) -> None:
         if isinstance(value, ModbusAddress):
-            self[ModbusFieldNames.Address] = value
+            self[ModbusFieldNamesEnum.Address.value] = value
         else:
-            self[ModbusFieldNames.Address].value = value
+            addr = cast(ModbusAddress, self[ModbusFieldNamesEnum.Address.value])
+            addr.value = value
+
+    @property
+    def byteCount(self) -> ModbusByteCount:
+        return cast(ModbusByteCount, self[ModbusFieldNamesEnum.ByteCount.value])
+
+    @byteCount.setter
+    def byteCount(self, value: int) -> None:
+        if isinstance(value, ModbusByteCount):
+            self[ModbusFieldNamesEnum.ByteCount.value] = value
+        else:
+            count = cast(ModbusByteCount, self[ModbusFieldNamesEnum.ByteCount.value])
+            count.value = value
 
     @property
     def crc(self) -> ModbusCRC:
-        return cast(ModbusCRC, self[ModbusFieldNames.CRC])
+        return cast(ModbusCRC, self[ModbusFieldNamesEnum.CRC.value])
 
     @crc.setter
-    def crc(self, value: ModbusCRC | int) -> None:
+    def crc(self, value: int) -> None:
         if isinstance(value, ModbusCRC):
-            self[ModbusFieldNames.CRC] = value
+            self[ModbusFieldNamesEnum.CRC.value] = value
         else:
-            self[ModbusFieldNames.CRC].value = value
+            crc = cast(ModbusCRC, self[ModbusFieldNamesEnum.CRC.value])
+            crc.value = value
 
 
 class ModbusReadCoilsRequest(ModbusHeader):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFunctionEnum.ReadCoils.name + "Request",
@@ -102,7 +120,7 @@ class ModbusReadCoilsRequest(ModbusHeader):
 class ModbusReadCoilsResponse(ModbusHeader):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
     ) -> None:
         count_field = ModbusByteCount()
         super().__init__(
@@ -112,16 +130,28 @@ class ModbusReadCoilsResponse(ModbusHeader):
                 ModbusDeviceId(),
                 ModbusFunction(),
                 count_field,
-                ModbusCoilArray(count_field=count_field),
+                ModbusCoilArray(count=count_field),
                 ModbusCRC(),
             ],
         )
+
+    @property
+    def coilArray(self) -> ModbusCoilArray:
+        return cast(ModbusCoilArray, self[ModbusFieldNamesEnum.CoilArray.value])
+
+    @coilArray.setter
+    def coilArray(self, value: Sequence[bool] | Sequence[int]) -> None:
+        if isinstance(value, ModbusCoilArray):
+            self[ModbusFieldNamesEnum.CoilArray.value] = value
+        else:
+            func = cast(ModbusCoilArray, self[ModbusFieldNamesEnum.CoilArray.value])
+            func.set_value(value)
 
 
 class ModbusReadDiscreteInputsRequest(ModbusHeader):
     def __init__(
         self,
-        data: I | None = None,
+        data: dataT | None = None,
     ) -> None:
         super().__init__(
             name=ModbusFunctionEnum.ReadDiscreteInputs.name + "Request",
@@ -134,3 +164,15 @@ class ModbusReadDiscreteInputsRequest(ModbusHeader):
                 ModbusCRC(),
             ],
         )
+
+    @property
+    def count(self) -> ModbusCount:
+        return cast(ModbusCount, self[ModbusFieldNamesEnum.Count.value])
+
+    @count.setter
+    def count(self, value: int) -> None:
+        if isinstance(value, ModbusCount):
+            self[ModbusFieldNamesEnum.Count.value] = value
+        else:
+            func = cast(ModbusCount, self[ModbusFieldNamesEnum.Count.value])
+            func.set_value(value)

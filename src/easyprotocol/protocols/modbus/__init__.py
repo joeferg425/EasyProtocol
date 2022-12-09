@@ -1,13 +1,27 @@
-from easyprotocol.protocols.modbus.parsers import ModbusReadCoilsRequest as ModbusReadCoilsRequest  # noqa
-from easyprotocol.protocols.modbus.parsers import ModbusReadCoilsResponse as ModbusReadCoilsResponse  # noqa
+from easyprotocol.protocols.modbus.constants import (  # noqa
+    ModbusFieldNamesEnum as ModbusFieldNamesEnum,
+)
+from easyprotocol.protocols.modbus.fields import ModbusAddress as ModbusAddress  # noqa
+from easyprotocol.protocols.modbus.fields import (  # noqa
+    ModbusByteCount as ModbusByteCount,
+)
+from easyprotocol.protocols.modbus.fields import (  # noqa
+    ModbusCoilArray as ModbusCoilArray,
+)
+from easyprotocol.protocols.modbus.fields import ModbusCount as ModbusCount  # noqa
+from easyprotocol.protocols.modbus.fields import ModbusCRC as ModbusCRC  # noqa
+from easyprotocol.protocols.modbus.fields import (  # noqa
+    ModbusDeviceId as ModbusDeviceId,
+)
+from easyprotocol.protocols.modbus.fields import (  # noqa
+    ModbusFunction as ModbusFunction,
+)
+from easyprotocol.protocols.modbus.parsers import (  # noqa
+    ModbusReadCoilsRequest as ModbusReadCoilsRequest,
+)
+from easyprotocol.protocols.modbus.parsers import (  # noqa
+    ModbusReadCoilsResponse as ModbusReadCoilsResponse,
+)
 from easyprotocol.protocols.modbus.parsers import (  # noqa
     ModbusReadDiscreteInputsRequest as ModbusReadDiscreteInputsRequest,
 )
-from easyprotocol.protocols.modbus.fields import ModbusFunction as ModbusFunction  # noqa
-from easyprotocol.protocols.modbus.fields import ModbusAddress as ModbusAddress  # noqa
-from easyprotocol.protocols.modbus.fields import ModbusCoilArray as ModbusCoilArray  # noqa
-from easyprotocol.protocols.modbus.fields import ModbusCount as ModbusCount  # noqa
-from easyprotocol.protocols.modbus.fields import ModbusByteCount as ModbusByteCount  # noqa
-from easyprotocol.protocols.modbus.fields import ModbusCRC as ModbusCRC  # noqa
-from easyprotocol.protocols.modbus.fields import ModbusDeviceId as ModbusDeviceId  # noqa
-from easyprotocol.protocols.modbus.constants import ModbusFieldNames as ModbusFieldNames  # noqa

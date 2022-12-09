@@ -2,66 +2,59 @@ from __future__ import annotations
 
 import math
 import struct
-from collections import OrderedDict
-from typing import Any, Generic, Literal, TypeVar, cast
+from typing import Any, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_object import DEFAULT_ENDIANNESS, ParseObjectGeneric
-from easyprotocol.base.utils import I, input_to_bytes
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.utils import dataT, input_to_bytes
 
-F = TypeVar("F", float, float)
+F = TypeVar("F", bound=Union[float, Any])
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(ParseObjectGeneric[F], Generic[F]):
+class FloatField(ParseGenericValue[F]):
     """The base parsing object for unsigned floating point values."""
 
     def __init__(
         self,
         name: str,
         bit_count: int,
-        data: I | None = None,
-        value: float | F | None = None,
+        default: F = 0.0,
+        data: dataT | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         self.bit_count = bit_count
         super().__init__(
             name=name,
             data=data,
-            value=value,  # type:ignore
-            fmt=format,
+            default=default,
+            string_format=format,
             endian=endian,
         )
-        if self.value is None:
-            self.value = 0.0
-
-    def _set_children(
-        self, children: OrderedDict[str, ParseObjectGeneric[Any]] | list[ParseObjectGeneric[Any]] | None
-    ) -> None:
-        raise NotImplementedError()
 
 
-class Float32IEEField(FloatField[float]):
+class Float32IEEFieldGeneric(FloatField[F]):
     def __init__(
         self,
         name: str,
-        data: I | None = None,
-        value: float | None = None,
+        default: F = 0.0,
+        data: dataT | None = None,
         format: str | None = FLOAT_STRING_FORMAT,
-        endian: Literal["little", "big"] = DEFAULT_ENDIANNESS,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(
             name,
             bit_count=32,
             data=data,
-            value=value,
+            default=default,
             format=format,
             endian=endian,
         )
 
-    def parse(self, data: I) -> bitarray:
+    def parse(self, data: dataT) -> bitarray:
         """Parse bytes that make of this protocol field into meaningful data.
 
         Args:
@@ -91,18 +84,14 @@ class Float32IEEField(FloatField[float]):
         else:
             return bitarray(endian="little")
 
-    def _get_value(self) -> float | None:
-        if len(self.bits) == 0:
-            return None
-        b = self.bits.tobytes()
+    def get_value(self) -> F:
+        b = self.bits_lsb.tobytes()
         if self.endian == "little":
-            return cast(float, struct.unpack("<f", b)[0])
+            return cast(F, struct.unpack("<f", b)[0])
         else:
-            return cast(float, struct.unpack(">f", b)[0])
+            return cast(F, struct.unpack(">f", b)[0])
 
-    def _set_value(self, value: float) -> None:
-        if not isinstance(value, float):
-            raise TypeError(f"Can't assign value {value} to {self.__class__.__name__}")
+    def set_value(self, value: F) -> None:
         if self.endian == "little":
             bytes_val = bytearray(struct.pack("<f", value))
         else:
@@ -119,21 +108,8 @@ class Float32IEEField(FloatField[float]):
         """
         return self._bits.tobytes()
 
-    @property
-    def value(self) -> float | None:
-        """Get the parsed value of the field.
-
-        Returns:
-            the value of the field
-        """
-        return self._get_value()
-
-    @value.setter
-    def value(self, value: float) -> None:
-        self._set_value(value)
-
-    def _set_bits(self, bits: bitarray) -> None:
-        if bits.endian != Literal["little"]:
+    def set_bits_lsb(self, bits: bitarray) -> None:
+        if bits.endian() != "little":
             v = bits.tobytes()
             _bits = bitarray(endian="little")
             _bits.frombytes(v)
@@ -142,6 +118,13 @@ class Float32IEEField(FloatField[float]):
         if len(_bits) < self.bit_count:
             _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self.bit_count]
+
+    def get_string_value(self) -> str:
+        return self.string_format.format(self.value)
+
+
+class Float32IEEField(Float32IEEFieldGeneric[float]):
+    ...
 
 
 class Float32Field(Float32IEEField):

@@ -42,7 +42,7 @@ class ChecksumField(UIntFieldGeneric[int]):
             else:
                 byte_data = b""
         else:
-            byte_data = input_to_bytes(data=data, bit_count=self._bit_count, endian=self.endian).tobytes()
+            byte_data = input_to_bytes(data=data, bit_count=self._bit_count).tobytes()
         crc_int = self.crc_calculator.checksum(byte_data)
         byte_length = math.ceil(self._bit_count / 8)
         crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")

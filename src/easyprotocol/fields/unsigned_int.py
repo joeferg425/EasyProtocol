@@ -11,7 +11,7 @@ from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 UINT_STRING_FORMAT = "{:X}(hex)"
-UINT8_STRING_FORMAT = "{:02X}(hex)"
+UINT08_STRING_FORMAT = "{:02X}(hex)"
 UINT16_STRING_FORMAT = "{:04X}(hex)"
 UINT24_STRING_FORMAT = "{:06X}(hex)"
 UINT32_STRING_FORMAT = "{:08X}(hex)"
@@ -52,7 +52,6 @@ class UIntFieldGeneric(
         """
         bits = input_to_bytes(
             data=data,
-            endian=self.endian,
             bit_count=self._bit_count,
         )
         _bit_mask = (2**self._bit_count) - 1
@@ -94,19 +93,7 @@ class UIntFieldGeneric(
         my_bytes = int.to_bytes(_value, length=byte_count, byteorder=self.endian, signed=False)
         bits = bitarray(endian="little")
         bits.frombytes(my_bytes)
-        if self._bit_count % 8 == 0:
-            self._bits = bits[: self._bit_count]
-        elif self.endian == DEFAULT_ENDIANNESS:
-            if self._bit_count < 8:
-                self._bits = bits[: self._bit_count]
-            elif self._bit_count < 16:
-                c1 = self._bit_count - 8
-                self._bits = bits[:8] + bits[8 : 8 + c1]
-        else:
-            if self._bit_count <= 8:
-                self._bits = bits[: self._bit_count]
-            elif self._bit_count <= 16:
-                self._bits = bits[: self._bit_count]
+        self._bits = bits[: self._bit_count]
 
     def get_string_value(self) -> str:
         return self._string_format.format(self.value)
@@ -207,7 +194,7 @@ class UInt8Field(UIntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        string_format: str = UINT8_STRING_FORMAT,
+        string_format: str = UINT08_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(

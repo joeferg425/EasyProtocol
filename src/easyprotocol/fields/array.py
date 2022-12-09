@@ -46,7 +46,7 @@ class ParseArrayField(ParseValueListGeneric[T]):
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data, endian=self.endian)
+        bit_data = input_to_bytes(data=data)
         if isinstance(self._count, UIntFieldGeneric):
             count = self._count.value
         else:
@@ -111,7 +111,7 @@ class ParseValueArrayField(ParseValueListGeneric[T]):
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data, endian=self.endian)
+        bit_data = input_to_bytes(data=data)
         if isinstance(self._count, UIntFieldGeneric):
             count = self._count.value
         else:

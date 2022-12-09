@@ -76,7 +76,7 @@ class ParseFieldDictGeneric(
         Raises:
             NotImplementedError: if not implemented for this field
         """
-        bit_data = input_to_bytes(data=data, endian=self.endian)
+        bit_data = input_to_bytes(data=data)
         for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data

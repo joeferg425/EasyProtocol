@@ -11,13 +11,13 @@ from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 INT_STRING_FORMAT = "{}"
-INT8_STRING_FORMAT = "{}"
+INT08_STRING_FORMAT = "{}"
 INT16_STRING_FORMAT = "{}"
 INT24_STRING_FORMAT = "{}"
 INT32_STRING_FORMAT = "{}"
 INT64_STRING_FORMAT = "{}"
 
-_T = TypeVar("_T", bound=Union[int, Any])
+_T = TypeVar("_T", bound=Union[Any, int])
 
 
 class IntFieldGeneric(
@@ -52,7 +52,6 @@ class IntFieldGeneric(
         """
         bits = input_to_bytes(
             data=data,
-            endian=self.endian,
             bit_count=self._bit_count,
         )
         _bit_mask = (2**self._bit_count) - 1
@@ -67,10 +66,6 @@ class IntFieldGeneric(
         if len(bits) < len(bit_mask) or len(bits) == 0:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
-        # byte_count = math.ceil(self._bit_count / 8)
-        # temp_bits = bitarray(my_bits, endian="little")
-        # if len(temp_bits) < byte_count * 8:
-        #     temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
         self._bits = my_bits[: self._bit_count]
         if len(bits) >= self._bit_count:
             return bits[self._bit_count :]
@@ -78,10 +73,12 @@ class IntFieldGeneric(
             return bitarray(endian="little")
 
     def get_value(self) -> _T:
-        bits = self.bits_lsb
-        m = len(bits) % 8
+        _bits = self.bits_lsb
+        m = len(_bits) % 8
         if m != 0:
-            bits = bitarray([False] * (8 - m)) + bits
+            bits = _bits + bitarray([False] * (8 - m))
+        else:
+            bits = _bits
         b = bits.tobytes()
         return cast(_T, int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
 
@@ -165,7 +162,7 @@ class Int8Field(IntField):
         name: str,
         default: int = 0,
         data: dataT | None = None,
-        string_format: str = INT8_STRING_FORMAT,
+        string_format: str = INT08_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         super().__init__(

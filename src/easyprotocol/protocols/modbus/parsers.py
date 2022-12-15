@@ -4,7 +4,7 @@ from collections import OrderedDict
 from typing import Any, Mapping, Sequence, cast
 
 from easyprotocol.base import ParseFieldDict, dataT
-from easyprotocol.base.parse_generic import ParseGeneric
+from easyprotocol.base.parse_generic import ParseBase
 from easyprotocol.protocols.modbus.constants import (
     ModbusFieldNamesEnum,
     ModbusFunctionEnum,
@@ -25,7 +25,7 @@ class ModbusHeader(ParseFieldDict):
         self,
         name: str = "modbusHeader",
         data: dataT | None = None,
-        children: Sequence[ParseGeneric[Any]] = [
+        children: Sequence[ParseBase] = [
             ModbusDeviceId(),
             ModbusFunction(),
             ModbusAddress(),
@@ -142,7 +142,7 @@ class ModbusReadCoilsResponse(ModbusHeader):
     @coilArray.setter
     def coilArray(self, value: Sequence[bool] | Sequence[int]) -> None:
         if isinstance(value, ModbusCoilArray):
-            self[ModbusFieldNamesEnum.CoilArray.value] = value
+            self[ModbusFieldNamesEnum.CoilArray.value].value = value.value
         else:
             func = cast(ModbusCoilArray, self[ModbusFieldNamesEnum.CoilArray.value])
             func.set_value(value)

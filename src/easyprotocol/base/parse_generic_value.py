@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from typing import Any, Generic, TypeVar
+from typing import Any, Generic, Iterable, TypeVar
 
-from easyprotocol.base.parse_generic import ParseGeneric, T, dataT, endianT
+from easyprotocol.base.parse_generic import ParseBase, dataT, endianT
 
-_T = TypeVar("_T")
+T = TypeVar("T", covariant=True)
 
 
 class ParseGenericValue(
-    ParseGeneric[_T],
-    Generic[_T],
+    ParseBase,
+    Generic[T],
 ):
     def __init__(
         self,
         name: str,
-        default: _T = None,
+        default: T = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -30,14 +30,14 @@ class ParseGenericValue(
         if data is None and default is not None:
             self.value = default
 
-    def get_value(self) -> _T:
+    def get_value(self) -> T:
         raise NotImplementedError()
 
-    def set_value(self, value: _T) -> None:
+    def set_value(self, value: Any) -> None:
         raise NotImplementedError()
 
     @property
-    def value(self) -> _T:
+    def value(self) -> T:
         """Get the parsed value of the field.
 
         Returns:
@@ -46,11 +46,11 @@ class ParseGenericValue(
         return self.get_value()
 
     @value.setter
-    def value(self, value: _T) -> None:
+    def value(self, value: T | Iterable[Any] | Any) -> None:
         self.set_value(value)
 
     @property
-    def parent(self) -> ParseGeneric[Any] | None:
+    def parent(self) -> ParseBase | None:
         """Get the parsed value of the field.
 
         Returns:
@@ -59,5 +59,5 @@ class ParseGenericValue(
         return self._get_parent_generic()
 
     @parent.setter
-    def parent(self, value: ParseGeneric[Any]) -> None:
+    def parent(self, value: ParseBase) -> None:
         self._set_parent_generic(value)

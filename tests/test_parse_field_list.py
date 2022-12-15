@@ -8,7 +8,7 @@ from bitarray import bitarray
 from parse_data import ParseData
 
 from easyprotocol.base.parse_field_list import ParseFieldList
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField

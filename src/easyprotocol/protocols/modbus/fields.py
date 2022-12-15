@@ -10,11 +10,12 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
-from easyprotocol.base.parse_generic import ParseGeneric
+from easyprotocol.base.parse_generic import ParseBase
 from easyprotocol.fields import (
     BoolField,
     ChecksumField,
     ParseArrayField,
+    ParseArrayFieldGeneric,
     UInt8EnumField,
     UInt8Field,
     UInt16Field,
@@ -151,6 +152,8 @@ class ModbusCoilArray(ParseArrayField[bool]):
     def set_value(  # pyright:ignore[reportIncompatibleMethodOverride]
         self, value: Sequence[bool] | Sequence[int]
     ) -> None:
+        if len(value) == 0:
+            return
         if isinstance(value[0], bool):
             _value = value
         else:
@@ -211,21 +214,21 @@ class ModbusCoilArray(ParseArrayField[bool]):
             chunks.append(chunk_key + ":" + vals)
         return f"[{', '.join( chunks)}]"
 
-    @property
-    def value(self) -> list[bool]:
-        """Get the parsed value of the field.
+    # @property
+    # def value(self) -> list[bool]:
+    #     """Get the parsed value of the field.
 
-        Returns:
-            the value of the field
-        """
-        return list([v.value for v in self.children.values()])
+    #     Returns:
+    #         the value of the field
+    #     """
+    #     return list([v.value for v in self.children.values()])
 
-    @value.setter
-    def value(self, value: Sequence[bool]) -> None:
-        temp = UInt8Field(name="temp", endian="little")
-        for index, item in enumerate(value):
-            temp.value = item
-            bits = temp.bits_lsb
-            bits.reverse()
-            for i in range(len(bits)):
-                self[index * 8 + i] = True if bits[i] else False
+    # @value.setter
+    # def value(self, value: Sequence[bool]) -> None:
+    #     temp = UInt8Field(name="temp", endian="little")
+    #     for index, item in enumerate(value):
+    #         temp.value = item
+    #         bits = temp.bits_lsb
+    #         bits.reverse()
+    #         for i in range(len(bits)):
+    #             self[index * 8 + i] = True if bits[i] else False

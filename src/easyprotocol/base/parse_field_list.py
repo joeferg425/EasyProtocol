@@ -7,8 +7,10 @@ from typing import (
     Generic,
     Iterable,
     Iterator,
+    Mapping,
     Sequence,
     SupportsIndex,
+    TypeVar,
     Union,
     cast,
     overload,
@@ -16,22 +18,28 @@ from typing import (
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric, T, endianT
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase, endianT
 from easyprotocol.base.parse_generic_dict import K, ParseGenericDict
 from easyprotocol.base.parse_generic_list import ParseGenericList
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 
-ParseGenericUnion = Union[ParseGenericValue[T], ParseGenericDict[K, T], ParseGenericList[T]]
+T = TypeVar("T", covariant=True)
+parseGenericT = Union[ParseGenericValue[T], ParseGenericDict[K, T], ParseGenericList[T]]
+valueGenericT = Union[T, Mapping[K, T], Sequence[T]]
 
 
-class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], Generic[K, T]):
+class ParseFieldListGeneric(
+    ParseBase,
+    Sequence[parseGenericT[K, T]],
+    Generic[T, K],
+):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
-        default: Sequence[ParseGeneric[T]] | OrderedDict[str, ParseGeneric[T]] = list(),
+        default: Sequence[parseGenericT[K, T]] | OrderedDict[str, parseGenericT[K, T]] = list(),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -52,7 +60,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
             endian=endian,
         )
 
-        self.set_children(default)  # pyright:ignore[reportGeneralTypeIssues]
+        self.set_children(default)
         if data is not None:
             self.parse(data)
         elif default is not None:
@@ -72,11 +80,11 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def insert(self, index: int | slice, value: ParseGeneric[T] | Sequence[ParseGeneric[T]]) -> None:
-        c: OrderedDict[str, ParseGenericUnion[K, T]] = OrderedDict()
+    def insert(self, index: int | slice, value: ParseBase | Sequence[ParseBase]) -> None:
+        c: OrderedDict[str, parseGenericT[K, T]] = OrderedDict()
         for i, v in enumerate(self.children.values()):
             if index == i:
-                if isinstance(value, ParseGeneric):
+                if isinstance(value, ParseBase):
                     c[value._name] = value  # pyright:ignore[reportGeneralTypeIssues]
                     value._set_parent_generic(self)
                 else:
@@ -84,10 +92,10 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
             c[v._name] = self.children[v._name]
         self.children = c
 
-    def append(self, value: ParseGenericUnion[K, T]) -> None:
+    def append(self, value: parseGenericT[K, T] | Any) -> None:
         self.children[value.name] = value
 
-    def get_value(self) -> Sequence[ParseGenericUnion[K, T]]:
+    def get_value(self) -> Sequence[parseGenericT[K, T]]:
         """Get the parsed value of the field.
 
         Returns:
@@ -97,28 +105,34 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
 
     def set_value(
         self,
-        value: Sequence[ParseGeneric[T]]
+        value: Sequence[parseGenericT[K, T] | Any]
         | OrderedDict[
             str,
-            ParseGeneric[T],
+            parseGenericT[K, T] | Any,
         ],
     ) -> None:
         if isinstance(value, (dict, OrderedDict)):
             values = list(value.values())
-            for index in range(len(value)):
+            for index, (key, item) in enumerate(value.items()):
                 item = values[index]
                 if index < len(self._children):
-                    self[index] = item
-                    item._set_parent_generic(self)
+                    if isinstance(item, (ParseFieldList, ParseGenericDict, ParseGenericValue)):
+                        self[index] = item
+                    else:
+                        self[index].value = item
+                    self[index]._set_parent_generic(self)
                 else:
-                    self._children[item.name] = item
-                    item._set_parent_generic(self)
+                    if isinstance(item, (ParseFieldList, ParseGenericDict, ParseGenericValue)):
+                        self.children[item.name] = item
+                    else:
+                        self.children[key].value = item
+                    self._children[item.name]._set_parent_generic(self)
         else:
             for index in range(len(value)):
                 item = value[index]
                 if index < len(self._children):
                     self[index] = item
-                    item._set_parent_generic(self)
+                    self[index]._set_parent_generic(self)
                 else:
                     self._children[item.name] = item
                     item._set_parent_generic(self)
@@ -130,12 +144,12 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
             data += value.bits_lsb
         return data
 
-    def get_children(self) -> OrderedDict[str, ParseGenericUnion[K, T]]:
-        return cast(OrderedDict[str, ParseGenericUnion[K, T]], self._children)
+    def get_children(self) -> OrderedDict[str, parseGenericT[K, T]]:
+        return cast(OrderedDict[str, parseGenericT[K, T]], self._children)
 
     def set_children(
         self,
-        children: OrderedDict[str, ParseGenericUnion[K, T]] | Sequence[ParseGenericUnion[K, T]],
+        children: OrderedDict[str, parseGenericT[K, T]] | Sequence[parseGenericT[K, T]],
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict, OrderedDict)):
@@ -149,22 +163,22 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
                 self._children[value._name] = value
                 value._set_parent_generic(self)
 
-    def get_parent(self) -> ParseGenericUnion[K, T] | None:
-        return cast(ParseGenericUnion[K, T], self._parent)
+    def get_parent(self) -> parseGenericT[K, T] | None:
+        return cast(parseGenericT[K, T], self._parent)
 
-    def set_parent(self, parent: ParseGenericUnion[K, T] | None) -> None:
+    def set_parent(self, parent: parseGenericT[K, T] | None) -> None:
         self._parent = parent
 
     @property
-    def parent(self) -> ParseGenericUnion[K, T] | None:
+    def parent(self) -> parseGenericT[K, T] | None:
         return self.get_parent()
 
     @parent.setter
-    def parent(self, value: ParseGenericUnion[K, T] | None) -> None:
+    def parent(self, value: parseGenericT[K, T] | None) -> None:
         self.set_parent(value)
 
     @property
-    def children(self) -> OrderedDict[str, ParseGenericUnion[K, T]]:
+    def children(self) -> OrderedDict[str, parseGenericT[K, T]]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -175,7 +189,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
     @children.setter
     def children(
         self,
-        children: OrderedDict[str, ParseGenericUnion[K, T]],
+        children: OrderedDict[str, parseGenericT[K, T]],
     ) -> None:
         self.set_children(children=children)
 
@@ -212,7 +226,7 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
     @property
-    def value(self) -> Sequence[ParseGenericUnion[K, T]]:
+    def value(self) -> Sequence[parseGenericT[K, T]]:
         """Get the parsed value of the field.
 
         Returns:
@@ -221,18 +235,18 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
         return self.get_value()
 
     @value.setter
-    def value(self, value: Sequence[ParseGeneric[T]]) -> None:
+    def value(self, value: Sequence[parseGenericT[K, T]] | Sequence[Any] | Any) -> None:
         self.set_value(value=value)
 
     @overload
-    def __getitem__(self, index: int) -> ParseGenericUnion[K, T]:
+    def __getitem__(self, index: int) -> parseGenericT[K, T]:
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[ParseGenericUnion[K, T]]:
+    def __getitem__(self, index: slice) -> Sequence[parseGenericT[K, T]]:
         ...
 
-    def __getitem__(self, index: int | slice) -> ParseGenericUnion[K, T] | Sequence[ParseGenericUnion[K, T]]:
+    def __getitem__(self, index: int | slice) -> parseGenericT[K, T] | Sequence[parseGenericT[K, T]]:
         vs = list(self.children.values())[index]
         if isinstance(vs, list):
             return [v for v in vs]
@@ -250,40 +264,57 @@ class ParseFieldListGeneric(ParseGeneric[T], Sequence[ParseGenericUnion[K, T]], 
             self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
-    def __setitem__(self, index: SupportsIndex, value: ParseGeneric[T]) -> None:
+    def __setitem__(self, index: SupportsIndex, value: parseGenericT[K, T] | Any) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: int | slice, value: Iterable[ParseGeneric[T]]) -> None:
+    def __setitem__(self, index: int | slice, value: Iterable[parseGenericT[K, T]] | Iterable[Any]) -> None:
         ...
 
     def __setitem__(
-        self, index: SupportsIndex | int | slice, value: ParseGeneric[T] | Iterable[ParseGeneric[T]]
+        self,
+        index: SupportsIndex | int | slice,
+        value: Any | parseGenericT[K, T] | Iterable[parseGenericT[K, T]] | Iterable[Any],
     ) -> None:
         indexed_keys = list(self._children.keys())[index]
-        c: OrderedDict[str, ParseGenericUnion[K, T]] = OrderedDict()
+        c: OrderedDict[str, parseGenericT[K, T]] = OrderedDict()
         for existing_key in self.children:
-            if isinstance(indexed_keys, str) and isinstance(value, ParseGeneric):
-                if existing_key != indexed_keys:
-                    c[existing_key] = self.children[existing_key]
+            if isinstance(indexed_keys, str):
+                if isinstance(value, ParseBase):
+                    if existing_key != indexed_keys:
+                        c[existing_key] = self.children[existing_key]
+                    else:
+                        c[indexed_keys] = value
                 else:
-                    c[indexed_keys] = value  # pyright:ignore[reportGeneralTypeIssues]
+                    if existing_key != indexed_keys:
+                        c[existing_key] = self.children[existing_key]
+                    else:
+                        c[indexed_keys] = self.children[existing_key]
+                        c[indexed_keys].value = value
             else:
                 if isinstance(value, list):
                     for i, sub_key in enumerate(indexed_keys):
-                        sub_value = value[i]
-                        if existing_key != sub_key:
-                            c[existing_key] = self.children[existing_key]
+                        if isinstance(value[i], ParseBase):
+                            sub_value = value[i]
+                            if existing_key != sub_key:
+                                c[existing_key] = self.children[existing_key]
+                            else:
+                                c[sub_value._name] = sub_value
+                                sub_value._set_parent_generic(self)
                         else:
-                            c[sub_value._name] = sub_value  # pyright:ignore[reportGeneralTypeIssues]
-                            sub_value._set_parent_generic(self)
+                            sub_value = value[i]
+                            if existing_key != sub_key:
+                                c[existing_key] = self.children[existing_key]
+                            else:
+                                c[sub_value._name].value = sub_value
+                                sub_value._set_parent_generic(self)
         self.children = c
 
     def __len__(self) -> int:
         return len(self._children)
 
-    def __iter__(self) -> Iterator[T]:
-        return self.children.values().__iter__()  # pyright:ignore[reportGeneralTypeIssues]
+    def __iter__(self) -> Iterator[parseGenericT[K, T]]:
+        return self.children.values().__iter__()
 
 
 class ParseFieldList(ParseFieldListGeneric[str, Any]):

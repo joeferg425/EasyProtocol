@@ -9,7 +9,7 @@ from bitarray import bitarray
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, hex
-from easyprotocol.fields.array import ParseArrayField
+from easyprotocol.fields.array import ParseArrayField, ParseValueArrayField
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
 DEFAULT_CHAR_FORMAT = '"{}"'
@@ -51,7 +51,7 @@ class CharField(UIntFieldGeneric[str]):
         self._bits = bits[: self._bit_count]
 
 
-class StringField(ParseArrayField[str]):
+class StringField(ParseValueArrayField[str]):
     def __init__(
         self,
         name: str,
@@ -146,7 +146,7 @@ class ByteField(UIntFieldGeneric[bytes]):
         return self._string_format.format(self.hex)
 
 
-class BytesField(ParseArrayField[bytes]):
+class BytesField(ParseValueArrayField[bytes]):
     def __init__(
         self,
         name: str,

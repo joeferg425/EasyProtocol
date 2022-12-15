@@ -10,7 +10,7 @@ from parse_data import ParseData
 from test_parse_uint import check_int
 
 from easyprotocol.base.parse_field_dict import ParseFieldDict
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField
@@ -687,8 +687,8 @@ class TestParseDict:
         bits_data2 = f1_bits
         f1 = UInt8Field(name=f1_name)
         values1: OrderedDict[str, Any] = OrderedDict()
-        children1: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseGeneric[Any]] = OrderedDict({f1_name: f1})
+        children1: OrderedDict[str, ParseBase] = OrderedDict()
+        children2: OrderedDict[str, ParseBase] = OrderedDict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=values1,
@@ -731,8 +731,8 @@ class TestParseDict:
         f1 = UInt8Field(name=f1_name)
         values1: OrderedDict[str, Any] = OrderedDict()
         values2: OrderedDict[str, Any] = OrderedDict({f1.name: f1.value})
-        children1: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseGeneric[Any]] = OrderedDict({f1_name: f1})
+        children1: OrderedDict[str, ParseBase] = OrderedDict()
+        children2: OrderedDict[str, ParseBase] = OrderedDict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=values1,

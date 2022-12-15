@@ -6,26 +6,24 @@ from typing import Any, Generic, Mapping, OrderedDict, Sequence, TypeVar, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseGeneric, endianT
-
-# from easyprotocol.base.parse_generic_value import _T
+from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
 
-_T = TypeVar("_T")
+T = TypeVar("T")
 K = TypeVar("K")
 
 
 class ParseGenericDict(
-    ParseGeneric[_T],
-    Mapping[K, ParseGeneric[_T]],
-    Generic[K, _T],
+    ParseBase,
+    Mapping[K, ParseBase],
+    Generic[K, T],
 ):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
-        default: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]] | None = None,
+        default: OrderedDict[str, ParseBase] | Sequence[ParseBase] | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -63,7 +61,7 @@ class ParseGenericDict(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self, last: bool = False) -> tuple[K, ParseGeneric[_T]]:
+    def popitem(self, last: bool = False) -> tuple[K, ParseBase]:
         """Remove item from list.
 
         Args:
@@ -72,9 +70,9 @@ class ParseGenericDict(
         Returns:
             the popped item
         """
-        return cast(tuple[K, ParseGeneric[_T]], self._children.popitem(last=last))
+        return cast(tuple[K, ParseBase], self._children.popitem(last=last))
 
-    def pop(self, name: str, default: ParseGeneric[_T] | None = None) -> ParseGeneric[_T] | None:
+    def pop(self, name: str, default: ParseBase | None = None) -> ParseBase | None:
         """Pop item from dictionary by name.
 
         Args:
@@ -94,7 +92,7 @@ class ParseGenericDict(
 
     def get_value(
         self,
-    ) -> OrderedDict[str, ParseGeneric[_T]]:
+    ) -> OrderedDict[str, ParseBase]:
         """Get the parsed value of the field.
 
         Returns:
@@ -104,7 +102,7 @@ class ParseGenericDict(
 
     def set_value(
         self,
-        value: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]],
+        value: OrderedDict[str, ParseBase] | Sequence[ParseBase],
     ) -> None:
         if isinstance(value, dict):
             for key, item in value.items():
@@ -123,12 +121,12 @@ class ParseGenericDict(
             data += value.bits_lsb
         return data
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[_T]]:
+    def _get_children_generic(self) -> OrderedDict[str, ParseBase]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]] | None,
+        children: OrderedDict[str, ParseBase] | Sequence[ParseBase] | None,
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict)):
@@ -151,7 +149,7 @@ class ParseGenericDict(
         return f'{{{", ".join([str(value) for value in self._children.values()])}}}'
 
     @property
-    def value(self) -> OrderedDict[str, ParseGeneric[_T]]:
+    def value(self) -> OrderedDict[str, ParseBase | Any]:
         """Get the parsed value of the field.
 
         Returns:
@@ -162,12 +160,12 @@ class ParseGenericDict(
     @value.setter
     def value(
         self,
-        value: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]],
+        value: OrderedDict[str, ParseBase | Any] | Sequence[ParseBase | Any] | Any,
     ) -> None:
         self.set_value(value)
 
     @property
-    def children(self) -> OrderedDict[str, ParseGeneric[_T]]:
+    def children(self) -> OrderedDict[str, ParseBase]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -178,7 +176,7 @@ class ParseGenericDict(
     @children.setter
     def children(
         self,
-        children: OrderedDict[str, ParseGeneric[_T]] | Sequence[ParseGeneric[_T]] | None,
+        children: OrderedDict[str, ParseBase] | Sequence[ParseBase] | None,
     ) -> None:
         self._set_children_generic(children=children)
 
@@ -206,11 +204,11 @@ class ParseGenericDict(
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, name: object, value: ParseGeneric[_T]) -> None:
+    def __setitem__(self, name: object, value: ParseBase) -> None:
         value._set_parent_generic(self)
         return self._children.__setitem__(str(name), value)
 
-    def __getitem__(self, name: object) -> ParseGeneric[_T]:
+    def __getitem__(self, name: object) -> ParseBase:
         return self._children.__getitem__(str(name))
 
     def __delitem__(self, name: object) -> None:
@@ -220,7 +218,7 @@ class ParseGenericDict(
         return len(self._children)
 
     @property
-    def parent(self) -> ParseGeneric[Any] | None:
+    def parent(self) -> ParseBase | None:
         """Get the parsed value of the field.
 
         Returns:
@@ -228,6 +226,6 @@ class ParseGenericDict(
         """
         return self._get_parent_generic()
 
-    @value.setter
-    def value(self, value: ParseGeneric[Any] | None) -> None:
+    @parent.setter
+    def parent(self, value: ParseBase | None) -> None:
         self._set_parent_generic(value)

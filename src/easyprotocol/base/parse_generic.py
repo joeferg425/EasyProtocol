@@ -9,10 +9,11 @@ from bitarray import bitarray
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, hex
 
 UNDEFINED = "?UNDEFINED?"
-T = TypeVar("T", bound=Any, covariant=True)
+
+T = TypeVar("T")
 
 
-class ParseGeneric(SupportsBytes, Generic[T]):
+class ParseBase(SupportsBytes):
     """The base parsing object for handling parsing in a convenient (to modify) package."""
 
     def __init__(
@@ -39,8 +40,8 @@ class ParseGeneric(SupportsBytes, Generic[T]):
         self._bit_count: int = bit_count
         self._name = name
         self._initialized = False
-        self._parent: ParseGeneric[Any] | None = None
-        self._children: OrderedDict[str, ParseGeneric[Any]] = OrderedDict()
+        self._parent: ParseBase | None = None
+        self._children: OrderedDict[str, ParseBase] = OrderedDict()
         if string_format is None:
             self._string_format = "{}"
         else:
@@ -80,18 +81,18 @@ class ParseGeneric(SupportsBytes, Generic[T]):
     def set_bits_lsb(self, bits: bitarray) -> None:
         raise NotImplementedError()
 
-    def _get_parent_generic(self) -> ParseGeneric[Any] | None:
+    def _get_parent_generic(self) -> ParseBase | None:
         return self._parent
 
-    def _set_parent_generic(self, parent: ParseGeneric[Any] | None) -> None:
+    def _set_parent_generic(self, parent: ParseBase | None) -> None:
         self._parent = parent
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseGeneric[Any]]:
+    def _get_children_generic(self) -> OrderedDict[str, ParseBase]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseGeneric[Any]] | Sequence[ParseGeneric[Any]],
+        children: OrderedDict[str, ParseBase] | Sequence[ParseBase],
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict, OrderedDict)):

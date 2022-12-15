@@ -1,13 +1,13 @@
 """Define your parser using simple python classes and familiar types."""
-from easyprotocol.fields import UInt8Field, UInt16Field, Int8Field
-from easyprotocol.base import ParseList
+from easyprotocol.base import ParseFieldList
+from easyprotocol.fields import Int8Field, UInt8Field, UInt16Field
 
 # Make an instance of the modified list type and add your fields as the list items.
-exampleParser = ParseList(
+exampleParser = ParseFieldList(
     # give the parser a name
     name="ExampleParser1",
     # define your fields in order
-    children=[
+    default=[
         # give each field a name, some standard types are defined for you.
         Int8Field(name="id"),
         UInt16Field(name="data count"),
@@ -26,6 +26,8 @@ print(f"parsed:\t{exampleParser}")
 print(f"bytes:\t{bytes(exampleParser)!r}\n")
 
 # Make a new frame from known data to send somewhere (like a socket)
+exampleParser[0].value = 3
+exampleParser.value = [3, 257, 127]
 exampleParser.value = [3, 257, 127]
 print(f"parsed:\t{exampleParser}")
 print(f"bytes:\t{bytes(exampleParser)!r}\n")

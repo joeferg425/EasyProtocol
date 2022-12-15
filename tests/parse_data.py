@@ -9,7 +9,7 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import UNDEFINED, ParseGeneric
+from easyprotocol.base.parse_generic import UNDEFINED, ParseBase
 from easyprotocol.base.utils import hex
 
 PARAMETER_NAMES = [
@@ -29,7 +29,7 @@ class ParseData:
     string_format: str
     bits_data: bitarray
     byte_data: bytes | bytearray
-    parent: ParseGeneric[Any] | None
+    parent: ParseBase | None
     children: OrderedDict[str, Any]
 
 
@@ -157,7 +157,7 @@ def get_bytes(value: int, bit_count: int, endian: Literal["little", "big"]) -> b
 
 
 TEST_VALUES_08_BIT_UINT = list(
-    set(list([2**i for i in range(0, 8, 1)]) + list([(2**i) - 1 for i in range(0, 8 + 1, 1)]))
+    set(list([2**i for i in range(0, 8, 2)]) + list([(2**i) - 1 for i in range(0, 8 + 1, 1)]))
 )
 TEST_VALUES_08_BIT_UINT.sort()
 _TEST_VALUES_08_BIT_UINT = [(value, 8) for value in TEST_VALUES_08_BIT_UINT]
@@ -380,8 +380,8 @@ TEST_VALUES_24_BIT_UINT = list(
     set(
         list(
             set(
-                list([(2**i) for i in range(0, 24, 3) if (2**i) < 0x1000000])
-                + list([(2**i) - 1 for i in range(0, 24 + 3, 3)])
+                list([(2**i) for i in range(0, 24, 4) if (2**i) < 0x1000000])
+                + list([(2**i) - 1 for i in range(0, 24 + 4, 4)])
             )
         )
         + TEST_VALUES_16_BIT_UINT
@@ -604,8 +604,8 @@ TEST_VALUES_64_BIT_UINT = list(
     set(
         list(
             set(
-                list([(2**i) for i in range(0, 64, 4) if (2**i) < 0x10000000000000000])
-                + list([(2**i) - 1 for i in range(0, 64 + 4, 4)])
+                list([(2**i) for i in range(0, 64, 8) if (2**i) < 0x10000000000000000])
+                + list([(2**i) - 1 for i in range(0, 64 + 8, 8)])
             )
         )
         + TEST_VALUES_32_BIT_UINT

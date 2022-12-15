@@ -17,12 +17,12 @@ UINT24_STRING_FORMAT = "{:06X}(hex)"
 UINT32_STRING_FORMAT = "{:08X}(hex)"
 UINT64_STRING_FORMAT = "{:016X}(hex)"
 
-_T = TypeVar("_T", bound=Union[Any, int])
+T = TypeVar("T", bound=Union[Any, int])
 
 
 class UIntFieldGeneric(
-    ParseGenericValue[_T],
-    Generic[_T],
+    ParseGenericValue[T],
+    Generic[T],
 ):
     """The base parsing object for unsigned integers."""
 
@@ -30,7 +30,7 @@ class UIntFieldGeneric(
         self,
         name: str,
         bit_count: int,
-        default: _T = 0,
+        default: T = 0,
         data: dataT = None,
         string_format: str = UINT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
@@ -72,7 +72,7 @@ class UIntFieldGeneric(
         else:
             return bitarray(endian="little")
 
-    def get_value(self) -> _T:
+    def get_value(self) -> T:
         _bits = self.bits_lsb
         m = len(_bits) % 8
         if m != 0:
@@ -80,11 +80,13 @@ class UIntFieldGeneric(
         else:
             bits = _bits
         b = bits.tobytes()
-        return cast(_T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
+        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
-    def set_value(self, value: _T) -> None:
+    def set_value(self, value: T) -> None:
         if value is None:
             _value = 0
+        elif isinstance(value, ParseGenericValue):
+            _value = int(cast(ParseGenericValue[T], value).value)
         elif not isinstance(value, int):
             _value = int(value)
         else:
@@ -107,7 +109,7 @@ class UIntFieldGeneric(
         return self._bits.tobytes()
 
     @property
-    def value(self) -> _T:
+    def value(self) -> T:
         """Get the parsed value of the field.
 
         Returns:
@@ -116,7 +118,7 @@ class UIntFieldGeneric(
         return self.get_value()
 
     @value.setter
-    def value(self, value: _T) -> None:
+    def value(self, value: T) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
         self.set_value(value)
 
     def set_bits_lsb(self, bits: bitarray) -> None:

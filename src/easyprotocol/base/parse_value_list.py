@@ -6,8 +6,11 @@ from typing import (
     Any,
     Generic,
     Iterable,
+    Iterator,
+    Mapping,
     Sequence,
     SupportsIndex,
+    TypeVar,
     Union,
     cast,
     overload,
@@ -15,25 +18,28 @@ from typing import (
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import ParseGeneric, T
+from easyprotocol.base.parse_generic import ParseBase
 from easyprotocol.base.parse_generic_dict import K, ParseGenericDict
 from easyprotocol.base.parse_generic_list import ParseGenericList
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
 
-ParseGenericUnion = Union[ParseGenericValue[T], ParseGenericDict[K, T], ParseGenericList[T]]
+T = TypeVar("T", covariant=True)
+parseGenericT = ParseGenericValue[T]
+valueGenericT = Sequence[T]
 
 
 class ParseValueListGeneric(
-    ParseGeneric[T],
-    Sequence[T],
-    Generic[T],
+    ParseBase,
+    Sequence[ParseGenericValue[T]],
+    Generic[K, T],
 ):
     """The base parsing object for handling parsing in a convenient package."""
 
     def __init__(
         self,
         name: str,
+        default: Sequence[ParseBase] | OrderedDict[str, ParseBase] = list(),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -71,10 +77,10 @@ class ParseValueListGeneric(
         return bit_data
 
     def insert(self, index: int | slice, value: ParseGenericValue[T] | Sequence[ParseGenericValue[T]]) -> None:
-        c: OrderedDict[str, ParseGeneric[T]] = OrderedDict()
+        c: OrderedDict[str, ParseBase] = OrderedDict()
         for i, v in enumerate(self._children.values()):
             if index == i:
-                if isinstance(value, ParseGeneric):
+                if isinstance(value, ParseBase):
                     c[value._name] = value
                     value._set_parent_generic(self)
                 else:
@@ -85,7 +91,7 @@ class ParseValueListGeneric(
     def append(self, value: Any) -> None:
         raise NotImplementedError()
 
-    def get_value(self) -> Sequence[T]:
+    def get_value(self) -> valueGenericT[T]:
         """Get the parsed value of the field.
 
         Returns:
@@ -93,11 +99,11 @@ class ParseValueListGeneric(
         """
         return [v.value for v in self.children.values()]
 
-    def set_value(self, value: Sequence[T] | Sequence[ParseGenericValue[T]]) -> None:
+    def set_value(self, value: Sequence[valueGenericT[T]] | Sequence[ParseGenericValue[T]]) -> None:
         if value is not None:
             for index in range(len(value)):
                 item = value[index]
-                if isinstance(item, ParseGenericValue):
+                if isinstance(item, ParseBase):
                     if index < len(self.children):
                         self[index] = item
                         item._set_parent_generic(self)
@@ -105,8 +111,7 @@ class ParseValueListGeneric(
                         self.children[item.name] = item
                         item._set_parent_generic(self)
                 else:
-                    # parse_base = self[index]
-                    self[index] = item.value
+                    self[index] = item
 
     def get_bits_lsb(self) -> bitarray:
         data = bitarray(endian="little")
@@ -148,7 +153,7 @@ class ParseValueListGeneric(
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
     @property
-    def value(self) -> Sequence[T]:
+    def value(self) -> valueGenericT[T]:
         """Get the parsed value of the field.
 
         Returns:
@@ -157,26 +162,27 @@ class ParseValueListGeneric(
         return self.get_value()
 
     @value.setter
-    def value(self, value: Sequence[T]) -> None:
+    def value(self, value: Sequence[valueGenericT[T]]) -> None:
         self.set_value(value=value)
 
+    def get_field_at(self, index: int) -> ParseGenericValue[T]:
+        children = cast(list[ParseGenericValue[T]], list(self._children.values()))
+        return children[index]
+
     @overload
-    def __getitem__(self, index: SupportsIndex) -> T:
+    def __getitem__(self, index: SupportsIndex) -> valueGenericT[T]:
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> Iterable[T]:
+    def __getitem__(self, index: slice) -> Iterable[valueGenericT[T]]:
         ...
 
-    def __getitem__(self, index: SupportsIndex | slice) -> ParseGenericUnion[K, T] | Iterable[ParseGenericUnion[K, T]]:
+    def __getitem__(self, index: SupportsIndex | slice) -> valueGenericT[T] | Iterable[valueGenericT[T]]:
         vs = list(self.children.values())[index]
         if isinstance(vs, list):
-            return cast(
-                Sequence[ParseGenericUnion[K, T]],
-                [v.value for v in vs],
-            )
+            return ([v.value for v in vs],)
         else:
-            return cast(ParseGenericUnion[K, T], vs.value)
+            return vs.value
 
     def __delitem__(self, index: int | slice) -> None:
         item = list(self.children.values())[index]
@@ -189,19 +195,23 @@ class ParseValueListGeneric(
             self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
-    def __setitem__(self, index: SupportsIndex, value: Any) -> None:
+    def __setitem__(self, index: int | SupportsIndex, value: valueGenericT[T] | ParseGenericValue[T]) -> None:
         ...
 
     @overload
-    def __setitem__(self, index: slice, value: Iterable[T]) -> None:
+    def __setitem__(self, index: slice, value: Iterable[valueGenericT[T]] | Iterable[ParseGenericValue[T]]) -> None:
         ...
 
-    def __setitem__(self, index: SupportsIndex | slice, value: T | Iterable[T]) -> None:
+    def __setitem__(
+        self,
+        index: int | SupportsIndex | slice,
+        value: valueGenericT[T] | ParseGenericValue[T] | Iterable[valueGenericT[T]] | Iterable[ParseGenericValue[T]],
+    ) -> None:
         indexed_keys = list(self._children.keys())[index]
-        c: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
+        c: OrderedDict[str, ParseGenericValue[T]] = OrderedDict()
         for existing_key in self.children:
             if isinstance(indexed_keys, str):
-                if isinstance(value, ParseGenericValue):
+                if isinstance(value, (ParseGenericValue)):
                     if existing_key != indexed_keys:
                         c[existing_key] = self.children[existing_key]
                     else:
@@ -215,13 +225,17 @@ class ParseValueListGeneric(
             else:
                 if isinstance(value, list):
                     for i, sub_key in enumerate(indexed_keys):
-                        sub_value = value[i]
-                        if isinstance(sub_value, ParseGenericValue):
+                        if isinstance(value[i], (ParseGenericValue)):
+                            s = cast(ParseGenericValue[T], value[i])
                             if existing_key != sub_key:
                                 c[existing_key] = self.children[existing_key]
                             else:
-                                c[sub_value._name] = sub_value
-                                sub_value._set_parent_generic(self)
+                                c[s.name] = s
+                                s._set_parent_generic(self)
+                        else:
+                            s = cast(valueGenericT[T], value[i])
+                            c[existing_key] = self.children[existing_key]
+                            c[existing_key].value = value
         self.children = c
 
     def __len__(self) -> int:
@@ -282,6 +296,9 @@ class ParseValueListGeneric(
     ) -> None:
         self.set_children(children=children)
 
+    def __iter__(self) -> Iterator[ParseGenericValue[T]]:
+        return cast("Iterator[ParseGenericValue[T]]", self._children.values().__iter__())
 
-class ParseValueList(ParseValueListGeneric[Any]):
+
+class ParseValueList(ParseValueListGeneric[str, T], Generic[T]):
     ...

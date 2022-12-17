@@ -1,4 +1,4 @@
-"""The base parsing object for handling parsing in a convenient package."""
+"""Unsigned integer parsing fields."""
 from __future__ import annotations
 
 import math
@@ -24,7 +24,7 @@ class UIntFieldGeneric(
     ParseGenericValue[T],
     Generic[T],
 ):
-    """The base parsing object for unsigned integers."""
+    """Base unsigned integer parsing class."""
 
     def __init__(
         self,
@@ -35,6 +35,16 @@ class UIntFieldGeneric(
         string_format: str = UINT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create base unsigned integer parsing field.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             default=default,
@@ -45,10 +55,16 @@ class UIntFieldGeneric(
         )
 
     def parse(self, data: dataT) -> bitarray:
-        """Parse bytes that make of this protocol field into meaningful data.
+        """Parse the bits of this field into meaningful data.
 
         Args:
             data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
+
+        Raises:
+            IndexError: if there is too little data to parse this field
         """
         bits = input_to_bytes(
             data=data,
@@ -63,7 +79,7 @@ class UIntFieldGeneric(
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
         elif len(bit_mask) > len(bits):
             bit_mask = bit_mask[: len(bits)]
-        if len(bits) < len(bit_mask) or len(bits) == 0:
+        if len(bits) < len(bit_mask) or len(bits) == 0 or len(bits) < self._bit_count:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
         self._bits = my_bits[: self._bit_count]
@@ -73,6 +89,11 @@ class UIntFieldGeneric(
             return bitarray(endian="little")
 
     def get_value(self) -> T:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
         _bits = self.bits_lsb
         m = len(_bits) % 8
         if m != 0:
@@ -83,6 +104,11 @@ class UIntFieldGeneric(
         return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
     def set_value(self, value: T) -> None:
+        """Set the fields that are part of this field.
+
+        Args:
+            value: the new list of fields or dictionary of fields to assign to this field
+        """
         if value is None:
             _value = 0
         elif isinstance(value, ParseGenericValue):
@@ -98,15 +124,12 @@ class UIntFieldGeneric(
         self._bits = bits[: self._bit_count]
 
     def get_string_value(self) -> str:
-        return self._string_format.format(self.value)
-
-    def __bytes__(self) -> bytes:
-        """Get the bytes that make up this field.
+        """Get the string value of this field.
 
         Returns:
-            the bytes of this field
+            the string value of this field
         """
-        return self._bits.tobytes()
+        return self._string_format.format(self.value)
 
     @property
     def value(self) -> T:
@@ -118,10 +141,15 @@ class UIntFieldGeneric(
         return self.get_value()
 
     @value.setter
-    def value(self, value: T) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
+    def value(self, value: T) -> None:
         self.set_value(value)
 
     def set_bits_lsb(self, bits: bitarray) -> None:
+        """Set the bits of this field in least-significant-bit first format.
+
+        Args:
+            bits: lsb bits
+        """
         if bits.endian() != "little":
             m = len(bits) % 8
             if m != 0:
@@ -137,7 +165,7 @@ class UIntFieldGeneric(
 
 
 class UIntField(UIntFieldGeneric[int]):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Unsigned integer parsing class."""
 
     def __init__(
         self,
@@ -148,6 +176,16 @@ class UIntField(UIntFieldGeneric[int]):
         string_format: str = UINT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create unsigned integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             default=default,
@@ -159,6 +197,8 @@ class UIntField(UIntFieldGeneric[int]):
 
 
 class BoolField(UIntFieldGeneric[bool]):
+    """Boolean parsing class."""
+
     def __init__(
         self,
         name: str,
@@ -166,6 +206,14 @@ class BoolField(UIntFieldGeneric[bool]):
         data: dataT | None = None,
         string_format: str = "{}",
     ) -> None:
+        """Create boolean parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+        """
         super().__init__(
             name=name,
             bit_count=1,
@@ -177,6 +225,11 @@ class BoolField(UIntFieldGeneric[bool]):
 
     @property
     def value(self) -> bool:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
         return bool(super().value)
 
     @value.setter
@@ -189,7 +242,7 @@ class BoolField(UIntFieldGeneric[bool]):
 
 
 class UInt8Field(UIntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Unsigned eight bit integer parsing class."""
 
     def __init__(
         self,
@@ -199,6 +252,15 @@ class UInt8Field(UIntField):
         string_format: str = UINT08_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Unsigned eight bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -210,7 +272,7 @@ class UInt8Field(UIntField):
 
 
 class UInt16Field(UIntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Unsigned sixteen bit integer parsing class."""
 
     def __init__(
         self,
@@ -220,6 +282,15 @@ class UInt16Field(UIntField):
         string_format: str = UINT16_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Unsigned sixteen bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -231,7 +302,7 @@ class UInt16Field(UIntField):
 
 
 class UInt24Field(UIntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Unsigned twenty-four bit integer parsing class."""
 
     def __init__(
         self,
@@ -241,6 +312,15 @@ class UInt24Field(UIntField):
         string_format: str = UINT24_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Unsigned twenty-four bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -252,7 +332,7 @@ class UInt24Field(UIntField):
 
 
 class UInt32Field(UIntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Unsigned thirty-two bit integer parsing class."""
 
     def __init__(
         self,
@@ -262,6 +342,15 @@ class UInt32Field(UIntField):
         string_format: str = UINT32_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Unsigned thirty-two bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -273,7 +362,7 @@ class UInt32Field(UIntField):
 
 
 class UInt64Field(UIntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Unsigned sixty-four bit integer parsing class."""
 
     def __init__(
         self,
@@ -283,6 +372,15 @@ class UInt64Field(UIntField):
         string_format: str = UINT64_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Unsigned sixty-four bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,

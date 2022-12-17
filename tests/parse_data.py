@@ -1,3 +1,4 @@
+# flake8:noqa
 from __future__ import annotations
 
 import math
@@ -30,7 +31,7 @@ class ParseData:
     bits_data: bitarray
     byte_data: bytes | bytearray
     parent: ParseBase | None
-    children: OrderedDict[str, Any]
+    children: OrderedDict[str, ParseBase]
 
 
 def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:

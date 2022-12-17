@@ -1,6 +1,6 @@
+# flake8:noqa
 import struct
 from collections import OrderedDict
-from typing import Literal
 
 import pytest
 from bitarray import bitarray
@@ -23,7 +23,6 @@ from parse_data import (
 
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.parse_generic_value import ParseGenericValue
-from easyprotocol.base.utils import hex
 from easyprotocol.fields.unsigned_int import (
     UINT08_STRING_FORMAT,
     UINT16_STRING_FORMAT,
@@ -37,7 +36,6 @@ from easyprotocol.fields.unsigned_int import (
     UInt32Field,
     UInt64Field,
     UIntField,
-    UIntFieldGeneric,
 )
 
 
@@ -588,25 +586,6 @@ class TestUInt08:
             tst=tst,
         )
 
-    def test_uint8field_create_parse_short(self) -> None:
-        value1 = 0xFFFF
-        value2 = 0xFF
-        byte_data1 = struct.pack("H", value1)
-        byte_data2 = struct.pack("B", value2)
-        bits_data1 = bitarray(endian="little")
-        bits_data1.frombytes(byte_data1)
-        bits_data2 = bitarray(endian="little")
-        bits_data2.frombytes(byte_data2)
-        name = "test"
-        obj = UInt8Field(
-            name=name,
-            data=byte_data1,
-            endian=DEFAULT_ENDIANNESS,
-        )
-
-        assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
-
     @pytest.mark.parametrize(
         PARAMETER_NAMES,
         TEST_VALUES_08_BIT_UINT_BE,
@@ -670,6 +649,40 @@ class TestUInt08:
             obj=obj,
             tst=tst,
         )
+
+    def test_uint8field_create_parse_too_much_data(self) -> None:
+        value1 = 0xFFFF
+        value2 = 0xFF
+        byte_data1 = struct.pack("H", value1)
+        byte_data2 = struct.pack("B", value2)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        extra = bitarray(bits_data2)
+        name = "test"
+        obj = UInt8Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        remainder = obj.parse(bits_data1)
+        assert remainder == extra
+        assert obj.bits == bits_data2
+        assert obj.byte_value == byte_data2
+
+    def test_uint8field_create_parse_too_little_data(self) -> None:
+        value = 0x0F
+        byte_data = struct.pack("B", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:-1]
+        name = "test"
+        obj = UInt8Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        with pytest.raises(IndexError):
+            obj.parse(bits_data)
 
     def test_uint8field_set_value_invalid_type(self) -> None:
         name = "test"
@@ -868,6 +881,40 @@ class TestUInt16:
             tst=tst,
         )
 
+    def test_uint16field_create_parse_too_much_data(self) -> None:
+        value1 = 0xFFFFFFFF
+        value2 = 0xFFFF
+        byte_data1 = struct.pack("I", value1)
+        byte_data2 = struct.pack("H", value2)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        extra = bitarray(bits_data2)
+        name = "test"
+        obj = UInt16Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        remainder = obj.parse(bits_data1)
+        assert remainder == extra
+        assert obj.bits == bits_data2
+        assert obj.byte_value == byte_data2
+
+    def test_uint16field_create_parse_too_little_data(self) -> None:
+        value = 0x0FFF
+        byte_data = struct.pack("H", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:-1]
+        name = "test"
+        obj = UInt16Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        with pytest.raises(IndexError):
+            obj.parse(bits_data)
+
     def test_uint16field_assign_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
@@ -1063,6 +1110,44 @@ class TestUInt24:
             obj=obj,
             tst=tst,
         )
+
+    def test_uint24field_create_parse_too_much_data(self) -> None:
+        value1 = 0xFFFFFFFF
+        value2 = 0xFFFFFFFF
+        value3 = 0xFF
+        byte_data1 = struct.pack("I", value1)
+        byte_data2 = struct.pack("I", value2)[:-1]
+        byte_data3 = struct.pack("B", value3)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        bits_data3 = bitarray(endian="little")
+        bits_data3.frombytes(byte_data3)
+        extra = bitarray(bits_data3)
+        name = "test"
+        obj = UInt24Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        remainder = obj.parse(bits_data1)
+        assert remainder == extra
+        assert obj.bits == bits_data2
+        assert obj.byte_value == byte_data2
+
+    def test_uint24field_create_parse_too_little_data(self) -> None:
+        value = 0x0FFFFF
+        byte_data = struct.pack("I", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:-9]
+        name = "test"
+        obj = UInt24Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        with pytest.raises(IndexError):
+            obj.parse(bits_data)
 
     def test_uint24field_assign_invalid_type(self) -> None:
         name = "test"
@@ -1260,6 +1345,40 @@ class TestUInt32:
             tst=tst,
         )
 
+    def test_uint32field_create_parse_too_much_data(self) -> None:
+        value1 = 0xFFFFFFFFFFFFFFFF
+        value2 = 0xFFFFFFFF
+        byte_data1 = struct.pack("Q", value1)
+        byte_data2 = struct.pack("I", value2)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        extra = bitarray(bits_data2)
+        name = "test"
+        obj = UInt32Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        remainder = obj.parse(bits_data1)
+        assert remainder == extra
+        assert obj.bits == bits_data2
+        assert obj.byte_value == byte_data2
+
+    def test_uint32field_create_parse_too_little_data(self) -> None:
+        value = 0x0FFFFFFF
+        byte_data = struct.pack("I", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:-1]
+        name = "test"
+        obj = UInt32Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        with pytest.raises(IndexError):
+            obj.parse(bits_data)
+
     def test_uint32field_set_value_invalid_type(self) -> None:
         name = "test"
         value = "invalid"
@@ -1455,6 +1574,40 @@ class TestUInt64:
             obj=obj,
             tst=tst,
         )
+
+    def test_uint64field_create_parse_too_much_data(self) -> None:
+        value1 = 0xFFFFFFFFFFFFFFFF
+        value2 = 0xFFFFFFFF
+        byte_data1 = struct.pack("Q", value1) + struct.pack("Q", value1)
+        byte_data2 = struct.pack("I", value2) + struct.pack("I", value2)
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        extra = bitarray(bits_data2)
+        name = "test"
+        obj = UInt64Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        remainder = obj.parse(bits_data1)
+        assert remainder == extra
+        assert obj.bits == bits_data2
+        assert obj.byte_value == byte_data2
+
+    def test_uint64field_create_parse_too_little_data(self) -> None:
+        value = 0x0FFFFFFFFFFFFFFF
+        byte_data = struct.pack("Q", value)
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:-1]
+        name = "test"
+        obj = UInt64Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        with pytest.raises(IndexError):
+            obj.parse(bits_data)
 
     def test_uint64field_set_value_invalid_type(self) -> None:
         name = "test"

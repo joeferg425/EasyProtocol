@@ -1,3 +1,4 @@
+# flake8:noqa
 from __future__ import annotations
 
 import math
@@ -342,6 +343,41 @@ class TestFloat32:
             obj=obj,
             tst=tst,
         )
+
+    def test_float32field_create_parse_too_much_data(self) -> None:
+        value1 = 0xFFFFFFFF
+        value2 = 0xFFFFFFFF
+        byte_data1 = struct.pack("f", struct.unpack("f", struct.pack("I", value1))[0])
+        byte_data1 += byte_data1
+        byte_data2 = struct.pack("f", struct.unpack("f", struct.pack("I", value2))[0])
+        bits_data1 = bitarray(endian="little")
+        bits_data1.frombytes(byte_data1)
+        bits_data2 = bitarray(endian="little")
+        bits_data2.frombytes(byte_data2)
+        extra = bitarray(bits_data2)
+        name = "test"
+        obj = Float32Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        remainder = obj.parse(bits_data1)
+        assert remainder == extra
+        assert obj.bits == bits_data2
+        assert obj.byte_value == byte_data2
+
+    def test_float32field_create_parse_too_little_data(self) -> None:
+        value = 0xFFFFFFFF
+        byte_data = struct.pack("f", struct.unpack("f", struct.pack("I", value))[0])
+        bits_data = bitarray(endian="little")
+        bits_data.frombytes(byte_data)
+        bits_data = bits_data[:-1]
+        name = "test"
+        obj = Float32Field(
+            name=name,
+            endian=DEFAULT_ENDIANNESS,
+        )
+        with pytest.raises(IndexError):
+            obj.parse(bits_data)
 
     def test_float32field_set_name(self) -> None:
         value = 0.0

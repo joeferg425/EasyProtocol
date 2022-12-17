@@ -1,3 +1,4 @@
+# flake8:noqa
 import struct
 from collections import OrderedDict
 from enum import IntFlag

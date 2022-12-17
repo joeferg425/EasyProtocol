@@ -45,7 +45,7 @@
 		"autoDocstring.generateDocstringOnEnter": true,
 		"editor.trimAutoWhitespace": true,
 		"files.trimTrailingWhitespace": true,
-		"autoDocstring.docstringFormat": "google-notypes"
+		"autoDocstring.docstringFormat": "google-notypes",
 	},
 	"tasks": {
 		"version": "2.0.0",

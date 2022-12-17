@@ -1,8 +1,9 @@
+"""Floating point-number field parsing."""
 from __future__ import annotations
 
 import math
 import struct
-from typing import Any, TypeVar, Union, cast
+from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
@@ -15,7 +16,7 @@ FLOAT_STRING_FORMAT = "{:.3e}"
 
 
 class FloatField(ParseGenericValue[F]):
-    """The base parsing object for unsigned floating point values."""
+    """The base floating-point number field parsing."""
 
     def __init__(
         self,
@@ -23,42 +24,79 @@ class FloatField(ParseGenericValue[F]):
         bit_count: int,
         default: F = 0.0,
         data: dataT | None = None,
-        format: str | None = FLOAT_STRING_FORMAT,
+        string_format: str | None = FLOAT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create base floating-point number field parsing class.
+
+        This class doesn't do much but provide a superclass for non-integer number fields.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         self.bit_count = bit_count
         super().__init__(
             name=name,
             data=data,
             default=default,
-            string_format=format,
+            string_format=string_format,
             endian=endian,
         )
 
 
-class Float32IEEFieldGeneric(FloatField[F]):
+class Float32IEEFieldGeneric(
+    FloatField[F],
+    Generic[F],
+):
+    """Base thirty-two bit IEEE floating-point number field parsing.
+
+    This class is generic in case there is some other class in the future that can inherit from it.
+    """
+
     def __init__(
         self,
         name: str,
         default: F = 0.0,
         data: dataT | None = None,
-        format: str | None = FLOAT_STRING_FORMAT,
+        string_format: str | None = FLOAT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create base thirty-two bit IEEE floating-point number class.
+
+        This class is generic in case there is some other class in the future that can inherit from it.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name,
             bit_count=32,
             data=data,
             default=default,
-            format=format,
+            string_format=string_format,
             endian=endian,
         )
 
     def parse(self, data: dataT) -> bitarray:
-        """Parse bytes that make of this protocol field into meaningful data.
+        """Parse bytes that make up this field into meaningful data.
 
         Args:
             data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing this field
+
+        Raises:
+            IndexError: if there is insufficient data to parse this field
         """
         bits = input_to_bytes(
             data=data,
@@ -70,14 +108,14 @@ class Float32IEEFieldGeneric(FloatField[F]):
             int.to_bytes(_bit_mask, length=math.ceil(self.bit_count / 8), byteorder="little", signed=False)
         )
         if len(bit_mask) < len(bits):
-            bit_mask = bitarray("0" * (len(bits) - len(bit_mask))) + bit_mask
-        if len(bits) < len(bit_mask):
+            bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
+        if len(bits) < len(bit_mask) or len(bits) < self._bit_count:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self.bit_count]
         temp_bits = bitarray(my_bits)
         byte_count = math.ceil(self.bit_count / 8)
         if len(temp_bits) < byte_count * 8:
-            temp_bits = bitarray("0" * ((byte_count * 8) - len(temp_bits))) + temp_bits
+            temp_bits = temp_bits + bitarray("0" * ((byte_count * 8) - len(temp_bits)), endian="little")
         self._bits = my_bits[: self.bit_count]
         if len(bits) >= self.bit_count:
             return bits[self.bit_count :]
@@ -85,6 +123,11 @@ class Float32IEEFieldGeneric(FloatField[F]):
             return bitarray(endian="little")
 
     def get_value(self) -> F:
+        """Get the parsed value of this class.
+
+        Returns:
+            the parsed value of this class
+        """
         b = self.bits_lsb.tobytes()
         if self.endian == "little":
             return cast(F, struct.unpack("<f", b)[0])
@@ -92,6 +135,11 @@ class Float32IEEFieldGeneric(FloatField[F]):
             return cast(F, struct.unpack(">f", b)[0])
 
     def set_value(self, value: F) -> None:
+        """Set the fields that are part of this field.
+
+        Args:
+            value: the new list of fields or dictionary of fields to assign to this field
+        """
         if self.endian == "little":
             bytes_val = bytearray(struct.pack("<f", value))
         else:
@@ -109,6 +157,11 @@ class Float32IEEFieldGeneric(FloatField[F]):
         return self._bits.tobytes()
 
     def set_bits_lsb(self, bits: bitarray) -> None:
+        """Set the bits of this field in least-significant-bit first format.
+
+        Args:
+            bits: lsb bits
+        """
         if bits.endian() != "little":
             v = bits.tobytes()
             _bits = bitarray(endian="little")
@@ -120,12 +173,21 @@ class Float32IEEFieldGeneric(FloatField[F]):
         self._bits = _bits[: self.bit_count]
 
     def get_string_value(self) -> str:
+        """Get the string value of this field.
+
+        Returns:
+            the string value of this field
+        """
         return self.string_format.format(self.value)
 
 
 class Float32IEEField(Float32IEEFieldGeneric[float]):
+    """Thirty-two bit IEEE floating-point number field parsing."""
+
     ...
 
 
 class Float32Field(Float32IEEField):
+    """Thirty-two bit IEEE floating-point number field parsing."""
+
     ...

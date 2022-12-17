@@ -244,30 +244,6 @@ class ParseFieldListGeneric(
         """
         return f'[{", ".join([str(value) for value in self._children .values()])}]'
 
-    def __bytes__(self) -> bytes:
-        """Get the bytes that make up this field.
-
-        Returns:
-            the bytes of this field
-        """
-        return self.bits.tobytes()
-
-    def __str__(self) -> str:
-        """Get a nicely formatted string describing this field.
-
-        Returns:
-            a nicely formatted string describing this field
-        """
-        return f"{self._name}: {self.string}"
-
-    def __repr__(self) -> str:
-        """Get a nicely formatted string describing this field.
-
-        Returns:
-            a nicely formatted string describing this field
-        """
-        return f"<{self.__class__.__name__}> {self.__str__()}"
-
     @property
     def value(self) -> Sequence[parseGenericT[K, T]]:
         """Get the parsed value of the field.
@@ -410,6 +386,6 @@ class ParseFieldListGeneric(
 
 
 class ParseFieldList(ParseFieldListGeneric[str, Any]):
-    """The base field dictionary."""
+    """The base field list."""
 
     ...

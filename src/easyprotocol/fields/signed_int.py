@@ -1,4 +1,4 @@
-"""The base parsing object for handling parsing in a convenient package."""
+"""Signed integer parsing fields."""
 from __future__ import annotations
 
 import math
@@ -24,7 +24,7 @@ class IntFieldGeneric(
     ParseGenericValue[T],
     Generic[T],
 ):
-    """The base parsing object for unsigned integers."""
+    """Base signed integer parsing class."""
 
     def __init__(
         self,
@@ -35,6 +35,16 @@ class IntFieldGeneric(
         string_format: str = INT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create base signed integer parsing field.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             default=default,
@@ -45,10 +55,16 @@ class IntFieldGeneric(
         )
 
     def parse(self, data: dataT) -> bitarray:
-        """Parse bytes that make of this protocol field into meaningful data.
+        """Parse the bits of this field into meaningful data.
 
         Args:
             data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
+
+        Raises:
+            IndexError: if there is too little data to parse this field
         """
         bits = input_to_bytes(
             data=data,
@@ -63,7 +79,7 @@ class IntFieldGeneric(
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
         elif len(bit_mask) > len(bits):
             bit_mask = bit_mask[: len(bits)]
-        if len(bits) < len(bit_mask) or len(bits) == 0:
+        if len(bits) < len(bit_mask) or len(bits) == 0 or len(bits) < self._bit_count:
             raise IndexError("Too little data to parse field.")
         my_bits = (bits & bit_mask)[: self._bit_count]
         self._bits = my_bits[: self._bit_count]
@@ -73,6 +89,11 @@ class IntFieldGeneric(
             return bitarray(endian="little")
 
     def get_value(self) -> T:
+        """Get the parsed value of this class.
+
+        Returns:
+            the parsed value of this class
+        """
         _bits = self.bits_lsb
         m = len(_bits) % 8
         if m != 0:
@@ -83,6 +104,11 @@ class IntFieldGeneric(
         return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
 
     def set_value(self, value: T) -> None:
+        """Set the fields that are part of this field.
+
+        Args:
+            value: the new list of fields or dictionary of fields to assign to this field
+        """
         if value is None:
             _value = 0
         elif not isinstance(value, int):
@@ -96,15 +122,12 @@ class IntFieldGeneric(
         self._bits = bits[: self._bit_count]
 
     def get_string_value(self) -> str:
-        return self._string_format.format(self.value)
-
-    def __bytes__(self) -> bytes:
-        """Get the bytes that make up this field.
+        """Get the string value of this field.
 
         Returns:
-            the bytes of this field
+            the string value of this field
         """
-        return self._bits.tobytes()
+        return self._string_format.format(self.value)
 
     @property
     def value(self) -> T:
@@ -116,10 +139,15 @@ class IntFieldGeneric(
         return self.get_value()
 
     @value.setter
-    def value(self, value: T) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
+    def value(self, value: T) -> None:
         self.set_value(value)
 
     def set_bits_lsb(self, bits: bitarray) -> None:
+        """Set the bits of this field in least-significant-bit first format.
+
+        Args:
+            bits: lsb bits
+        """
         if bits.endian() != "little":
             m = len(bits) % 8
             if m != 0:
@@ -135,6 +163,8 @@ class IntFieldGeneric(
 
 
 class IntField(IntFieldGeneric[int]):
+    """Signed integer parsing class."""
+
     def __init__(
         self,
         name: str,
@@ -144,6 +174,16 @@ class IntField(IntFieldGeneric[int]):
         string_format: str = INT_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create signed integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             default=default,
@@ -155,7 +195,7 @@ class IntField(IntFieldGeneric[int]):
 
 
 class Int8Field(IntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Signed eight bit integer parsing class."""
 
     def __init__(
         self,
@@ -165,6 +205,15 @@ class Int8Field(IntField):
         string_format: str = INT08_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create signed eight bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -176,7 +225,7 @@ class Int8Field(IntField):
 
 
 class Int16Field(IntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Signed sixteen bit integer parsing class."""
 
     def __init__(
         self,
@@ -186,6 +235,15 @@ class Int16Field(IntField):
         string_format: str = INT16_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create signed sixteen bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -197,7 +255,7 @@ class Int16Field(IntField):
 
 
 class Int24Field(IntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Signed twenty-four bit integer parsing class."""
 
     def __init__(
         self,
@@ -207,6 +265,15 @@ class Int24Field(IntField):
         string_format: str = INT24_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create signed twenty-four bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -218,7 +285,7 @@ class Int24Field(IntField):
 
 
 class Int32Field(IntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Signed thirty-two bit integer parsing class."""
 
     def __init__(
         self,
@@ -228,6 +295,15 @@ class Int32Field(IntField):
         string_format: str = INT32_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create signed thirty-two bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,
@@ -239,7 +315,7 @@ class Int32Field(IntField):
 
 
 class Int64Field(IntField):
-    """The base parsing object for handling parsing in a convenient package."""
+    """Signed sixty-four bit integer parsing class."""
 
     def __init__(
         self,
@@ -249,6 +325,15 @@ class Int64Field(IntField):
         string_format: str = INT64_STRING_FORMAT,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create signed sixty-four bit integer parsing class.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             data=data,

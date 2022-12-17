@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Any, Generic, Literal, Sequence, SupportsBytes, TypeVar
+from typing import Literal, Sequence, SupportsBytes, TypeVar
 
 from bitarray import bitarray
 

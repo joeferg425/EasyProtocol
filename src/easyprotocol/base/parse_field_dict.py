@@ -2,28 +2,16 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import (
-    Any,
-    Generic,
-    Iterator,
-    Mapping,
-    OrderedDict,
-    Sequence,
-    TypeVar,
-    Union,
-    cast,
-)
+from typing import Any, Generic, Iterator, Mapping, OrderedDict, Sequence, Union, cast
 
 from bitarray import bitarray
 
-# from easyprotocol.base.parse_field_list import ParseGenericUnion
 from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase, endianT
 from easyprotocol.base.parse_generic_dict import K, ParseGenericDict
 from easyprotocol.base.parse_generic_list import ParseGenericList
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.parse_generic_value import ParseGenericValue, T
 from easyprotocol.base.utils import dataT, input_to_bytes
 
-T = TypeVar("T", covariant=True)
 parseGenericT = Union[ParseGenericValue[T], ParseGenericDict[K, T], ParseGenericList[T]]
 
 
@@ -38,9 +26,10 @@ class ParseFieldDictGeneric(
         self,
         name: str,
         default: Sequence[ParseBase]
-        | OrderedDict[str, ParseBase]
+        | Sequence[ParseBase]
         | Sequence[parseGenericT[K, T]]
-        | OrderedDict[str, parseGenericT[K, T]] = list(),
+        | OrderedDict[str, ParseBase]
+        | OrderedDict[str, parseGenericT[K, T]] = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -50,8 +39,11 @@ class ParseFieldDictGeneric(
 
         Args:
             name: name of parsed object
-            data: optional bytes to be parsed
-            value: optional value to assign to object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
         """
         super().__init__(
             name=name,
@@ -67,13 +59,13 @@ class ParseFieldDictGeneric(
             self.parse(data)
 
     def parse(self, data: dataT) -> bitarray:
-        """Parse bytes that make of this protocol field into meaningful data.
+        """Parse the bits of this field into meaningful data.
 
         Args:
             data: bytes to be parsed
 
-        Raises:
-            NotImplementedError: if not implemented for this field
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
         """
         bit_data = input_to_bytes(data=data)
         for field in self._children.values():
@@ -129,6 +121,11 @@ class ParseFieldDictGeneric(
         self,
         value: OrderedDict[K, parseGenericT[K, T]] | Sequence[parseGenericT[K, T]],
     ) -> None:
+        """Set the fields that are part of this field.
+
+        Args:
+            value: the new list of fields or dictionary of fields to assign to this field
+        """
         if isinstance(value, dict):
             for key, item in value.items():
                 self.__setitem__(key, item)
@@ -140,6 +137,11 @@ class ParseFieldDictGeneric(
                 item._set_parent_generic(self)
 
     def get_bits_lsb(self) -> bitarray:
+        """Get the bits of this field in least-significant-bit first format.
+
+        Returns:
+            lsb bits
+        """
         data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
@@ -147,6 +149,11 @@ class ParseFieldDictGeneric(
         return data
 
     def get_children(self) -> OrderedDict[str, parseGenericT[str, Any]]:
+        """Get the children of this field as an ordered dictionary.
+
+        Returns:
+            the children of this field
+        """
         return self._children  # pyright:ignore[reportGeneralTypeIssues]
 
     def set_children(
@@ -156,6 +163,11 @@ class ParseFieldDictGeneric(
         | OrderedDict[str, parseGenericT[K, T]]
         | Sequence[parseGenericT[K, T]],
     ) -> None:
+        """Set the children of this field using an ordered dictionary.
+
+        Args:
+            children: the new children for this field
+        """
         self._children.clear()
         if isinstance(children, (dict, OrderedDict)):
             keys = list(children.keys())
@@ -169,9 +181,19 @@ class ParseFieldDictGeneric(
                 value._set_parent_generic(self)
 
     def get_parent(self) -> parseGenericT[str, Any] | None:
+        """Get the field (if any) that is this field's parent.
+
+        Returns:
+            this field's parent (or None)
+        """
         return cast(parseGenericT[str, Any], self._parent)
 
     def set_parent(self, parent: parseGenericT[str, Any] | None) -> None:
+        """Set this field's parent.
+
+        Args:
+            parent: this field's new parent (or None)
+        """
         self._parent = parent
 
     def get_string_value(self) -> str:
@@ -200,6 +222,11 @@ class ParseFieldDictGeneric(
 
     @property
     def parent(self) -> parseGenericT[str, Any] | None:
+        """Get the field (if any) that is this field's parent.
+
+        Returns:
+            this field's parent (or None)
+        """
         return self.get_parent()
 
     @parent.setter
@@ -222,46 +249,53 @@ class ParseFieldDictGeneric(
     ) -> None:
         self.set_children(children=children)
 
-    def __bytes__(self) -> bytes:
-        """Get the bytes that make up this field.
-
-        Returns:
-            the bytes of this field
-        """
-        return self.bits_lsb.tobytes()
-
-    def __str__(self) -> str:
-        """Get a nicely formatted string describing this field.
-
-        Returns:
-            a nicely formatted string describing this field
-        """
-        return f"{self._name}: {self.string}"
-
-    def __repr__(self) -> str:
-        """Get a nicely formatted string describing this field.
-
-        Returns:
-            a nicely formatted string describing this field
-        """
-        return f"<{self.__class__.__name__}> {self.__str__()}"
-
     def __setitem__(self, name: K, value: parseGenericT[K, T]) -> None:
+        """Set an item in this list to a new value.
+
+        Args:
+            name: name of item to replace
+            value: new field value
+        """
         value._set_parent_generic(self)
-        return self._children.__setitem__(str(name), value)
+        self._children.__setitem__(str(name), value)
 
     def __getitem__(self, name: K) -> parseGenericT[K, T]:
+        """Get a field from this class by name.
+
+        Args:
+            name: name of the sub-field to retrieve
+
+        Returns:
+            the field
+        """
         return cast(parseGenericT[K, T], self._children.__getitem__(str(name)))
 
     def __delitem__(self, name: K) -> None:
-        return self._children.__delitem__(str(name))
+        """Delete item from this list by name.
+
+        Args:
+            name: name of item to delete
+        """
+        self._children.__delitem__(str(name))
 
     def __len__(self) -> int:
+        """Get the count of this field's sub-fields.
+
+        Returns:
+            the length of this field dictionary
+        """
         return len(self._children)
 
     def __iter__(self) -> Iterator[K]:
+        """Iterate over the fields in this list.
+
+        Returns:
+            field iterator
+        """
         return self._children.__iter__()  # pyright:ignore[reportGeneralTypeIssues]
 
 
 class ParseFieldDict(ParseFieldDictGeneric[str, Any]):
+    """The base field dictionary."""
+
     ...

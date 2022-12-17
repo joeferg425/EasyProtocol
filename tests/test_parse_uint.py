@@ -57,7 +57,7 @@ def check_int_properties(
         obj._parent == tst.parent  # pyright:ignore[reportPrivateUsage]
     ), f"{obj}: obj.parent is not the expected value ({obj._parent} != expected value: {tst.parent})"  # pyright:ignore[reportPrivateUsage]
     assert (
-        obj.bytes == tst.byte_data
+        obj.byte_value == tst.byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
         obj.endian == tst.endian
@@ -605,7 +605,7 @@ class TestUInt08:
         )
 
         assert obj.bits == bits_data2
-        assert obj.bytes == byte_data2
+        assert obj.byte_value == byte_data2
 
     @pytest.mark.parametrize(
         PARAMETER_NAMES,

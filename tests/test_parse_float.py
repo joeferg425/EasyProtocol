@@ -86,7 +86,7 @@ def check_float_properties(
         obj.parent == tst.parent
     ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
     assert (
-        obj.bytes == tst.byte_data
+        obj.byte_value == tst.byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
         obj.endian == tst.endian

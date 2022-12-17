@@ -29,9 +29,8 @@ class ParseBase(SupportsBytes):
         Args:
             name: name of parsed object
             data: bytes to be parsed
-            value: value to assign to object
-            fmt: python format string (e.g. "{:f}")
-            parent: object to nest this one inside of
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
             endian: the byte endian-ness of this object
         """
         self._name: str = ""
@@ -61,15 +60,35 @@ class ParseBase(SupportsBytes):
         raise NotImplementedError()
 
     def get_name(self) -> str:
+        """Get the name of this field.
+
+        Returns:
+            the name
+        """
         return self._name
 
     def set_name(self, value: str) -> None:
+        """Set the name of this field.
+
+        Args:
+            value: the new name of this field
+        """
         self._name = value
 
     def get_bits_lsb(self) -> bitarray:
+        """Get the bits of this field in least-significant-bit first format.
+
+        Returns:
+            lsb bits
+        """
         return self._bits
 
-    def get_bits(self) -> bitarray:
+    def get_bits_msb(self) -> bitarray:
+        """Get the bits of this field in most-significant-bit first format.
+
+        Returns:
+            msb bits
+        """
         b = self.get_bits_lsb().tobytes()
         bits = bitarray(endian="big")
         bits.frombytes(b)
@@ -79,6 +98,14 @@ class ParseBase(SupportsBytes):
             return bits
 
     def set_bits_lsb(self, bits: bitarray) -> None:
+        """Set the bits of this field in least-significant-bit first format.
+
+        Args:
+            bits: lsb bits
+
+        Raises:
+            NotImplementedError: until you override it in a sub-class
+        """
         raise NotImplementedError()
 
     def _get_parent_generic(self) -> ParseBase | None:
@@ -115,9 +142,21 @@ class ParseBase(SupportsBytes):
         return UNDEFINED
 
     def get_bytes_value(self) -> bytes:
+        """Get the bytes that make up this field.
+
+        If there are not enough bits, the last byte is padded with zeros.
+
+        Returns:
+            field bytes
+        """
         return self.__bytes__()
 
     def get_hex_value(self) -> str:
+        """Get the hexadecimal value of this field.
+
+        Returns:
+            the hexadecimal value of this field
+        """
         return hex(self.get_bytes_value())
 
     @property
@@ -148,14 +187,29 @@ class ParseBase(SupportsBytes):
 
     @property
     def bits(self) -> bitarray:
-        return self.get_bits()
+        """Get the bits of this field in most-significant-bit first format.
+
+        Returns:
+            msb bits
+        """
+        return self.get_bits_msb()
 
     @property
     def bits_str(self) -> str:
+        """Get the bit string of this field in most-significant-bit first format.
+
+        Returns:
+            msb bit string
+        """
         return f"{self.bits.to01()}:<b"
 
     @property
     def bits_str_lsb(self) -> str:
+        """Get the bit string of this field in least-significant-bit first format.
+
+        Returns:
+            lsb bit string
+        """
         return f"b>:{self.bits_lsb.to01()}"
 
     @property
@@ -181,7 +235,7 @@ class ParseBase(SupportsBytes):
         return self._endian
 
     @property
-    def bytes(self) -> bytes:
+    def byte_value(self) -> bytes:
         """Get the byte value of this object.
 
         Returns:
@@ -199,7 +253,12 @@ class ParseBase(SupportsBytes):
         return self.get_string_value()
 
     @property
-    def hex(self) -> str:
+    def hex_value(self) -> str:
+        """Get the hexadecimal value of this field.
+
+        Returns:
+            the hexadecimal value of this field
+        """
         return self.get_hex_value()
 
     def __bytes__(self) -> bytes:

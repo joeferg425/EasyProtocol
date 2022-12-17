@@ -8,7 +8,7 @@
 		"python.linting.flake8Enabled": true,
 		"python.terminal.activateEnvInCurrentTerminal": true,
 		"autoDocstring.guessTypes": false,
-		"python.formatting.provider": "black",
+		"python.formatting.provider": "none",
 		"cSpell.words": [
 			"bitarray",
 			"easyprotocol",
@@ -44,7 +44,8 @@
 		"isort.check": true,
 		"autoDocstring.generateDocstringOnEnter": true,
 		"editor.trimAutoWhitespace": true,
-		"files.trimTrailingWhitespace": true
+		"files.trimTrailingWhitespace": true,
+		"autoDocstring.docstringFormat": "google-notypes"
 	},
 	"tasks": {
 		"version": "2.0.0",

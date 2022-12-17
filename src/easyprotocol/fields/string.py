@@ -118,7 +118,7 @@ class ByteField(UIntFieldGeneric[bytes]):
         )
 
     def get_value(self) -> bytes:
-        return self.bytes
+        return self.byte_value
 
     @property
     def value(self) -> bytes:
@@ -143,7 +143,7 @@ class ByteField(UIntFieldGeneric[bytes]):
         self._bits = bits[: self._bit_count]
 
     def get_string_value(self) -> str:
-        return self._string_format.format(self.hex)
+        return self._string_format.format(self.hex_value)
 
 
 class BytesField(ParseValueArrayField[bytes]):

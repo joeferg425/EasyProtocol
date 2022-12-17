@@ -1,4 +1,4 @@
-"""The base parsing object for handling parsing in a convenient package."""
+"""This class is the basic parsing class for dictionary types."""
 from __future__ import annotations
 
 from enum import Enum
@@ -18,7 +18,7 @@ class ParseGenericDict(
     Mapping[K, ParseBase],
     Generic[K, T],
 ):
-    """The base parsing object for handling parsing in a convenient package."""
+    """This class is the basic parsing class for dictionary types."""
 
     def __init__(
         self,
@@ -29,12 +29,15 @@ class ParseGenericDict(
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
-        """Create the base parsing object for handling parsing in a convenient package.
+        """Create the basic parsing class for dictionary types.
 
         Args:
             name: name of parsed object
-            data: optional bytes to be parsed
-            value: optional value to assign to object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
         """
         super().__init__(
             name=name,
@@ -48,13 +51,13 @@ class ParseGenericDict(
             self.parse(data)
 
     def parse(self, data: dataT) -> bitarray:
-        """Parse bytes that make of this protocol field into meaningful data.
+        """Parse the bits of this field into meaningful data.
 
         Args:
             data: bytes to be parsed
 
-        Raises:
-            NotImplementedError: if not implemented for this field
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
         """
         bit_data = input_to_bytes(data=data)
         for field in self._children.values():
@@ -104,6 +107,11 @@ class ParseGenericDict(
         self,
         value: OrderedDict[str, ParseBase] | Sequence[ParseBase],
     ) -> None:
+        """Set the parsed value of the field.
+
+        Args:
+            value: the value of the field
+        """
         if isinstance(value, dict):
             for key, item in value.items():
                 self.__setitem__(key, item)
@@ -115,6 +123,11 @@ class ParseGenericDict(
                 item._set_parent_generic(self)
 
     def get_bits_lsb(self) -> bitarray:
+        """Get the bits of this field in least-significant-bit first format.
+
+        Returns:
+            lsb bits
+        """
         data = bitarray(endian="little")
         values = list(self._children.values())
         for value in values:
@@ -149,7 +162,7 @@ class ParseGenericDict(
         return f'{{{", ".join([str(value) for value in self._children.values()])}}}'
 
     @property
-    def value(self) -> OrderedDict[str, ParseBase | Any]:
+    def value(self) -> OrderedDict[str, ParseBase]:
         """Get the parsed value of the field.
 
         Returns:
@@ -160,7 +173,7 @@ class ParseGenericDict(
     @value.setter
     def value(
         self,
-        value: OrderedDict[str, ParseBase | Any] | Sequence[ParseBase | Any] | Any,
+        value: OrderedDict[str, ParseBase] | Sequence[ParseBase | Any],
     ) -> None:
         self.set_value(value)
 
@@ -205,16 +218,46 @@ class ParseGenericDict(
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
     def __setitem__(self, name: object, value: ParseBase) -> None:
+        """Set an item in this dictionary to a new value.
+
+        Args:
+            name: a field name
+            value: a new field value
+
+        Returns:
+            None
+        """
         value._set_parent_generic(self)
         return self._children.__setitem__(str(name), value)
 
     def __getitem__(self, name: object) -> ParseBase:
+        """Get an item in this dictionary by name.
+
+        Args:
+            name: a field name
+
+        Returns:
+            the named field
+        """
         return self._children.__getitem__(str(name))
 
     def __delitem__(self, name: object) -> None:
+        """Delete an item in this dictionary by name.
+
+        Args:
+            name: a field name
+
+        Returns:
+            None
+        """
         return self._children.__delitem__(str(name))
 
     def __len__(self) -> int:
+        """Get the count of this field's sub-fields.
+
+        Returns:
+            the length of this field dictionary
+        """
         return len(self._children)
 
     @property

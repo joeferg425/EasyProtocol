@@ -1,6 +1,7 @@
+"""This class is the basic parsing class for value types."""
 from __future__ import annotations
 
-from typing import Any, Generic, Iterable, TypeVar
+from typing import Any, Generic, TypeVar
 
 from easyprotocol.base.parse_generic import ParseBase, dataT, endianT
 
@@ -11,6 +12,8 @@ class ParseGenericValue(
     ParseBase,
     Generic[T],
 ):
+    """This class is the basic parsing class for value types."""
+
     def __init__(
         self,
         name: str,
@@ -20,6 +23,16 @@ class ParseGenericValue(
         string_format: str | None = None,
         endian: endianT = ...,
     ) -> None:
+        """Create the basic parsing class for value types.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name,
             data,
@@ -30,10 +43,23 @@ class ParseGenericValue(
         if data is None and default is not None:
             self.value = default
 
-    def get_value(self) -> T:
+    def get_value(self) -> Any:
+        """Get the parsed value of this class.
+
+        Raises:
+            NotImplementedError: until overridden in a subclass
+        """
         raise NotImplementedError()
 
     def set_value(self, value: Any) -> None:
+        """Set the parsed value of this class.
+
+        Args:
+            value: the new value of this field
+
+        Raises:
+            NotImplementedError: until overridden in a subclass
+        """
         raise NotImplementedError()
 
     @property
@@ -46,7 +72,7 @@ class ParseGenericValue(
         return self.get_value()
 
     @value.setter
-    def value(self, value: T | Iterable[Any] | Any) -> None:
+    def value(self, value: Any) -> None:
         self.set_value(value)
 
     @property

@@ -10,6 +10,7 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 
+from easyprotocol.base.parse_field_list import parseGenericT
 from easyprotocol.base.parse_generic import UNDEFINED, ParseBase
 from easyprotocol.base.utils import hex
 
@@ -31,7 +32,7 @@ class ParseData:
     bits_data: bitarray
     byte_data: bytes | bytearray
     parent: ParseBase | None
-    children: OrderedDict[str, ParseBase]
+    children: OrderedDict[str, ParseBase | parseGenericT[str, Any] | Any]
 
 
 def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:

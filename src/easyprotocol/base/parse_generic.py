@@ -244,7 +244,7 @@ class ParseBase(SupportsBytes):
         return self.__bytes__()
 
     @property
-    def string(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -267,7 +267,7 @@ class ParseBase(SupportsBytes):
         Returns:
             the bytes of this field
         """
-        return self._bits.tobytes()
+        return self.get_bits_lsb().tobytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -275,7 +275,7 @@ class ParseBase(SupportsBytes):
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.string}"
+        return f"{self._name}: {self.string_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.

@@ -74,9 +74,9 @@ def check_ParseFieldList_children(
         )
 
     for v in tst.children.values():
-        assert v.string in obj.string
-        assert v.string in str(obj)
-        assert v.string in repr(obj)
+        assert v.string_value in obj.string_value
+        assert v.string_value in str(obj)
+        assert v.string_value in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 

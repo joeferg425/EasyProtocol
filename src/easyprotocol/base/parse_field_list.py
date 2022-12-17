@@ -37,7 +37,10 @@ class ParseFieldListGeneric(
     def __init__(
         self,
         name: str,
-        default: Sequence[parseGenericT[K, T]] | OrderedDict[str, parseGenericT[K, T]] = (),
+        default: Sequence[ParseBase]
+        | Sequence[parseGenericT[K, T]]
+        | OrderedDict[str, ParseBase]
+        | OrderedDict[str, parseGenericT[K, T]] = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -172,7 +175,10 @@ class ParseFieldListGeneric(
 
     def set_children(
         self,
-        children: OrderedDict[str, parseGenericT[K, T]] | Sequence[parseGenericT[K, T]],
+        children: OrderedDict[str, parseGenericT[K, T]]
+        | Sequence[parseGenericT[K, T]]
+        | OrderedDict[str, ParseBase]
+        | Sequence[ParseBase],
     ) -> None:
         """Set the children of this field using an ordered dictionary.
 

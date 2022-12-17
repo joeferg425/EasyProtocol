@@ -135,10 +135,10 @@ class Float32IEEFieldGeneric(
             return cast(F, struct.unpack(">f", b)[0])
 
     def set_value(self, value: F) -> None:
-        """Set the fields that are part of this field.
+        """Set the value of this field.
 
         Args:
-            value: the new list of fields or dictionary of fields to assign to this field
+            value: the new value to assign to this field
         """
         if self.endian == "little":
             bytes_val = bytearray(struct.pack("<f", value))

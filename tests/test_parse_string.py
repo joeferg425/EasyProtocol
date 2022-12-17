@@ -54,19 +54,21 @@ def check_str_strings(
     obj: CharField | StringField,
     tst: ParseData,
 ) -> None:
-    assert f'"{tst.value}"' == obj.string, (
-        f"{obj}: obj.string is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
+    assert f'"{tst.value}"' == obj.string_value, (
+        f"{obj}: obj.string_value is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
     )
-    assert len(obj.string) > 0, f"{obj}: obj.string is not the expected value " + f"(? != expected value: {obj.string})"
+    assert len(obj.string_value) > 0, (
+        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
+    )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string in str(
+    assert obj.string_value in str(
         obj
-    ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string in repr(
+    assert obj.string_value in repr(
         obj
-    ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -94,19 +96,21 @@ def check_byte_strings(
     obj: ByteField | BytesField,
     tst: ParseData,
 ) -> None:
-    assert f'"{hex(tst.value)}"(bytes)' == obj.string, (
-        f"{obj}: obj.string is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string})"
+    assert f'"{hex(tst.value)}"(bytes)' == obj.string_value, (
+        f"{obj}: obj.string_value is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
     )
-    assert len(obj.string) > 0, f"{obj}: obj.string is not the expected value " + f"(? != expected value: {obj.string})"
+    assert len(obj.string_value) > 0, (
+        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
+    )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string in str(
+    assert obj.string_value in str(
         obj
-    ), f"{obj}: obj.string is not in the object's string vale ({obj.string} not in {str(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string in repr(
+    assert obj.string_value in repr(
         obj
-    ), f"{obj}: obj.string is not in the object's repr vale ({obj.string} not in {repr(obj)})"
+    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"

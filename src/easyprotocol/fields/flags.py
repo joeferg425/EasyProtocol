@@ -60,10 +60,10 @@ class FlagsField(UIntFieldGeneric[F]):
             return v
 
     def set_value(self, value: F) -> None:
-        """Set the fields that are part of this field.
+        """Set the value of this field.
 
         Args:
-            value: the new list of fields or dictionary of fields to assign to this field
+            value: the new value to assign to this field
         """
         if isinstance(value, IntFlag):
             _value = value.value
@@ -81,9 +81,10 @@ class FlagsField(UIntFieldGeneric[F]):
         flags_dict: dict[str, IntFlag] = dict(self._flags_type._member_map_)  # pyright:ignore[reportGeneralTypeIssues]
         flags: Sequence[IntFlag] = list(flags_dict.values())
         if isinstance(value, IntFlag):
-            return "|".join([v.name for v in flags if v in value and v.name])
+            s = "|".join([v.name for v in flags if v in value and v.name])
         else:
-            return ""
+            s = str(value)
+        return self.string_format.format(s)
 
     @property
     def value(self) -> F | int:  # pyright:ignore[reportIncompatibleMethodOverride]
@@ -132,6 +133,12 @@ class UInt8FlagsField(FlagsField[F]):
         )
 
 
+class Flags8Field(UInt8FlagsField[F]):
+    """Eight bit flags parsing class."""
+
+    ...
+
+
 class UInt16FlagsField(FlagsField[F]):
     """Sixteen bit flags parsing class."""
 
@@ -163,6 +170,12 @@ class UInt16FlagsField(FlagsField[F]):
             endian=endian,
             string_format=string_format,
         )
+
+
+class Flags16Field(UInt16FlagsField[F]):
+    """Sixteen bit flags parsing class."""
+
+    ...
 
 
 class UInt24FlagsField(FlagsField[F]):
@@ -198,6 +211,12 @@ class UInt24FlagsField(FlagsField[F]):
         )
 
 
+class Flags24Field(UInt24FlagsField[F]):
+    """Twenty-four bit flags parsing class."""
+
+    ...
+
+
 class UInt32FlagsField(FlagsField[F]):
     """Thirty-two bit flags parsing class."""
 
@@ -229,3 +248,9 @@ class UInt32FlagsField(FlagsField[F]):
             endian=endian,
             string_format=string_format,
         )
+
+
+class Flags32Field(UInt32FlagsField[F]):
+    """Thirty-two bit flags parsing class."""
+
+    ...

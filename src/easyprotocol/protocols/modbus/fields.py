@@ -199,7 +199,7 @@ class ModbusCoilArray(ParseArrayField[bool]):
         return bit_data
 
     @property
-    def string(self) -> str:
+    def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:

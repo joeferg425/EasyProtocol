@@ -159,7 +159,7 @@ class ParseValueListGeneric(
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.string}"
+        return f"{self._name}: {self.string_value}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.

@@ -173,7 +173,7 @@ class ParseGenericDict(
     @value.setter
     def value(
         self,
-        value: OrderedDict[str, ParseBase] | Sequence[ParseBase | Any],
+        value: OrderedDict[str, ParseBase] | Sequence[ParseBase] | Any,
     ) -> None:
         self.set_value(value)
 

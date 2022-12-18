@@ -28,144 +28,197 @@ python -m pip install easyprotocol
 
 - Demo Code
 
-  Lets parse something like the following.
+    Lets parse something like the following.
 
-  | Name       | Bit Count | Data Type           |
-  |:--         |:--        |:--                  |
-  | id         | 8         | 8-bit int           |
-  | data count | 16        | 16-bit unsigned int |
-  | data       | 8         | 8-bit unsigned int  |
+    | Name       | Bit Count | Data Type           |
+    |:--         |:--        |:--                  |
+    | id         | 8         | 8-bit int           |
+    | data count | 16        | 16-bit unsigned int |
+    | data       | 8         | 8-bit unsigned int  |
 
-  Fixed frame definition. Nothing fancy.
+    Fixed frame definition. Nothing fancy.
 
-  ```python
-  from easyprotocol.fields import UInt8Field, UInt16Field, Int8Field
-  from easyprotocol.base import ParseList
+    ```python
+    """Define your parser using simple python classes and familiar types."""
+    from easyprotocol.base import ParseFieldList, hex
+    from easyprotocol.fields import Int8Field, UInt8Field, UInt16Field
 
-  exampleParser = ParseList(name='ExampleParser1', children=[
-    Int8Field(name='id'),
-    UInt16Field(name='data count'),
-    UInt8Field(name='data'),
-  ])
+    # Make an instance of the modified list type and add your fields as the list items.
+    exampleParser = ParseFieldList(
+        # give the parser a name
+        name="ExampleParser1",
+        # define your fields in order
+        default=[
+            # give each field a name, some standard field types are already defined.
+            Int8Field(name="id"),
+            UInt16Field(name="count"),
+            UInt8Field(name="data"),
+        ],
+    )
 
-  # Some example data bytes to parse
-  data = b"\x01\x00\x01\x80"
-  print(f"input:\t{data!r}\n")
+    # Some example data bytes to parse
+    data = b"\x01\x00\x01\x80"
+    print(f"input bytes:\t{data!r}")
+    print(f"input hex:\t{hex(data)}\n")
 
-  # Parse the bytes
-  exampleParser.parse(data=data)
-  # Print the parsed data to see what we got
-  print(f"parsed:\t{exampleParser}")
-  print(f"bytes:\t{bytes(exampleParser)!r}\n")
+    # Parse the bytes
+    exampleParser.parse(data=data)
 
-  # Make a new frame from known data to send somewhere (like a socket)
-  exampleParser.value = [3, 257, 127]
-  print(f"parsed:\t{exampleParser}")
-  print(f"bytes:\t{bytes(exampleParser)!r}")
+    # Print the parsed data to see what we got
+    print(f"parsed:\t{exampleParser}")
+    print(f"bytes:\t{bytes(exampleParser)!r}")
+    print(f"hex:\t{exampleParser.hex_value}\n")
 
-  # You can access parsed elements of a ParseList by numeric index.
-  idField = exampleParser[0]
-  dataCountField = exampleParser[1]
-  dataField = exampleParser[2]
-  print(f"{idField.name}:\t\t{idField.value}\t{bytes(idField)!r}")
-  print(f"{dataCountField.name}:\t{dataCountField.value}\t{bytes(dataCountField)!r}")
-  print(f"{dataField.name}:\t\t{dataField.value}\t{bytes(dataField)!r}")
-  ```
+    # Make a new frame from known data to send somewhere (like a socket)
+    exampleParser[0].value = 3
+    exampleParser.value = [3, 257, 127]
+    exampleParser.value = [3, 257, 127]
+    print(f"parsed:\t{exampleParser}")
+    print(f"bytes:\t{bytes(exampleParser)!r}")
+    print(f"hex:\t{exampleParser.hex_value}\n")
+
+    # You can access parsed elements of a ParseList by numeric index.
+    for child in exampleParser.children.values():
+        print(f'{child.name}:\t{child.value}\t"{child.string_value}"')
+    print()
+
+    # Wait, I don't really like hexadecimal
+    exampleParser.string_format = "{}"
+    for child in exampleParser.children.values():
+        child.string_format = "{}"
+
+    # Print the values again
+    exampleParser[0].value = 3
+    exampleParser.value = [3, 257, 127]
+    exampleParser.value = [3, 257, 127]
+    print(f"parsed:\t{exampleParser}")
+    print(f"bytes:\t{bytes(exampleParser)!r}")
+    print(f"hex:\t{exampleParser.hex_value}\n")
+    for child in exampleParser.children.values():
+        print(f'{child.name}:\t{child.value}\t"{child.string_value}"')
+    ```
 
 - Output
 
-  ```bash
-  input:  b'\x01\x00\x01\x80'
+    ```bash
+    input bytes:    b'\x01\x00\x01\x80'
+    input hex:      01 00 01 80
 
-  parsed: ExampleParser: [id: 1, data count: 0001(hex), data: -128]
-  bytes:  b'\x01\x00\x01\x80'
+    parsed: ExampleParser1: [id: 1, count: 0001(hex), data: 80(hex)]
+    bytes:  b'\x01\x00\x01\x80'
+    hex:    01 00 01 80
 
-  parsed: ExampleParser: [id: 3, data count: 0101(hex), data: 127]
-  bytes:  b'\x03\x01\x01\x7f'
-  ```
+    parsed: ExampleParser1: [id: 3, count: 0101(hex), data: 7F(hex)]
+    bytes:  b'\x03\x01\x01\x7f'
+    hex:    03 01 01 7F
+
+    id:     3       "3"
+    count:  257     "0101(hex)"
+    data:   127     "7F(hex)"
+
+    parsed: ExampleParser1: [id: 3, count: 257, data: 127]
+    bytes:  b'\x03\x01\x01\x7f'
+    hex:    03 01 01 7F
+
+    id:     3       "3"
+    count:  257     "257"
+    data:   127     "127"
+        ```
 
 ### Example 2 - Making a Parser from a Dictionary of Fields
 
 - Demo Code
 
-  Lets parse something like the following.
+    Lets parse something like the following.
 
-  | Name       | Bit Count | Data Type              |
-  |:--         |:--        |:--                     |
-  | id         | 8         | 8-bit unsigned int     |
-  | count      | 16        | 16-bit unsigned int    |
-  | data array | 8         | 8-bit unsigned int(s)  |
+    | Name       | Bit Count | Data Type              |
+    |:--         |:--        |:--                     |
+    | id         | 8         | 8-bit unsigned int     |
+    | count      | 16        | 16-bit unsigned int    |
+    | data array | 8         | 8-bit unsigned int(s)  |
 
-  Variable Frame size, handles a variable length array of uint8 chunks.
+    Variable Frame size, handles a variable length array of uint8 chunks.
 
-  ```python
-  """Define your parser using simple python classes and familiar types."""
-  from typing import cast
-  from easyprotocol.fields import UInt8Field, UInt16Field, Int8Field, ArrayField
-  from easyprotocol.base import ParseDict, ParseList
+    ```python
+    """Define your parser using simple python classes and familiar types."""
+    from typing import cast
 
-  # you can define your field classes before using them in a parser.
-  id = Int8Field(name="id")
-  count = UInt16Field(name="count")
-  data_array = ArrayField(name="data", count_field=count, array_item_class=UInt8Field)
+    from easyprotocol.base import ParseFieldDict, ParseFieldList, hex
+    from easyprotocol.fields import Int8Field, ParseArrayField, UInt8Field, UInt16Field
 
-  # Make an instance of the modified list type and add your fields as the list items.
+    # you can define your field classes before using them in a parser.
+    ident = Int8Field(name="id")
+    count = UInt16Field(
+        name="count",
+        # Let's modify the display of the field value
+        string_format="{} data items",
+    )
+    data_array = ParseArrayField(
+        name="data",
+        count=count,
+        array_item_class=UInt8Field,
+        array_item_default=0,
+    )
 
-  exampleParser = ParseDict(
-      # give the parser a name
-      name="ExampleParser",
-      # define your fields in order
-      children=[
-          # give each field a name, some standard types are defined for you.
-          id,
-          count,
-          data_array,
-      ],
-  )
+    # Make an instance of the modified list type and add your fields as the list items.
+    exampleParser = ParseFieldDict(
+        # give the parser a name
+        name="ExampleParser",
+        # define your fields in order
+        default=[
+            # give each field a name, some standard types are defined for you.
+            ident,
+            count,
+            data_array,
+        ],
+    )
 
-  # Some example data bytes to parse
-  data = b"\x01\x00\x01\x80"
-  print(f"input:\t{data!r}\n")
+    # Some example data bytes to parse
+    data = b"\x01\x00\x01\x80"
+    print(f"input bytes:\t{data!r}\n")
+    print(f"input hex:\t{hex(data)}\n")
 
-  # Parse the bytes
-  exampleParser.parse(data=data)
-  # Print the parsed data to see what we got
-  print(f"parsed:\t{exampleParser}")
-  print(f"bytes:\t{bytes(exampleParser)!r}\n")
+    # Parse the bytes
+    exampleParser.parse(data=data)
+    # Print the parsed data to see what we got
+    print(f"parsed:\t{exampleParser}")
+    print(f"hex:\t{hex(exampleParser)}\n")
 
-  # Make a new frame from known data to send somewhere (like a socket)
-  exampleParser.value = {"id": 3, "count": 2, "data": [127, UInt8Field(name="new data", value=15)]}
-  print(f"parsed:\t{exampleParser}")
-  print(f"bytes:\t{bytes(exampleParser)!r}\n")
+    # Make a new frame from known data to send somewhere (like a socket)
+    exampleParser["id"].value = 3
+    exampleParser["count"].value = 2
+    exampleParser["data"].value = [
+        127,
+        UInt8Field(name="new data", default=15),
+    ]
 
-  # You can access parsed elements of a ParseDict by name.
-  idField = exampleParser[id.name]
-  dataCountField = exampleParser[count.name]
-  dataField = cast(ParseList, exampleParser[data_array.name])
-  # The ArrayField is a list type, so children are accessed by numeric index.
-  data0Field = dataField[0]
-  data1Field = dataField[1]
-  print(f"{idField.name}:\t\t{idField.value}\t\t{bytes(idField)!r}")
-  print(f"{dataCountField.name}:\t\t{dataCountField.value}\t\t{bytes(dataCountField)!r}")
-  print(f"{dataField.name}:\t\t{dataField.value}\t{bytes(dataField)!r}")
-  print(f"{data0Field.name}:\t\t{data0Field.value}\t\t{bytes(data0Field)!r}")
-  print(f"{data1Field.name}:\t{data1Field.value}\t\t{bytes(data1Field)!r}")
-  ```
+    print(f"parsed:\t{exampleParser}")
+    print(f"hex:\t{hex(exampleParser)}\n")
+
+    # You can access parsed elements of a ParseDict by name.
+    idField = exampleParser[ident.name]
+    dataCountField = exampleParser[count.name]
+    dataField = cast(ParseFieldList, exampleParser[data_array.name])
+
+    # The ArrayField is a list type, so children are accessed by numeric index.
+    for child in exampleParser.values():
+        print(f"{child.name}:\t{child.value}\t\t{child.bits_str}")
+    ```
 
 - Output
 
-  ```bash
-  input:  b'\x01\x00\x01\x80'
+    ```bash
+    input bytes:    b'\x01\x00\x01\x80'
 
-  parsed: ExampleParser: [id: 1, count: 0001(hex), data: [f0: 80(hex)]]
-  bytes:  b'\x01\x00\x01\x80'
+    input hex:      01 00 01 80
 
-  parsed: ExampleParser: [id: 3, count: 0002(hex), data: [f0: 7F(hex), new data: 0F(hex)]]
-  bytes:  b'\x03\x00\x02\x7f\x0f'
+    parsed: ExampleParser: {id: 1, count: 1 data items, data: [#0: 80(hex)]}
+    hex:    01 00 01 80
 
-  id:             3               b'\x03'
-  count:          2               b'\x00\x02'
-  data:           [127, 15]       b'\x7f\x0f'
-  f0:             127             b'\x7f'
-  new data:       15              b'\x0f'
-  ```
+    parsed: ExampleParser: {id: 3, count: 2 data items, data: [#0: 7F(hex), #1: 0F(hex)]}
+    hex:    03 00 02 7F 0F
+
+    id:     3               00000011:<b
+    count:  2               0000000000000010:<b
+    data:   [<UInt8Field> #0: 7F(hex), <UInt8Field> #1: 0F(hex)]            0111111100001111:<b
+        ```

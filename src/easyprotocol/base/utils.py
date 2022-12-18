@@ -1,6 +1,7 @@
+"""Utility functions for parsers."""
 from __future__ import annotations
 
-from typing import Literal, Union
+from typing import Literal, SupportsBytes, Union
 
 from bitarray import bitarray
 
@@ -10,10 +11,10 @@ DEFAULT_ENDIANNESS: endianT = "big"
 
 
 def input_to_bytes(
-    data: dataT,
+    data: dataT | SupportsBytes,
     bit_count: int | None = None,
 ) -> bitarray:
-    """Convert bits or bytes into valid bits
+    """Convert bits or bytes into valid bits.
 
     Args:
         data: data that needs to be little-endian bits
@@ -21,6 +22,9 @@ def input_to_bytes(
 
     Returns:
         the bit data
+
+    Raises:
+        TypeError: if the passed type is not supported
     """
     if isinstance(data, (bytes, bytearray)):
         bits = bitarray(endian="little")
@@ -32,6 +36,9 @@ def input_to_bytes(
         bits = bitarray(endian="little")
         bits.frombytes(data.tobytes())
         bits = bits[:bit_length]
+    elif isinstance(data, SupportsBytes):
+        bits = bitarray(endian="little")
+        bits.frombytes(bytes(data))
     else:
         raise TypeError()
     if bit_count is not None:
@@ -40,15 +47,18 @@ def input_to_bytes(
     return bits
 
 
-def hex(bts: bytes, lsB: bool = True) -> str:
+def hex(bts: bytes | SupportsBytes, lsB: bool = True) -> str:  # noqa
     """Convert bytes to hexadecimal, but nicely.
 
     Args:
-        hex representation of bytes, nicely formatted
+        bts: object or bytes to be turned into a hex string
+        lsB: if set false, then the bytes will be reversed before turning into hex
 
     Returns:
-        _type_: _description_
+        space-delimited hexadecimal bytes
     """
+    if not isinstance(bts, bytes):
+        bts = bytes(bts)
     if lsB is False:
         bts = bytearray(bts)
         bts.reverse()

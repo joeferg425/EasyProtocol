@@ -61,23 +61,11 @@
 					"-e",
 					"."
 				],
-				"dependsOn": [
-					"update"
-				],
 				"problemMatcher": [],
 				"group": {
 					"kind": "build",
 					"isDefault": true
 				}
-			},
-			{
-				"label": "update",
-				"type": "shell",
-				"command": "poetry",
-				"args": [
-					"update"
-				],
-				"problemMatcher": [],
 			},
 			{
 				"label": "coverage",

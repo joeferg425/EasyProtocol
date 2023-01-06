@@ -4,7 +4,7 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import TypeVar, Union
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 

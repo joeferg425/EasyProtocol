@@ -1,18 +1,20 @@
+"""Classes for handling checksum fields."""
 from __future__ import annotations
 
 import math
-from typing import Literal, cast
 
 from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Calculator, Configuration
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 
 class ChecksumField(UIntFieldGeneric[int]):
+    """Base class for handling checksums."""
+
     def __init__(
         self,
         name: str,
@@ -23,6 +25,17 @@ class ChecksumField(UIntFieldGeneric[int]):
         string_format: str = "{:X}(hex)",
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create base class for handling checksums.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+            crc_configuration: configuration object from python crc module
+        """
         super().__init__(
             name=name,
             bit_count=bit_count,
@@ -36,6 +49,14 @@ class ChecksumField(UIntFieldGeneric[int]):
         )
 
     def update_field(self, data: dataT | None = None) -> tuple[int, bytes, bitarray]:
+        """Update the field value by calculating it from the appropriate bytes.
+
+        Args:
+            data: optional data to calculate the new checksum value from
+
+        Returns:
+            the new checksum, the bytes of the checksum, and the bits of the checksum
+        """
         if data is None:
             if self.parent is not None:
                 byte_data = bytes(self.parent)

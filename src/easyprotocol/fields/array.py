@@ -6,9 +6,9 @@ from typing import Any, Generic, Sequence, TypeVar, cast
 
 from bitarray import bitarray
 
+from easyprotocol.base.parse_base import ParseBase
 from easyprotocol.base.parse_field_dict import parseGenericT
 from easyprotocol.base.parse_field_list import ParseFieldListGeneric
-from easyprotocol.base.parse_generic import ParseBase
 from easyprotocol.base.parse_generic_dict import K
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.parse_value_list import ParseValueListGeneric

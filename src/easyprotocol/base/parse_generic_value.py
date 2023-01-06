@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 
-from easyprotocol.base.parse_generic import ParseBase, dataT, endianT
+from easyprotocol.base.parse_base import ParseBase, dataT, endianT
 
 T = TypeVar("T", covariant=True)
 

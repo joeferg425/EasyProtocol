@@ -6,7 +6,7 @@ from typing import Any, Generic, Iterator, Mapping, OrderedDict, Sequence, Union
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, endianT
 from easyprotocol.base.parse_generic_dict import K, ParseGenericDict
 from easyprotocol.base.parse_generic_list import ParseGenericList
 from easyprotocol.base.parse_generic_value import ParseGenericValue, T

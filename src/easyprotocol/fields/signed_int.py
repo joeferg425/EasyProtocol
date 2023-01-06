@@ -6,7 +6,7 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import dataT, input_to_bytes
 

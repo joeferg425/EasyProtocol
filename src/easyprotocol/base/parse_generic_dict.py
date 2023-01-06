@@ -6,7 +6,7 @@ from typing import Any, Generic, Mapping, OrderedDict, Sequence, TypeVar, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 T = TypeVar("T")

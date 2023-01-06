@@ -7,7 +7,7 @@ from typing import cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.array import ParseValueArrayField
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric

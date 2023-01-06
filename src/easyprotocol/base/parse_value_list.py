@@ -16,7 +16,7 @@ from typing import (
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import ParseBase
+from easyprotocol.base.parse_base import ParseBase
 from easyprotocol.base.parse_generic_dict import K
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes

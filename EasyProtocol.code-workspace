@@ -124,6 +124,22 @@
 				"program": "${workspaceFolder}/examples/example2.py",
 				"console": "integratedTerminal",
 				"justMyCode": false
+			},
+			{
+				"name": "Modbus Client",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/.modbus_client.py",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "Modbus Server",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/.modbus_server.py",
+				"console": "integratedTerminal",
+				"justMyCode": false
 			}
 		]
 	}

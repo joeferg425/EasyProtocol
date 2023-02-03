@@ -10,8 +10,8 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 
+from easyprotocol.base.parse_base import UNDEFINED, ParseBase
 from easyprotocol.base.parse_field_list import parseGenericT
-from easyprotocol.base.parse_generic import UNDEFINED, ParseBase
 from easyprotocol.base.utils import hex
 
 PARAMETER_NAMES = [

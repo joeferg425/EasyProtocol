@@ -1,29 +1,32 @@
+"""Simple Modbus Example."""
 from __future__ import annotations
-
-from collections import OrderedDict
 
 from easyprotocol.base.utils import hex
 from easyprotocol.protocols.modbus import (
     ModbusAddress,
     ModbusCount,
-    ModbusDeviceId,
     ModbusFieldNamesEnum,
     ModbusFunction,
-    ModbusReadCoilsRequest,
-    ModbusReadCoilsResponse,
-    ModbusReadDiscreteInputsRequest,
+    ModbusTCPReadCoilsRequest,
+    ModbusTCPReadCoilsResponse,
+    ModbusTCPReadDiscreteInputsRequest,
 )
 from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum
 
 
 def ReadCoils(check_crc: bool = False) -> None:
+    """Test functionality of Modbus Read Coils Function.
+
+    Args:
+        check_crc: set true to check crc calculation. Defaults to False.
+    """
     print(f"┐  {ModbusFunctionEnum.ReadCoils.value}")
     print(f'├─┐  {ModbusFunctionEnum.ReadCoils.value} - {"Request"}')
     readCoilsRequestBytes = bytearray(b"\x11\x01\x00\x13\x00\x25\x0E\x84")
     print(f"│ ├─ input:\t\t{hex(bytes(readCoilsRequestBytes))}")
     print("│ │")
 
-    readCoilsRequest = ModbusReadCoilsRequest()
+    readCoilsRequest = ModbusTCPReadCoilsRequest()
     readCoilsRequest.parse(readCoilsRequestBytes)
     print(f"│ ├─ parser:\t\t{readCoilsRequest}")
     print(f"│ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")
@@ -39,9 +42,9 @@ def ReadCoils(check_crc: bool = False) -> None:
 
     print("│ ├─┐  Changing Frame data")
     readCoilsRequest.set_value(
-        OrderedDict(
+        dict(
             {
-                ModbusFieldNamesEnum.DeviceID.value: ModbusDeviceId(default=17),
+                ModbusFieldNamesEnum.Address.value: ModbusAddress(default=17),
                 ModbusFieldNamesEnum.FunctionCode.value: ModbusFunction(default=ModbusFunctionEnum.ReadCoils),
                 ModbusFieldNamesEnum.Address.value: ModbusAddress(default=19),
                 ModbusFieldNamesEnum.Count.value: ModbusCount(default=37),
@@ -64,7 +67,7 @@ def ReadCoils(check_crc: bool = False) -> None:
     print(f"│ ├─ input:\t\t{hex(bytes(readCoilsResponseBytes))}")
     print("│ │")
 
-    readCoilsResponse = ModbusReadCoilsResponse()
+    readCoilsResponse = ModbusTCPReadCoilsResponse()
     readCoilsResponse.parse(readCoilsResponseBytes)
     print(f"│ ├─ parser:\t\t{readCoilsResponse}")
     print(f"│ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
@@ -78,7 +81,7 @@ def ReadCoils(check_crc: bool = False) -> None:
         print("│ │")
 
     print("│ ├─┐  Changing Frame data")
-    readCoilsResponse.deviceId.set_value(17)
+    readCoilsResponse.address.set_value(17)
     readCoilsResponse.functionCode.set_value(ModbusFunctionEnum.ReadCoils)
     readCoilsResponse.byteCount.set_value(5)
     readCoilsResponse.coilArray.set_value([0, 1, 2, 3, 4])
@@ -96,13 +99,18 @@ def ReadCoils(check_crc: bool = False) -> None:
 
 
 def ReadDiscreteInputs(check_crc: bool = False) -> None:
+    """Test function of Modbus Read Discrete Inputs function.
+
+    Args:
+        check_crc: set true to check crc calculation. Defaults to False.
+    """
     print(f"┐  {ModbusFunctionEnum.ReadDiscreteInputs.name}")
     print(f'├─┐  {ModbusFunctionEnum.ReadDiscreteInputs.name} - {"Request"}')
     readDiscreteInputsRequestBytes = b"\x11\x02\x00\xC4\x00\x16\xBA\xA9"
     print(f"│ ├─ input:\t\t{hex(bytes(readDiscreteInputsRequestBytes))}")
     print("│ │")
 
-    readDiscreteInputsRequest = ModbusReadDiscreteInputsRequest()
+    readDiscreteInputsRequest = ModbusTCPReadDiscreteInputsRequest()
     readDiscreteInputsRequest.parse(readDiscreteInputsRequestBytes)
     print(f"│ ├─ parser:\t\t{readDiscreteInputsRequest}")
     print(f"│ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")
@@ -116,7 +124,7 @@ def ReadDiscreteInputs(check_crc: bool = False) -> None:
         print("│ ├─┘")
 
     print("│ ├─┐  Changing Frame data")
-    readDiscreteInputsRequest.deviceId.set_value(11)
+    readDiscreteInputsRequest.address.set_value(11)
     readDiscreteInputsRequest.functionCode.set_value(ModbusFunctionEnum.ReadDiscreteInputs)
     readDiscreteInputsRequest.address.set_value(0xC400)
     readDiscreteInputsRequest.count.set_value(16)

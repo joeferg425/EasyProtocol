@@ -1,7 +1,6 @@
 """The base parsing object for handling parsing in a convenient package."""
 from __future__ import annotations
 
-from collections import OrderedDict
 from typing import (
     Any,
     Generic,
@@ -36,7 +35,7 @@ class ParseValueListGeneric(
     def __init__(
         self,
         name: str,
-        default: Sequence[ParseBase] | OrderedDict[str, ParseBase] = (),
+        default: Sequence[ParseBase] | dict[str, ParseBase] = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -83,12 +82,12 @@ class ParseValueListGeneric(
             index: the index at which the new field will be inserted
             value: the new field to be inserted
         """
-        c: OrderedDict[str, ParseBase] = OrderedDict()
+        c: dict[str, ParseBase] = dict()
         existing_values = list(self._children.values())
         existing_values.insert(index, value)
         for v in existing_values:
             c[v.name] = v
-        self.children = cast(OrderedDict[str, parseGenericT[T]], c)
+        self.children = cast(dict[str, parseGenericT[T]], c)
 
     def append(self, value: ParseGenericValue[T]) -> None:
         """Append a new field to this list.
@@ -240,7 +239,7 @@ class ParseValueListGeneric(
                 self._children.pop(x._name)
         else:
             item._set_parent_generic(None)
-            self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
+            self._children = dict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
     def __setitem__(self, index: SupportsIndex, value: valueGenericT[T] | ParseGenericValue[T]) -> None:
@@ -274,7 +273,7 @@ class ParseValueListGeneric(
             value: one or more values
         """
         indexed_keys = list(self._children.keys())[index]
-        c: OrderedDict[str, ParseGenericValue[T]] = OrderedDict()
+        c: dict[str, ParseGenericValue[T]] = dict()
         for existing_key in self.children:
             if isinstance(indexed_keys, str):
                 if isinstance(value, (ParseGenericValue)):
@@ -312,14 +311,14 @@ class ParseValueListGeneric(
         """
         return len(self._children)
 
-    def get_children(self) -> OrderedDict[str, ParseGenericValue[T]]:
+    def get_children(self) -> dict[str, ParseGenericValue[T]]:
         """Get the children of this field as an ordered dictionary.
 
         Returns:
             the children of this field
         """
         return cast(
-            OrderedDict[
+            dict[
                 str,
                 ParseGenericValue[T],
             ],
@@ -328,7 +327,7 @@ class ParseValueListGeneric(
 
     def set_children(
         self,
-        children: OrderedDict[str, ParseGenericValue[T]] | Sequence[ParseGenericValue[T]] | None,
+        children: dict[str, ParseGenericValue[T]] | Sequence[ParseGenericValue[T]] | None,
     ) -> None:
         """Set the children of this field using an ordered dictionary.
 
@@ -336,7 +335,7 @@ class ParseValueListGeneric(
             children: the new children for this field
         """
         self._children.clear()
-        if isinstance(children, (dict, OrderedDict)):
+        if isinstance(children, (dict, dict)):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
@@ -377,7 +376,7 @@ class ParseValueListGeneric(
         self.set_parent(value)
 
     @property
-    def children(self) -> OrderedDict[str, ParseGenericValue[Any]]:
+    def children(self) -> dict[str, ParseGenericValue[Any]]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -388,7 +387,7 @@ class ParseValueListGeneric(
     @children.setter
     def children(
         self,
-        children: OrderedDict[str, ParseGenericValue[Any]] | Sequence[ParseGenericValue[Any]],
+        children: dict[str, ParseGenericValue[Any]] | Sequence[ParseGenericValue[Any]],
     ) -> None:
         self.set_children(children=children)
 

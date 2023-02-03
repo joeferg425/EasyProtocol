@@ -1,7 +1,6 @@
 """Classes for parsing fields made up of an array of uniform sub-fields."""
 from __future__ import annotations
 
-from collections import OrderedDict
 from typing import Any, Generic, Sequence, TypeVar, cast
 
 from bitarray import bitarray
@@ -104,7 +103,7 @@ class ParseArrayFieldGeneric(
     def set_value(
         self,
         value: Sequence[parseGenericT[K, T] | Any]
-        | OrderedDict[
+        | dict[
             str,
             parseGenericT[K, T] | Any,
         ],
@@ -284,7 +283,7 @@ class ParseValueArrayFieldGeneric(
     def set_value(
         self,
         value: Sequence[parseGenericT[K, T] | Any]
-        | OrderedDict[
+        | dict[
             str,
             parseGenericT[K, T] | Any,
         ],

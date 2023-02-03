@@ -1,7 +1,6 @@
 """The base parsing object for handling parsing in a convenient (to modify) package."""
 from __future__ import annotations
 
-from collections import OrderedDict
 from typing import Literal, Sequence, SupportsBytes, TypeVar
 
 from bitarray import bitarray
@@ -40,7 +39,7 @@ class ParseBase(SupportsBytes):
         self._name = name
         self._initialized = False
         self._parent: ParseBase | None = None
-        self._children: OrderedDict[str, ParseBase] = OrderedDict()
+        self._children: dict[str, ParseBase] = dict()
         if string_format is None:
             self._string_format = "{}"
         else:
@@ -114,15 +113,15 @@ class ParseBase(SupportsBytes):
     def _set_parent_generic(self, parent: ParseBase | None) -> None:
         self._parent = parent
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseBase]:
+    def _get_children_generic(self) -> dict[str, ParseBase]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseBase] | Sequence[ParseBase],
+        children: dict[str, ParseBase] | Sequence[ParseBase],
     ) -> None:
         self._children.clear()
-        if isinstance(children, (dict, OrderedDict)):
+        if isinstance(children, (dict, dict)):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]

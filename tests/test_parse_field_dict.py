@@ -10,8 +10,8 @@ from bitarray import bitarray
 from parse_data import ParseData
 from test_parse_uint import check_int
 
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.base.parse_field_dict import ParseFieldDict
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField

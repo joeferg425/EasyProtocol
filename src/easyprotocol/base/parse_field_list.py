@@ -1,7 +1,6 @@
 """The base field dictionary."""
 from __future__ import annotations
 
-from collections import OrderedDict
 from typing import (
     Any,
     Generic,
@@ -39,8 +38,8 @@ class ParseFieldListGeneric(
         name: str,
         default: Sequence[ParseBase]
         | Sequence[parseGenericT[K, T]]
-        | OrderedDict[str, ParseBase]
-        | OrderedDict[str, parseGenericT[K, T]] = (),
+        | dict[str, ParseBase]
+        | dict[str, parseGenericT[K, T]] = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -91,12 +90,12 @@ class ParseFieldListGeneric(
             index: the index at which the new field will be inserted
             value: the new field to be inserted
         """
-        c: OrderedDict[str, ParseBase] = OrderedDict()
+        c: dict[str, ParseBase] = dict()
         existing_values = list(self._children.values())
         existing_values.insert(index, value)
         for v in existing_values:
             c[v.name] = v
-        self.children = cast(OrderedDict[str, parseGenericT[K, T]], c)
+        self.children = cast(dict[str, parseGenericT[K, T]], c)
 
     def append(self, value: parseGenericT[K, T] | Any) -> None:
         """Append a new field to this list.
@@ -117,7 +116,7 @@ class ParseFieldListGeneric(
     def set_value(
         self,
         value: Sequence[parseGenericT[K, T] | Any]
-        | OrderedDict[
+        | dict[
             str,
             parseGenericT[K, T] | Any,
         ],
@@ -127,7 +126,7 @@ class ParseFieldListGeneric(
         Args:
             value: the new list of fields or dictionary of fields to assign to this field
         """
-        if isinstance(value, (dict, OrderedDict)):
+        if isinstance(value, (dict, dict)):
             values = list(value.values())
             for index, (key, item) in enumerate(value.items()):
                 item = values[index]
@@ -165,19 +164,19 @@ class ParseFieldListGeneric(
             data += value.bits_lsb
         return data
 
-    def get_children(self) -> OrderedDict[str, parseGenericT[K, T]]:
+    def get_children(self) -> dict[str, parseGenericT[K, T]]:
         """Get the children of this field as an ordered dictionary.
 
         Returns:
             the children of this field
         """
-        return cast(OrderedDict[str, parseGenericT[K, T]], self._children)
+        return cast(dict[str, parseGenericT[K, T]], self._children)
 
     def set_children(
         self,
-        children: OrderedDict[str, parseGenericT[K, T]]
+        children: dict[str, parseGenericT[K, T]]
         | Sequence[parseGenericT[K, T]]
-        | OrderedDict[str, ParseBase]
+        | dict[str, ParseBase]
         | Sequence[ParseBase],
     ) -> None:
         """Set the children of this field using an ordered dictionary.
@@ -186,7 +185,7 @@ class ParseFieldListGeneric(
             children: the new children for this field
         """
         self._children.clear()
-        if isinstance(children, (dict, OrderedDict)):
+        if isinstance(children, (dict, dict)):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
@@ -227,7 +226,7 @@ class ParseFieldListGeneric(
         self.set_parent(value)
 
     @property
-    def children(self) -> OrderedDict[str, parseGenericT[K, T]]:
+    def children(self) -> dict[str, parseGenericT[K, T]]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -238,7 +237,7 @@ class ParseFieldListGeneric(
     @children.setter
     def children(
         self,
-        children: OrderedDict[str, parseGenericT[K, T]],
+        children: dict[str, parseGenericT[K, T]],
     ) -> None:
         self.set_children(children=children)
 
@@ -309,7 +308,7 @@ class ParseFieldListGeneric(
                 self._children.pop(x._name)
         else:
             item._set_parent_generic(None)
-            self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
+            self._children = dict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
     def __setitem__(self, index: SupportsIndex, value: parseGenericT[K, T] | Any) -> None:
@@ -341,7 +340,7 @@ class ParseFieldListGeneric(
             value: one or more values
         """
         indexed_keys = list(self._children.keys())[index]
-        c: OrderedDict[str, ParseBase] = OrderedDict()
+        c: dict[str, ParseBase] = dict()
         for existing_key in self.children:
             if isinstance(indexed_keys, str):
                 if isinstance(value, ParseBase):
@@ -372,7 +371,7 @@ class ParseFieldListGeneric(
                             else:
                                 c[sub_value._name].value = sub_value  # pyright:ignore[reportGeneralTypeIssues]
                                 sub_value._set_parent_generic(self)
-        self.children = cast("OrderedDict[str,parseGenericT[K,T]]", c)
+        self.children = cast("dict[str,parseGenericT[K,T]]", c)
 
     def __len__(self) -> int:
         """Get the count of this field's sub-fields.

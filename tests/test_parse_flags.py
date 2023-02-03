@@ -9,7 +9,7 @@ from bitarray import bitarray
 from parse_data import ParseData
 from test_parse_uint import check_int_properties, check_int_value
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
 from easyprotocol.fields.flags import FlagsField
 
 

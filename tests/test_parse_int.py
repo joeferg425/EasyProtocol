@@ -17,7 +17,7 @@ from parse_data import (
 )
 from test_parse_uint import check_int
 
-from easyprotocol.base.parse_generic import endianT
+from easyprotocol.base.parse_base import endianT
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, hex
 from easyprotocol.fields.signed_int import (
     INT08_STRING_FORMAT,

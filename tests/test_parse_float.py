@@ -10,7 +10,7 @@ import pytest
 from bitarray import bitarray
 from parse_data import PARAMETER_NAMES, TEST_VALUES_32_BIT_UINT, ParseData
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import hex
 from easyprotocol.fields.float import FLOAT_STRING_FORMAT, Float32Field, FloatField
 

@@ -21,7 +21,7 @@ from parse_data import (
     ParseData,
 )
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.parse_generic_value import ParseGenericValue
 from easyprotocol.fields.unsigned_int import (
     UINT08_STRING_FORMAT,

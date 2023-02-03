@@ -7,7 +7,7 @@ from collections import OrderedDict
 from bitarray import bitarray
 from parse_data import ParseData
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS
+from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import hex
 from easyprotocol.fields.string import (
     DEFAULT_BYTE_FORMAT,

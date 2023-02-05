@@ -22,8 +22,10 @@
 			"parsedict",
 			"parselist",
 			"parseobject",
+			"pcap",
 			"pyright",
 			"pytest",
+			"Synchrophasor",
 			"tobytes",
 			"uintfield"
 		],
@@ -98,7 +100,7 @@
 				"dependsOn": [
 					"coverage"
 				],
-			}
+			},
 		]
 	},
 	"launch": {
@@ -141,6 +143,14 @@
 				"type": "python",
 				"request": "launch",
 				"program": "${workspaceFolder}/.modbus_server.py",
+				"console": "integratedTerminal",
+				"justMyCode": false
+			},
+			{
+				"name": "Current File",
+				"type": "python",
+				"request": "launch",
+				"program": "${file}",
 				"console": "integratedTerminal",
 				"justMyCode": false
 			}

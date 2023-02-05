@@ -10,9 +10,9 @@ from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
 from easyprotocol.fields import (
+    ArrayField,
     BoolField,
     ChecksumField,
-    ParseArrayField,
     UInt8EnumField,
     UInt8Field,
     UInt16Field,
@@ -253,7 +253,7 @@ class ModbusCRC(ChecksumField):
         return (crc_int, crc_bytes, crc_bits)
 
 
-class ModbusCoilArray(ParseArrayField[bool]):
+class ModbusCoilArray(ArrayField[bool]):
     """Modbus coil array field."""
 
     def __init__(
@@ -354,7 +354,7 @@ class ModbusCoilArray(ParseArrayField[bool]):
         return f"[{', '.join( chunks)}]"
 
 
-class ModbusDiscreteInputArray(ParseArrayField[bool]):
+class ModbusDiscreteInputArray(ArrayField[bool]):
     """Modbus discrete input array field."""
 
     def __init__(

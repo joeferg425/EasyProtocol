@@ -150,7 +150,7 @@ class ParseArrayFieldGeneric(
                         self[index].value = item
 
 
-class ParseArrayField(
+class ArrayField(
     ParseArrayFieldGeneric[T, str],
     Generic[T],
 ):
@@ -338,7 +338,7 @@ class ParseValueArrayFieldGeneric(
         self.children[value.name] = value
 
 
-class ParseValueArrayField(
+class ArrayValueField(
     ParseValueArrayFieldGeneric[T, str],
 ):
     """Base class for parsing an array of uniform value-type sub-fields.

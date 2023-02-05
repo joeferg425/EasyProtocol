@@ -9,7 +9,7 @@ from bitarray import bitarray
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import dataT
-from easyprotocol.fields.array import ParseValueArrayField
+from easyprotocol.fields.array import ArrayValueField
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
 DEFAULT_CHAR_FORMAT: str = '"{}"'
@@ -80,7 +80,7 @@ class UInt8CharField(CharField):
     ...
 
 
-class StringField(ParseValueArrayField[str]):
+class StringField(ArrayValueField[str]):
     """String parsing field."""
 
     def __init__(
@@ -243,7 +243,7 @@ class UInt8ByteField(ByteField):
     ...
 
 
-class BytesField(ParseValueArrayField[bytes]):
+class BytesField(ArrayValueField[bytes]):
     """Variable length bytes field that returns bytes."""
 
     def __init__(

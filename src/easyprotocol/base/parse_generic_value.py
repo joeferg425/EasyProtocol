@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Generic, TypeVar
 
 from easyprotocol.base.parse_base import ParseBase, dataT, endianT
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS
 
 T = TypeVar("T", covariant=True)
 
@@ -21,7 +22,7 @@ class ParseGenericValue(
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
-        endian: endianT = ...,
+        endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
         """Create the basic parsing class for value types.
 

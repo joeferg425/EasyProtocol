@@ -2,7 +2,7 @@
 from easyprotocol.base.parse_base import ParseBase as ParseBase  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa
 from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
-from easyprotocol.fields.array import ParseArrayField as ParseArrayField  # noqa
+from easyprotocol.fields.array import ArrayField as ArrayField  # noqa
 from easyprotocol.fields.array import (  # noqa
     ParseArrayFieldGeneric as ParseArrayFieldGeneric,
 )
@@ -25,6 +25,7 @@ from easyprotocol.fields.flags import UInt8FlagsField as UInt8FlagsField  # noqa
 from easyprotocol.fields.flags import UInt16FlagsField as UInt16FlagsField  # noqa
 from easyprotocol.fields.flags import UInt24FlagsField as UInt24FlagsField  # noqa
 from easyprotocol.fields.flags import UInt32FlagsField as UInt32FlagsField  # noqa
+from easyprotocol.fields.float import Float32Field as Float32Field  # noqa
 from easyprotocol.fields.float import Float32IEEField as Float32IEEField  # noqa
 from easyprotocol.fields.float import FloatField as FloatField  # noqa
 from easyprotocol.fields.signed_int import Int8Field as Int8Field  # noqa

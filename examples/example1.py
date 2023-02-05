@@ -22,6 +22,7 @@ print(f"input hex:\t{hex(data)}\n")
 
 # Parse the bytes
 exampleParser.parse(data=data)
+
 # Print the parsed data to see what we got
 print(f"parsed:\t{exampleParser}")
 print(f"bytes:\t{bytes(exampleParser)!r}")

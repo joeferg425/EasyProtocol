@@ -77,6 +77,7 @@ class ParseArrayFieldGeneric(
                     name=f"#{i}",
                     default=self._array_item_default,
                 )
+                f.parent = self
                 bit_data = f.parse(data=bit_data)
                 self._children[f.name] = f
         return bit_data
@@ -257,6 +258,7 @@ class ParseValueArrayFieldGeneric(
                     name=f"#{i}",
                     default=self._array_item_default,
                 )
+                f.parent = self
                 bit_data = f.parse(data=bit_data)
                 self._children[f.name] = f
         return bit_data

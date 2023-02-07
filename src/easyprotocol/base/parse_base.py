@@ -243,6 +243,21 @@ class ParseBase(SupportsBytes):
         return self.__bytes__()
 
     @property
+    def chain(self) -> str:
+        """Create a dot-delimited string representing field hierarchy.
+
+        Returns:
+            a string in the format "grandparent.parent.child"
+        """
+        s = ""
+        if self._parent is not None:
+            s = self._parent.chain
+        if s:
+            return f"{s}.{self.name}"
+        else:
+            return self.name
+
+    @property
     def string_value(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 

@@ -1,32 +1,20 @@
-"Synchrophasor packet classes."
+"""Synchrophasor packet classes."""
 from __future__ import annotations
 
-from typing import Sequence, cast
+from typing import cast
 
 from bitarray import bitarray
 
 from easyprotocol.base import ParseFieldDict, dataT
-from easyprotocol.base.parse_base import ParseBase
-from easyprotocol.base.parse_field_dict import K, T, parseGenericT
 from easyprotocol.base.utils import input_to_bytes
-from easyprotocol.fields import (
-    ArrayField,
-    BoolField,
-    ChecksumField,
-    Float32Field,
-    StringField,
-    UInt8EnumField,
-    UInt8Field,
-    UInt16Field,
-    UInt32Field,
-    UIntField,
-)
+from easyprotocol.fields import ArrayField, Float32Field, UInt16Field, UInt32Field
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 from easyprotocol.protocols.synchrophasor.fields import (
     CHK,
-    CHNAMS,
+    DIGNAMS,
     FORMAT,
     FRAMETYPE,
+    PHASOR,
     PHASOR_POLAR_FLOAT,
     PHASOR_POLAR_INT,
     PHASOR_RECTANGULAR_FLOAT,
@@ -40,10 +28,17 @@ from easyprotocol.protocols.synchrophasor.fields import (
 
 
 class HEADER(ParseFieldDict):
+    """Packet header class for determining what type of frame it is."""
+
     def __init__(
         self,
         data: dataT = None,
     ) -> None:
+        """Create packet header with frame type information.
+
+        Args:
+            data: data to parse. Defaults to None.
+        """
         super().__init__(
             name="Header",
             default=[
@@ -54,18 +49,32 @@ class HEADER(ParseFieldDict):
 
     @property
     def frame_type(self) -> FrameTypeEnum:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
         sync = cast("SYNC", self["SYNC"])
         frame_type = cast("FRAMETYPE", sync["FRAMETYPE"])
         return frame_type.value
 
 
-class _CONFIGURATION(ParseFieldDict):
+class PMU_CONFIGURATION(ParseFieldDict):
+    """PMU configuration object."""
+
     def __init__(
         self,
-        name: str = "PMUConfiguration",
+        name: str = "PMU_CONFIGURATION",
         default: None = None,
         data: dataT = None,
     ) -> None:
+        """Create PMU configuration object.
+
+        Args:
+            name: name of field. Defaults to "PMU_CONFIGURATION".
+            default: default value. Defaults to None.
+            data: data to parse. Defaults to None.
+        """
         self._ph_nmr = UInt16Field(name="PHNMR")
         self._an_nmr = UInt16Field(name="ANNMR")
         self._dg_nmr = UInt16Field(name="DGNMR")
@@ -79,10 +88,20 @@ class _CONFIGURATION(ParseFieldDict):
                 self._ph_nmr,
                 self._an_nmr,
                 self._dg_nmr,
-                CHNAMS(
-                    phasor_count=self._ph_nmr,
-                    analog_count=self._an_nmr,
-                    digital_count=self._dg_nmr,
+                ArrayField(
+                    name="PHNAMS",
+                    array_item_class=StringFixedLengthField,  # pyright:ignore[reportGeneralTypeIssues]
+                    array_item_default="",
+                    count=self._ph_nmr,
+                ),
+                ArrayField(
+                    name="ANNAMS",
+                    array_item_class=StringFixedLengthField,  # pyright:ignore[reportGeneralTypeIssues]
+                    array_item_default="",
+                    count=self._an_nmr,
+                ),
+                DIGNAMS(
+                    count=self._dg_nmr,
                 ),
                 ArrayField(
                     name="PHUNIT",
@@ -107,6 +126,45 @@ class _CONFIGURATION(ParseFieldDict):
             ],
         )
 
+    @property
+    def station_name(self) -> str:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("StringFixedLengthField", self["STN"]).value
+
+    @property
+    def phasor_names(self) -> list[str]:
+        """Get the phasor names.
+
+        Returns:
+            the phasor names
+        """
+        phnams = cast("ArrayField[str]", self["PHNAMS"])
+        return [name.value for name in cast(list[StringFixedLengthField], phnams.value)]
+
+    @property
+    def analog_names(self) -> list[str]:
+        """Get the analog names.
+
+        Returns:
+            the analog names
+        """
+        annams = cast("ArrayField[str]", self["ANNAMS"])
+        return [name.value for name in cast(list[StringFixedLengthField], annams.value)]
+
+    @property
+    def digital_names(self) -> list[str]:
+        """Get the digital names.
+
+        Returns:
+            the digital names
+        """
+        dignams = cast("DIGNAMS", self["DIGNAMS"])
+        return [name.value for name in cast(list[StringFixedLengthField], dignams.value)]
+
 
 class CONFIGURATION1(ParseFieldDict):
     def __init__(
@@ -126,8 +184,8 @@ class CONFIGURATION1(ParseFieldDict):
                 UInt32Field(name="TIME_BASE"),
                 self._num_pmu,
                 ArrayField(
-                    name="PMUConfigurations",
-                    array_item_class=_CONFIGURATION,
+                    name="PMU_CONFIGURATIONS",
+                    array_item_class=PMU_CONFIGURATION,
                     array_item_default="",
                     count=self._num_pmu,
                 ),
@@ -138,8 +196,12 @@ class CONFIGURATION1(ParseFieldDict):
         )
 
     @property
+    def pmu_configs(self) -> list[PMU_CONFIGURATION]:
+        return cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
+
+    @property
     def formats(self) -> list[FORMAT]:
-        pmu_configs = cast("list[_CONFIGURATION]", self["PMUConfigurations"])
+        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
         formats: list[FORMAT] = []
         for pmu_config in pmu_configs:
             fmt = cast("FORMAT", pmu_config["FORMAT"])
@@ -148,7 +210,7 @@ class CONFIGURATION1(ParseFieldDict):
 
     @property
     def phasor_counts(self) -> list[int]:
-        pmu_configs = cast("list[_CONFIGURATION]", self["PMUConfigurations"])
+        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
         counts: list[int] = []
         for pmu_config in pmu_configs:
             counts.append(cast("UInt16Field", pmu_config["PHNMR"]).value)
@@ -156,7 +218,7 @@ class CONFIGURATION1(ParseFieldDict):
 
     @property
     def analog_counts(self) -> list[int]:
-        pmu_configs = cast("list[_CONFIGURATION]", self["PMUConfigurations"])
+        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
         counts: list[int] = []
         for pmu_config in pmu_configs:
             counts.append(cast("UInt16Field", pmu_config["ANNMR"]).value)
@@ -164,7 +226,7 @@ class CONFIGURATION1(ParseFieldDict):
 
     @property
     def digital_counts(self) -> list[int]:
-        pmu_configs = cast("list[_CONFIGURATION]", self["PMUConfigurations"])
+        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
         counts: list[int] = []
         for pmu_config in pmu_configs:
             counts.append(cast("UInt16Field", pmu_config["DGNMR"]).value)
@@ -203,7 +265,7 @@ class COMMAND(ParseFieldDict):
         )
 
 
-class _PMU_DATA(ParseFieldDict):
+class PMU_DATA(ParseFieldDict):
     def __init__(
         self,
         phasor_count: int,
@@ -257,31 +319,37 @@ class _PMU_DATA(ParseFieldDict):
                     array_item_default=0,
                     count=digital_count,
                 ),
-                CHK(),
             ],
             data=data,
         )
 
+    @property
+    def phasors(
+        self,
+    ) -> list[PHASOR]:
+        array = cast("ArrayField[PHASOR]", self["PHASORS"])
+        return cast("list[PHASOR]", array.value)
 
-class PMUArrayField(ArrayField[_PMU_DATA]):
+
+class PMUArrayField(ArrayField[PMU_DATA]):
     def __init__(
         self,
         name: str,
         phasor_counts: list[int],
         analog_counts: list[int],
         digital_counts: list[int],
-        formats: list[FORMAT],
+        config: CONFIGURATION1 | CONFIGURATION2,
         data: dataT | None = None,
     ) -> None:
         self._phasor_counts = phasor_counts
         self._analog_counts = analog_counts
         self._digital_counts = digital_counts
-        self._formats = formats
+        self._config = config
         super().__init__(
             name,
-            count=len(formats),
-            array_item_class=_PMU_DATA,
-            array_item_default=_PMU_DATA(phasor_count=0, analog_count=0, digital_count=0, format=FORMAT()),
+            count=self._config._num_pmu,
+            array_item_class=PMU_DATA,
+            array_item_default=PMU_DATA(phasor_count=0, analog_count=0, digital_count=0, format=FORMAT()),
             data=data,
         )
 
@@ -301,13 +369,13 @@ class PMUArrayField(ArrayField[_PMU_DATA]):
             count = self._count
         if count is not None:
             for i in range(count):
-                f = _PMU_DATA(
+                f = PMU_DATA(
                     name=f"#{i}",
                     default=self._array_item_default,
                     phasor_count=self._phasor_counts[i],
                     analog_count=self._analog_counts[i],
                     digital_count=self._digital_counts[i],
-                    format=self._formats[i],
+                    format=self._config.formats[i],
                 )
                 bit_data = f.parse(data=bit_data)
                 self._children[f.name] = f
@@ -317,12 +385,13 @@ class PMUArrayField(ArrayField[_PMU_DATA]):
 class DATA(ParseFieldDict):
     def __init__(
         self,
-        formats: list[FORMAT],
+        config: CONFIGURATION1 | CONFIGURATION2,
         phasor_counts: list[int],
         analog_counts: list[int],
         digital_counts: list[int],
         data: dataT = None,
     ) -> None:
+        self._config = config
         super().__init__(
             name="DATA",
             default=[
@@ -332,8 +401,8 @@ class DATA(ParseFieldDict):
                 UInt32Field(name="SOC"),
                 UInt32Field(name="FRACSEC"),
                 PMUArrayField(
-                    name="PMU_DATA",
-                    formats=formats,
+                    name="PMU_DATAS",
+                    config=self._config,
                     analog_counts=analog_counts,
                     digital_counts=digital_counts,
                     phasor_counts=phasor_counts,
@@ -343,98 +412,32 @@ class DATA(ParseFieldDict):
             data=data,
         )
 
+    @property
+    def pmus(self) -> list[PMU_DATA]:
+        pmu_array = cast("PMUArrayField", self["PMU_DATAS"])
+        return cast("list[PMU_DATA]", pmu_array.value)
 
-class DATA_POLAR_FLOAT(ParseFieldDict):
-    def __init__(
-        self,
-        pmu_count: int,
-        phasor_counts: list[int],
-        analog_counts: list[int],
-        digital_counts: list[int],
-        data: dataT = None,
-    ) -> None:
-        super().__init__(
-            name="DATA",
-            default=[
-                SYNC(),
-                UInt16Field(name="FRAMESIZE"),
-                UInt16Field(name="IDCODE"),
-                UInt32Field(name="SOC"),
-                UInt32Field(name="FRACSEC"),
-                PMUArrayField(
-                    name="PMU_DATA",
-                    array_item_class=_PMU_DATA_POLAR_FLOAT,
-                    array_item_default=None,
-                    count=pmu_count,
-                    analog_counts=analog_counts,
-                    digital_counts=digital_counts,
-                    phasor_counts=phasor_counts,
-                ),
-                CHK(),
-            ],
-            data=data,
-        )
+    @property
+    def summary(self) -> dict[str, dict[str, PHASOR]]:
+        summary: dict[str, dict[str, PHASOR]] = {}
+        for pmu_idx, pmu_config in enumerate(self._config.pmu_configs):
+            pmu_name = pmu_config.station_name
+            pmu = self.pmus[pmu_idx]
+            summary[pmu_name] = {}
+            for phasor_index, phasor_name in enumerate(pmu_config.phasor_names):
+                summary[pmu_name][phasor_name] = pmu.phasors[phasor_index]
+        return summary
 
+    def get_summary_str(
+        self, coords: CoordinateFormatEnum | None = CoordinateFormatEnum.POLAR, names: bool = False
+    ) -> str:
+        s: list[str] = []
+        smry = self.summary
+        for pmu_key in smry:
+            for phasor_key in smry[pmu_key]:
+                s.append(f"{pmu_key}.{phasor_key}:{smry[pmu_key][phasor_key].get_summary(coords=coords,names=names)}")
+        return ", ".join(s)
 
-class DATA_RECTANGULAR_INT(ParseFieldDict):
-    def __init__(
-        self,
-        pmu_count: int,
-        phasor_counts: list[int],
-        analog_counts: list[int],
-        digital_counts: list[int],
-        data: dataT = None,
-    ) -> None:
-        super().__init__(
-            name="DATA",
-            default=[
-                SYNC(),
-                UInt16Field(name="FRAMESIZE"),
-                UInt16Field(name="IDCODE"),
-                UInt32Field(name="SOC"),
-                UInt32Field(name="FRACSEC"),
-                PMUArrayField(
-                    name="PMU_DATA",
-                    array_item_class=_PMU_DATA_RECTANGULAR_INT,
-                    array_item_default=None,
-                    count=pmu_count,
-                    analog_counts=analog_counts,
-                    digital_counts=digital_counts,
-                    phasor_counts=phasor_counts,
-                ),
-                CHK(),
-            ],
-            data=data,
-        )
-
-
-class DATA_POLAR_INT(ParseFieldDict):
-    def __init__(
-        self,
-        pmu_count: int,
-        phasor_counts: list[int],
-        analog_counts: list[int],
-        digital_counts: list[int],
-        data: dataT = None,
-    ) -> None:
-        super().__init__(
-            name="DATA",
-            default=[
-                SYNC(),
-                UInt16Field(name="FRAMESIZE"),
-                UInt16Field(name="IDCODE"),
-                UInt32Field(name="SOC"),
-                UInt32Field(name="FRACSEC"),
-                PMUArrayField(
-                    name="PMU_DATA",
-                    array_item_class=_PMU_DATA_POLAR_INT,
-                    array_item_default=None,
-                    count=pmu_count,
-                    analog_counts=analog_counts,
-                    digital_counts=digital_counts,
-                    phasor_counts=phasor_counts,
-                ),
-                CHK(),
-            ],
-            data=data,
-        )
+    @property
+    def summary_str(self) -> str:
+        return self.get_summary_str()

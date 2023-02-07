@@ -80,7 +80,7 @@ class IntFieldGeneric(
         elif len(bit_mask) > len(bits):
             bit_mask = bit_mask[: len(bits)]
         if len(bits) < len(bit_mask) or len(bits) == 0 or len(bits) < self._bit_count:
-            raise IndexError("Too little data to parse field.")
+            raise IndexError(f"Too little data to parse field ({self.chain}).")
         my_bits = (bits & bit_mask)[: self._bit_count]
         self._bits = my_bits[: self._bit_count]
         if len(bits) >= self._bit_count:

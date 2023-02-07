@@ -110,7 +110,7 @@ class Float32IEEFieldGeneric(
         if len(bit_mask) < len(bits):
             bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
         if len(bits) < len(bit_mask) or len(bits) < self._bit_count:
-            raise IndexError("Too little data to parse field.")
+            raise IndexError(f"Too little data to parse field ({self.chain}).")
         my_bits = (bits & bit_mask)[: self.bit_count]
         temp_bits = bitarray(my_bits)
         byte_count = math.ceil(self.bit_count / 8)

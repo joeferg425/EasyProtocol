@@ -2,7 +2,7 @@
 from typing import cast
 
 from easyprotocol.base import ParseFieldDict, ParseFieldList, hex
-from easyprotocol.fields import Int8Field, ParseArrayField, UInt8Field, UInt16Field
+from easyprotocol.fields import ArrayField, Int8Field, UInt8Field, UInt16Field
 
 # you can define your field classes before using them in a parser.
 ident = Int8Field(name="id")
@@ -11,7 +11,7 @@ count = UInt16Field(
     # Let's modify the display of the field value
     string_format="{} data items",
 )
-data_array = ParseArrayField(
+data_array = ArrayField(
     name="data",
     count=count,
     array_item_class=UInt8Field,

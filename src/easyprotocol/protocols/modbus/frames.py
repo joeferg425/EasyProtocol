@@ -5,7 +5,7 @@ from typing import Sequence, cast
 
 from easyprotocol.base import ParseFieldDict, dataT
 from easyprotocol.base.parse_base import ParseBase
-from easyprotocol.base.parse_field_dict import K, T, parseGenericT
+from easyprotocol.base.parse_field_dict import T, parseGenericT
 from easyprotocol.protocols.modbus.constants import (
     ModbusFieldNamesEnum,
     ModbusFunctionEnum,
@@ -36,7 +36,7 @@ class ModbusRTUFrame(ParseFieldDict):
         data: dataT | None = None,
         address: int = 1,
         update_crc: bool = False,
-        additional_fields: Sequence[ParseBase] | Sequence[ParseBase] | Sequence[parseGenericT[K, T]] | None = None,
+        additional_fields: Sequence[ParseBase] | Sequence[ParseBase] | Sequence[parseGenericT[T]] | None = None,
     ) -> None:
         """Modbus header fields plus the checksum.
 
@@ -131,7 +131,7 @@ class ModbusTCPFrame(ParseFieldDict):
         protocol_id: int = 0,
         length: int | None = None,
         address: int = 1,
-        additional_fields: Sequence[ParseBase] | Sequence[ParseBase] | Sequence[parseGenericT[K, T]] | None = None,
+        additional_fields: Sequence[ParseBase] | Sequence[ParseBase] | Sequence[parseGenericT[T]] | None = None,
     ) -> None:
         """Modbus header fields plus the checksum.
 
@@ -384,7 +384,6 @@ class ModbusRTUReadCoilsResponse(ModbusRTUFrame):
             function=ModbusFunctionEnum.ReadCoils,
             data=data,
             additional_fields=[
-                ModbusRegister(default=register),
                 count_field,
                 ModbusCoilArray(
                     count=count_field,

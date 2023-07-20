@@ -318,7 +318,7 @@ class CHNAM(StringFixedLengthField):
         )
 
 
-class DIGNAMS(ArrayField[CHNAM]):
+class DIGNAMS(ArrayField[str]):
     """Array of digital names."""
 
     def __init__(
@@ -335,8 +335,8 @@ class DIGNAMS(ArrayField[CHNAM]):
         super().__init__(
             name="DIGNAMS",
             count=count,
-            array_item_class=StringFixedLengthField,  # pyright:ignore[reportGeneralTypeIssues]
-            array_item_default="",  # pyright:ignore[reportGeneralTypeIssues]
+            array_item_class=StringFixedLengthField,
+            array_item_default="",
             data=data,
         )
 
@@ -354,14 +354,13 @@ class DIGNAMS(ArrayField[CHNAM]):
             count = 16 * self._count
         else:
             count = 16 * self._count.value
-        if count is not None:
-            for i in range(count):
-                f = self._array_item_class(
-                    name=f"#{i}",
-                    default=self._array_item_default,
-                )
-                bit_data = f.parse(data=bit_data)
-                self._children[f.name] = f
+        for i in range(count):
+            f = self._array_item_class(
+                name=f"#{i}",
+                default=self._array_item_default,
+            )
+            bit_data = f.parse(data=bit_data)
+            self._children[f.name] = f
         return bit_data
 
 
@@ -433,9 +432,7 @@ class PHASOR:
                 s += f"MAGNITUDE: {self.magnitude:.3f}, DEGREES: {self.degrees:.3f}"
             else:
                 s += f"{self.magnitude:.3f}, {self.degrees:.3f}"
-        elif coords is CoordinateFormatEnum.RECTANGULAR or coords is None:
-            if coords is None:
-                s += ", "
+        if coords is CoordinateFormatEnum.RECTANGULAR or coords is None:
             if names:
                 s += f"IMAGINARY: {self.imaginary:.3f}j, REAL: {self.real:.3f}"
             else:

@@ -129,8 +129,6 @@ class StringField(ArrayValueField[str]):
         Args:
             value: the new value to assign to this field
         """
-        if value is None:
-            return
         for index, item in enumerate(value):
             if index < len(self._children):
                 kid = cast(CharField, self[index])

@@ -320,10 +320,7 @@ class ModbusCoilArray(ArrayField[bool]):
         if isinstance(self._count, int):
             _count = self._count * 8
         else:
-            if self._count.value is None:
-                _count = 0
-            else:
-                _count = self._count.value * 8
+            _count = self._count.value * 8
         for i in range(_count):
             f = self._array_item_class(
                 f"+{i}",
@@ -421,10 +418,7 @@ class ModbusDiscreteInputArray(ArrayField[bool]):
         if isinstance(self._count, int):
             _count = self._count * 8
         else:
-            if self._count.value is None:
-                _count = 0
-            else:
-                _count = self._count.value * 8
+            _count = self._count.value * 8
         for i in range(_count):
             f = self._array_item_class(
                 f"+{i}",

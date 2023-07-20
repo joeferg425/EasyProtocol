@@ -28,7 +28,7 @@ class ParseGenericList(
     def __init__(
         self,
         name: str,
-        default: Sequence[ParseBase] | dict[str, ParseBase] = (),
+        default: Sequence[ParseBase] | dict[str, ParseBase] | Any = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",

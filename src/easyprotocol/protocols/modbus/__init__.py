@@ -20,6 +20,21 @@ from easyprotocol.protocols.modbus.fields import (  # noqa
     ModbusRegister as ModbusRegister,
 )
 from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUReadCoilsRequest as ModbusRTUReadCoilsRequest,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUReadCoilsResponse as ModbusRTUReadCoilsResponse,
+)
+from easyprotocol.protocols.modbus.frames import (
+    ModbusRTUReadCoilsResponse as ModbusTCPReadCoilsResponse,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUReadDiscreteInputsRequest as ModbusRTUReadDiscreteInputsRequest,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUReadDiscreteInputsResponse as ModbusRTUReadDiscreteInputsResponse,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
     ModbusTCPReadCoilsRequest as ModbusTCPReadCoilsRequest,
 )
 from easyprotocol.protocols.modbus.frames import (  # noqa

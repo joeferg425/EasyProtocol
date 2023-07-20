@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Generic, Mapping, Sequence, TypeVar, cast
+from typing import Any, Generic, Mapping, Sequence, TypeVar
 
 from bitarray import bitarray
 
@@ -10,20 +10,19 @@ from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 T = TypeVar("T")
-K = TypeVar("K")
 
 
 class ParseGenericDict(
     ParseBase,
-    Mapping[K, ParseBase],
-    Generic[K, T],
+    Mapping[str, ParseBase],
+    Generic[T],
 ):
     """This class is the basic parsing class for dictionary types."""
 
     def __init__(
         self,
         name: str,
-        default: dict[str, ParseBase] | Sequence[ParseBase] | None = None,
+        default: dict[str, ParseBase] | Sequence[ParseBase] | Any = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -64,13 +63,13 @@ class ParseGenericDict(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self) -> tuple[K, ParseBase]:
+    def popitem(self) -> tuple[str, ParseBase]:
         """Remove item from list.
 
         Returns:
             the popped item
         """
-        return cast(tuple[K, ParseBase], self._children.popitem())
+        return self._children.popitem()
 
     def pop(self, name: str, default: ParseBase | None = None) -> ParseBase | None:
         """Pop item from dictionary by name.

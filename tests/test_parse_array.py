@@ -10,12 +10,12 @@ from bitarray import bitarray
 from parse_data import ParseData
 
 from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
-from easyprotocol.fields.array import ParseValueArrayField
+from easyprotocol.fields.array import ArrayValueField
 from easyprotocol.fields.unsigned_int import BoolField, UInt8Field
 
 
 def check_array_strings(
-    obj: ParseValueArrayField[Any],
+    obj: ArrayValueField[Any],
     tst: ParseData,
 ) -> None:
     # assert tst.format.format(tst.value) == obj.string_value, (
@@ -39,7 +39,7 @@ def check_array_strings(
 
 
 def check_array_value(
-    obj: ParseValueArrayField[int],
+    obj: ArrayValueField[int],
     tst: ParseData,
 ) -> None:
     assert (
@@ -48,7 +48,7 @@ def check_array_value(
 
 
 def check_array_properties(
-    obj: ParseValueArrayField[int],
+    obj: ArrayValueField[int],
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -71,7 +71,7 @@ def check_array_properties(
 
 
 def check_array(
-    obj: ParseValueArrayField[Any],
+    obj: ArrayValueField[Any],
     tst: ParseData,
 ) -> None:
     check_array_value(
@@ -104,7 +104,7 @@ class TestArray:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
@@ -131,7 +131,7 @@ class TestArray:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
@@ -148,7 +148,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = UInt8Field(name=f1_name)
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=name,
             count=1,
             array_item_class=UInt8Field,
@@ -169,7 +169,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = UInt8Field(name=f1_name)
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=name,
             count=3,
             array_item_class=UInt8Field,
@@ -187,7 +187,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = ParseList(name=f1_name)
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=name,
             count=3,
             array_item_class=UInt8Field,
@@ -202,7 +202,7 @@ class TestArray:
         name = "parent"
         count = 8
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=name,
             count=count,
             array_item_class=BoolField,
@@ -233,7 +233,7 @@ class TestArray:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=tst.name,
             count=count,
             array_item_class=BoolField,
@@ -266,7 +266,7 @@ class TestArray:
             endian=DEFAULT_ENDIANNESS,
             children=OrderedDict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayValueField(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,

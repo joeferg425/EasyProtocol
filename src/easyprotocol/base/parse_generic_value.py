@@ -18,7 +18,7 @@ class ParseGenericValue(
     def __init__(
         self,
         name: str,
-        default: T = None,
+        default: T | Any = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -73,7 +73,7 @@ class ParseGenericValue(
         return self.get_value()
 
     @value.setter
-    def value(self, value: Any) -> None:
+    def value(self, value: T | Any) -> None:
         self.set_value(value)
 
     @property

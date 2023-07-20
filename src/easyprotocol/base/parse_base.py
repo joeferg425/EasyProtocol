@@ -1,7 +1,7 @@
 """The base parsing object for handling parsing in a convenient (to modify) package."""
 from __future__ import annotations
 
-from typing import Literal, Sequence, SupportsBytes, TypeVar
+from typing import Any, Literal, Sequence, SupportsBytes, TypeVar
 
 from bitarray import bitarray
 
@@ -22,6 +22,7 @@ class ParseBase(SupportsBytes):
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
+        default: Any = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -31,6 +32,7 @@ class ParseBase(SupportsBytes):
             bit_count: number of bits assigned to this field
             string_format: python format string (e.g. "{}")
             endian: the byte endian-ness of this object
+            default: unused
         """
         self._name: str = ""
         self._endian: endianT = endian

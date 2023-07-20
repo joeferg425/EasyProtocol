@@ -8,18 +8,19 @@ from bitarray import bitarray
 from easyprotocol.base.parse_base import ParseBase
 from easyprotocol.base.parse_field_dict import parseGenericT
 from easyprotocol.base.parse_field_list import ParseFieldListGeneric
-from easyprotocol.base.parse_generic_dict import K
+from easyprotocol.base.parse_field_value_list import ParseGenericFieldValueList
+from easyprotocol.base.parse_generic_dict import ParseGenericDict
+from easyprotocol.base.parse_generic_list import ParseGenericList
 from easyprotocol.base.parse_generic_value import ParseGenericValue
-from easyprotocol.base.parse_value_list import ParseValueListGeneric
 from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 T = TypeVar("T")
 
 
-class ParseArrayFieldGeneric(
-    ParseFieldListGeneric[T, K],
-    Generic[T, K],
+class ArrayFieldGeneric(
+    ParseFieldListGeneric[T],
+    Generic[T],
 ):
     """Generic base class for parsing an array of uniform sub-fields."""
 
@@ -27,9 +28,9 @@ class ParseArrayFieldGeneric(
         self,
         name: str,
         count: UIntFieldGeneric[int] | int,
-        array_item_class: type[ParseGenericValue[T]],
-        array_item_default: T,
-        default: Sequence[T] | Sequence[ParseGenericValue[T]] | None = None,
+        array_item_class: type[parseGenericT[T]] | type[parseGenericT[Any]],
+        array_item_default: T | Any | type[parseGenericT[T]] | type[parseGenericT[Any]] | ParseBase,
+        default: Sequence[T] | Sequence[parseGenericT[T]] | None = None,
         data: dataT | None = None,
         string_format: str = "{}",
     ) -> None:
@@ -71,28 +72,30 @@ class ParseArrayFieldGeneric(
             count = self._count.value
         else:
             count = self._count
-        if count is not None:
-            for i in range(count):
-                f = self._array_item_class(
-                    name=f"#{i}",
-                    default=self._array_item_default,
-                )
-                f.parent = self
-                bit_data = f.parse(data=bit_data)
-                self._children[f.name] = f
+        for i in range(count):
+            f = self._array_item_class(
+                name=f"#{i}",
+                default=self._array_item_default,
+            )
+            f.parent = self
+            bit_data = f.parse(data=bit_data)
+            self._children[f.name] = f
         return bit_data
 
-    def create_default(self, default: Sequence[T] | Sequence[ParseGenericValue[T]]) -> None:
+    def create_default(self, default: Sequence[T] | Sequence[parseGenericT[T]]) -> None:
         """Create an array of default valued sub-fields for this array field.
 
         Args:
             default: default values for the sub-fields
         """
         for i, item in enumerate(default):
-            if isinstance(item, ParseGenericValue):
+            if isinstance(item, (ParseGenericValue, ParseGenericDict, ParseGenericList, ParseGenericFieldValueList)):
                 f = self._array_item_class(
                     name=f"#{i}",
-                    default=cast(ParseGenericValue[T], item).value,
+                    default=cast(
+                        "ParseGenericValue[T]|ParseGenericDict[T]|ParseGenericList[T]|ParseGenericFieldValueList[T]",  # noqa
+                        item,
+                    ).value,
                 )
             else:
                 f = self._array_item_class(
@@ -103,10 +106,10 @@ class ParseArrayFieldGeneric(
 
     def set_value(
         self,
-        value: Sequence[parseGenericT[K, T] | Any]
+        value: Sequence[parseGenericT[T] | Any]
         | dict[
             str,
-            parseGenericT[K, T] | Any,
+            parseGenericT[T] | Any,
         ],
     ) -> None:
         """Set the fields that are part of this field.
@@ -114,46 +117,44 @@ class ParseArrayFieldGeneric(
         Args:
             value: the new list of fields or dictionary of fields to assign to this field
         """
-        if value is not None:
-            if isinstance(value, (Sequence)):
-                for index in range(len(value)):
-                    item = value[index]
-                    if isinstance(item, ParseBase):
-                        if index < len(self.children):
-                            self[index] = item
-                            item._set_parent_generic(self)
-                        else:
-                            item = self._array_item_class(
-                                name=f"#{index}",
-                                default=item,
-                            )
-                            item._set_parent_generic(self)
-                            self._children[item.name] = item
+        if isinstance(value, (Sequence)):
+            for index in range(len(value)):
+                item = value[index]
+                if isinstance(item, ParseBase):
+                    if index < len(self.children):
+                        self[index] = item
+                        item._set_parent_generic(self)
                     else:
-                        self[index].value = item
-            else:
-                keys = list(value.keys())
-                for index in range(len(keys)):
-                    key = keys[index]
-                    item = value[key]
-                    if isinstance(item, ParseBase):
-                        if index < len(self.children):
-                            self[index] = item
-                            item._set_parent_generic(self)
-                        else:
-                            item = self._array_item_class(
-                                name=f"#{index}",
-                                default=item,
-                            )
-                            item._set_parent_generic(self)
-                            self._children[item.name] = item
+                        item = self._array_item_class(
+                            name=f"#{index}",
+                            default=item,
+                        )
+                        item._set_parent_generic(self)
+                        self._children[item.name] = item
+                else:
+                    self[index].value = item
+        else:
+            keys = list(value.keys())
+            for index in range(len(keys)):
+                key = keys[index]
+                item = value[key]
+                if isinstance(item, ParseBase):
+                    if index < len(self.children):
+                        self[index] = item
+                        item._set_parent_generic(self)
                     else:
-                        self[index].value = item
+                        item = self._array_item_class(
+                            name=f"#{index}",
+                            default=item,
+                        )
+                        item._set_parent_generic(self)
+                        self._children[item.name] = item
+                else:
+                    self[index].value = item
 
 
 class ArrayField(
-    ParseArrayFieldGeneric[T, str],
-    Generic[T],
+    ArrayFieldGeneric[T],
 ):
     """Base class for parsing an array of uniform sub-fields."""
 
@@ -161,9 +162,9 @@ class ArrayField(
         self,
         name: str,
         count: UIntFieldGeneric[int] | int,
-        array_item_class: type[ParseGenericValue[T]],
-        array_item_default: T,
-        default: Sequence[ParseGenericValue[T]] | Sequence[T] | None = None,
+        array_item_class: type[parseGenericT[T]] | type[parseGenericT[Any]],
+        array_item_default: T | Any | parseGenericT[T] | parseGenericT[Any],
+        default: Sequence[parseGenericT[T]] | Sequence[T] | None = None,
         string_format: str = "{}",
         data: dataT | None = None,
     ) -> None:
@@ -189,9 +190,9 @@ class ArrayField(
         )
 
 
-class ParseValueArrayFieldGeneric(
-    ParseValueListGeneric[K, T],
-    Generic[T, K],
+class ArrayValueFieldGeneric(
+    ParseGenericFieldValueList[T],
+    Generic[T],
 ):
     """Generic base class for parsing an array of uniform value-type sub-fields.
 
@@ -252,15 +253,14 @@ class ParseValueArrayFieldGeneric(
             count = self._count.value
         else:
             count = self._count
-        if count is not None:
-            for i in range(count):
-                f = self._array_item_class(
-                    name=f"#{i}",
-                    default=self._array_item_default,
-                )
-                f.parent = self
-                bit_data = f.parse(data=bit_data)
-                self._children[f.name] = f
+        for i in range(count):
+            f = self._array_item_class(
+                name=f"#{i}",
+                default=self._array_item_default,
+            )
+            f.parent = self
+            bit_data = f.parse(data=bit_data)
+            self._children[f.name] = f
         return bit_data
 
     def create_default(self, default: Sequence[T] | Sequence[ParseGenericValue[T]]) -> None:
@@ -270,10 +270,10 @@ class ParseValueArrayFieldGeneric(
             default: default values for the sub-fields
         """
         for i, item in enumerate(default):
-            if isinstance(item, ParseGenericValue):
+            if isinstance(item, (ParseGenericValue)):
                 f = self._array_item_class(
                     name=f"#{i}",
-                    default=cast(ParseGenericValue[T], item).value,
+                    default=cast("ParseGenericValue[T]", item).value,
                 )
             else:
                 f = self._array_item_class(
@@ -284,10 +284,10 @@ class ParseValueArrayFieldGeneric(
 
     def set_value(
         self,
-        value: Sequence[parseGenericT[K, T] | Any]
+        value: Sequence[ParseGenericValue[T] | Any]
         | dict[
             str,
-            parseGenericT[K, T] | Any,
+            ParseGenericValue[T] | Any,
         ],
     ) -> None:
         """Set the fields that are part of this field.
@@ -295,41 +295,40 @@ class ParseValueArrayFieldGeneric(
         Args:
             value: the new list of fields or dictionary of fields to assign to this field
         """
-        if value is not None:
-            if isinstance(value, (Sequence)):
-                for index in range(len(value)):
-                    item = value[index]
-                    if isinstance(item, ParseGenericValue):
-                        if index < len(self.children):
-                            self[index] = cast("ParseGenericValue[T]", item)
-                            item._set_parent_generic(self)
-                        else:
-                            item = self._array_item_class(
-                                name=f"#{index}",
-                                default=item,
-                            )
-                            item._set_parent_generic(self)
-                            self._children[item.name] = item
+        if isinstance(value, (Sequence)):
+            for index in range(len(value)):
+                item = value[index]
+                if isinstance(item, (ParseGenericValue)):
+                    if index < len(self.children):
+                        self[index] = item
+                        item._set_parent_generic(self)
                     else:
-                        self[index] = cast("ParseGenericValue[T]", item)
-            else:
-                keys = list(value.keys())
-                for index in range(len(keys)):
-                    key = keys[index]
-                    item = value[key]
-                    if isinstance(item, ParseGenericValue):
-                        if index < len(self.children):
-                            self[index] = cast("ParseGenericValue[T]", item)
-                            item._set_parent_generic(self)
-                        else:
-                            item = self._array_item_class(
-                                name=f"#{index}",
-                                default=item,
-                            )
-                            item._set_parent_generic(self)
-                            self._children[item.name] = item
+                        item = self._array_item_class(
+                            name=f"#{index}",
+                            default=item,
+                        )
+                        item._set_parent_generic(self)
+                        self._children[item.name] = item
+                else:
+                    self[index] = item
+        else:
+            keys = list(value.keys())
+            for index in range(len(keys)):
+                key = keys[index]
+                item = value[key]
+                if isinstance(item, (ParseGenericValue)):
+                    if index < len(self.children):
+                        self[index] = item
+                        item._set_parent_generic(self)
                     else:
-                        self[index] = cast("ParseGenericValue[T]", item)
+                        item = self._array_item_class(
+                            name=f"#{index}",
+                            default=item,
+                        )
+                        item._set_parent_generic(self)
+                        self._children[item.name] = item
+                else:
+                    self[index] = item
 
     def append(self, value: ParseGenericValue[T]) -> None:
         """Append a new field to this list.
@@ -341,7 +340,8 @@ class ParseValueArrayFieldGeneric(
 
 
 class ArrayValueField(
-    ParseValueArrayFieldGeneric[T, str],
+    ArrayValueFieldGeneric[T],
+    Generic[T],
 ):
     """Base class for parsing an array of uniform value-type sub-fields.
 

@@ -6,9 +6,8 @@ from easyprotocol.base.parse_field_list import ParseFieldList as ParseFieldList 
 from easyprotocol.base.parse_field_list import (  # noqa
     ParseFieldListGeneric as ParseFieldListGeneric,
 )
-from easyprotocol.base.parse_value_list import ParseValueList as ParseValueList  # noqa
-from easyprotocol.base.parse_value_list import (  # noqa
-    ParseValueListGeneric as ParseValueListGeneric,
+from easyprotocol.base.parse_field_value_list import (  # noqa
+    ParseGenericFieldValueList as ParseGenericFieldValueList,
 )
 from easyprotocol.base.utils import dataT as dataT  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa

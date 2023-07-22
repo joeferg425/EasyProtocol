@@ -101,7 +101,7 @@ class IntFieldGeneric(
         else:
             bits = _bits
         b = bits.tobytes()
-        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
+        return cast("T", int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
 
     def set_value(self, value: T) -> None:
         """Set the value of this field.

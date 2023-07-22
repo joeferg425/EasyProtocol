@@ -3,7 +3,8 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 
-from easyprotocol.base.parse_generic import ParseBase, dataT, endianT
+from easyprotocol.base.parse_generic import ParseBase
+from easyprotocol.base.utils import dataT, endianT
 
 T = TypeVar("T", covariant=True)
 
@@ -17,7 +18,7 @@ class ParseGenericValue(
     def __init__(
         self,
         name: str,
-        default: T = None,
+        default: T | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -51,7 +52,10 @@ class ParseGenericValue(
         """
         raise NotImplementedError()
 
-    def set_value(self, value: Any) -> None:
+    def set_value(
+        self,
+        value: Any,
+    ) -> None:
         """Set the parsed value of this class.
 
         Args:
@@ -72,7 +76,10 @@ class ParseGenericValue(
         return self.get_value()
 
     @value.setter
-    def value(self, value: Any) -> None:
+    def value(
+        self,
+        value: Any,
+    ) -> None:
         self.set_value(value)
 
     @property
@@ -85,5 +92,8 @@ class ParseGenericValue(
         return self._get_parent_generic()
 
     @parent.setter
-    def parent(self, value: ParseBase) -> None:
+    def parent(
+        self,
+        value: ParseBase,
+    ) -> None:
         self._set_parent_generic(value)

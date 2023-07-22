@@ -1,7 +1,6 @@
 """The base parsing object for handling parsing in a convenient (to modify) package."""
 from __future__ import annotations
 
-from collections import OrderedDict
 from typing import Literal, Sequence, SupportsBytes, TypeVar
 
 from bitarray import bitarray
@@ -40,7 +39,7 @@ class ParseBase(SupportsBytes):
         self._name = name
         self._initialized = False
         self._parent: ParseBase | None = None
-        self._children: OrderedDict[str, ParseBase] = OrderedDict()
+        self._children: dict[str, ParseBase] = dict()
         if string_format is None:
             self._string_format = "{}"
         else:
@@ -48,7 +47,10 @@ class ParseBase(SupportsBytes):
         if data is not None:
             self.parse(data=data)
 
-    def parse(self, data: dataT) -> bitarray:
+    def parse(
+        self,
+        data: dataT,
+    ) -> bitarray:
         """Parse the passed bits or bytes into meaningful data.
 
         Args:
@@ -67,7 +69,10 @@ class ParseBase(SupportsBytes):
         """
         return self._name
 
-    def set_name(self, value: str) -> None:
+    def set_name(
+        self,
+        value: str,
+    ) -> None:
         """Set the name of this field.
 
         Args:
@@ -97,7 +102,10 @@ class ParseBase(SupportsBytes):
         else:
             return bits
 
-    def set_bits_lsb(self, bits: bitarray) -> None:
+    def set_bits_lsb(
+        self,
+        bits: bitarray,
+    ) -> None:
         """Set the bits of this field in least-significant-bit first format.
 
         Args:
@@ -111,18 +119,21 @@ class ParseBase(SupportsBytes):
     def _get_parent_generic(self) -> ParseBase | None:
         return self._parent
 
-    def _set_parent_generic(self, parent: ParseBase | None) -> None:
+    def _set_parent_generic(
+        self,
+        parent: ParseBase | None,
+    ) -> None:
         self._parent = parent
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseBase]:
+    def _get_children_generic(self) -> dict[str, ParseBase]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseBase] | Sequence[ParseBase],
+        children: dict[str, ParseBase] | Sequence[ParseBase],
     ) -> None:
         self._children.clear()
-        if isinstance(children, (dict, OrderedDict)):
+        if isinstance(children, (dict, dict)):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
@@ -169,7 +180,10 @@ class ParseBase(SupportsBytes):
         return self._name
 
     @name.setter
-    def name(self, name: str) -> None:
+    def name(
+        self,
+        name: str,
+    ) -> None:
         self._name = name
 
     @property
@@ -182,7 +196,10 @@ class ParseBase(SupportsBytes):
         return self.get_bits_lsb()
 
     @bits_lsb.setter
-    def bits_lsb(self, bits: bitarray) -> None:
+    def bits_lsb(
+        self,
+        bits: bitarray,
+    ) -> None:
         self.set_bits_lsb(bits)
 
     @property
@@ -222,7 +239,10 @@ class ParseBase(SupportsBytes):
         return self._string_format
 
     @string_format.setter
-    def string_format(self, fmt: str) -> None:
+    def string_format(
+        self,
+        fmt: str,
+    ) -> None:
         self._string_format = fmt
 
     @property

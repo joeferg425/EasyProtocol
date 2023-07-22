@@ -133,7 +133,7 @@ class StringField(ParseValueArrayField[str]):
             return
         for index, item in enumerate(value):
             if index < len(self._children):
-                kid = cast(CharField, self[index])
+                kid = cast("CharField", self[index])
                 kid.value = item
             else:
                 f = self._array_item_class(f"#{index}", default=self._array_item_default)
@@ -304,7 +304,7 @@ class BytesField(ParseValueArrayField[bytes]):
         """
         for index, item in enumerate(value):
             if index < len(self._children):
-                kid = cast(ByteField, self[index])
+                kid = cast("ByteField", self[index])
                 kid.value = item
             else:
                 f = self._array_item_class(

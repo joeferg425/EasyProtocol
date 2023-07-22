@@ -24,6 +24,9 @@
 			"tobytes",
 			"uintfield"
 		],
+		"[python]": {
+			"editor.defaultFormatter": "ms-python.black-formatter"
+		},
 		"editor.gotoLocation.multipleDeclarations": "goto",
 		"editor.gotoLocation.multipleDefinitions": "goto",
 		"editor.gotoLocation.multipleImplementations": "goto",

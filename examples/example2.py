@@ -56,7 +56,7 @@ print(f"hex:\t{hex(exampleParser)}\n")
 # You can access parsed elements of a ParseDict by name.
 idField = exampleParser[ident.name]
 dataCountField = exampleParser[count.name]
-dataField = cast(ParseFieldList, exampleParser[data_array.name])
+dataField = cast("ParseFieldList", exampleParser[data_array.name])
 
 # The ArrayField is a list type, so children are accessed by numeric index.
 for child in exampleParser.values():

@@ -1,6 +1,5 @@
 # flake8:noqa
 import struct
-from collections import OrderedDict
 from enum import IntFlag
 from typing import Any
 
@@ -17,7 +16,6 @@ def check_flags_strings(
     obj: FlagsField[IntFlag],
     tst: ParseData,
 ) -> None:
-
     assert len(obj.string_value) > 0, (
         f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
     )
@@ -76,7 +74,7 @@ class TestFlags:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -104,7 +102,7 @@ class TestFlags:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -133,7 +131,7 @@ class TestFlags:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -167,7 +165,7 @@ class TestFlags:
             bits_data=bits_data2,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -205,7 +203,7 @@ class TestFlags:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -246,7 +244,7 @@ class TestFlags:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -289,7 +287,7 @@ class TestFlags:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,
@@ -327,7 +325,7 @@ class TestFlags:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = FlagsField(
             name=tst.name,

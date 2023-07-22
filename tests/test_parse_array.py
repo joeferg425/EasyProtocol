@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 from typing import Any
 
 import pytest
@@ -102,7 +101,7 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ParseValueArrayField(
             name=tst.name,
@@ -129,7 +128,7 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ParseValueArrayField(
             name=tst.name,
@@ -231,7 +230,7 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ParseValueArrayField(
             name=tst.name,
@@ -264,7 +263,7 @@ class TestArray:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ParseValueArrayField(
             name=tst.name,

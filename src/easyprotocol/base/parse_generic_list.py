@@ -1,7 +1,6 @@
 """This class is the basic parsing class for list types."""
 from __future__ import annotations
 
-from collections import OrderedDict
 from typing import (
     Any,
     Generic,
@@ -15,8 +14,8 @@ from typing import (
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_generic import DEFAULT_ENDIANNESS, ParseBase, T, endianT
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.parse_generic import ParseBase, T
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
 
 
 class ParseGenericList(
@@ -29,7 +28,7 @@ class ParseGenericList(
     def __init__(
         self,
         name: str,
-        default: Sequence[ParseBase] | OrderedDict[str, ParseBase] = (),
+        default: Sequence[ParseBase] | dict[str, ParseBase] | None = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -53,14 +52,18 @@ class ParseGenericList(
             endian=endian,
         )
 
-        if isinstance(default, dict):
-            self._set_children_generic(default)
-        else:
-            self._set_children_generic(OrderedDict({val._name: val for val in default}))
+        if default is not None:
+            if isinstance(default, dict):
+                self._set_children_generic(default)
+            else:
+                self._set_children_generic(dict({val._name: val for val in default}))
         if data is not None:
             self.parse(data)
 
-    def parse(self, data: dataT) -> bitarray:
+    def parse(
+        self,
+        data: dataT,
+    ) -> bitarray:
         """Parse the bits of this field into meaningful data.
 
         Args:
@@ -74,21 +77,28 @@ class ParseGenericList(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def insert(self, index: SupportsIndex, value: ParseBase) -> None:
+    def insert(
+        self,
+        index: SupportsIndex,
+        value: ParseBase,
+    ) -> None:
         """Insert a new field into this list.
 
         Args:
             index: the index at which the new field will be inserted
             value: the new field to be inserted
         """
-        c: OrderedDict[str, ParseBase] = OrderedDict()
+        c: dict[str, ParseBase] = dict()
         existing_values = list(self._children.values())
         existing_values.insert(index, value)
         for v in existing_values:
             c[v._name] = v
         self._children = c
 
-    def append(self, value: ParseBase) -> None:
+    def append(
+        self,
+        value: ParseBase,
+    ) -> None:
         """Append a new field to this list.
 
         Args:
@@ -106,14 +116,14 @@ class ParseGenericList(
 
     def set_value(
         self,
-        value: Sequence[ParseBase] | OrderedDict[str, ParseBase] | Any,
+        value: Sequence[ParseBase] | dict[str, ParseBase] | Any,
     ) -> None:
         """Set the fields that are part of this field.
 
         Args:
             value: the new list of fields to assign to this field
         """
-        if isinstance(value, (dict, OrderedDict)):
+        if isinstance(value, (dict, dict)):
             values = list(value.values())
             for index in range(len(value)):
                 item = values[index]
@@ -163,11 +173,17 @@ class ParseGenericList(
         return self.get_value()
 
     @value.setter
-    def value(self, value: Sequence[ParseBase] | Iterable[Any] | Any) -> None:
+    def value(
+        self,
+        value: Sequence[ParseBase] | Iterable[Any] | Any,
+    ) -> None:
         self.set_value(value=value)
 
     @overload
-    def __getitem__(self, index: SupportsIndex) -> ParseBase:
+    def __getitem__(
+        self,
+        index: SupportsIndex,
+    ) -> ParseBase:
         """Get a field from this class by index.
 
         Args:
@@ -176,7 +192,10 @@ class ParseGenericList(
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> Sequence[ParseBase]:
+    def __getitem__(
+        self,
+        index: slice,
+    ) -> MutableSequence[ParseBase]:
         """Get fields from this class by index.
 
         Args:
@@ -184,7 +203,10 @@ class ParseGenericList(
         """
         ...
 
-    def __getitem__(self, index: SupportsIndex | slice) -> ParseBase | Sequence[ParseBase]:
+    def __getitem__(
+        self,
+        index: SupportsIndex | slice,
+    ) -> ParseBase | MutableSequence[ParseBase]:
         """Get a field or fields from this class by index.
 
         Args:
@@ -199,7 +221,10 @@ class ParseGenericList(
         else:
             return vs
 
-    def __delitem__(self, index: SupportsIndex | slice) -> None:
+    def __delitem__(
+        self,
+        index: SupportsIndex | slice,
+    ) -> None:
         """Delete one or more items from this list by index.
 
         Args:
@@ -212,10 +237,14 @@ class ParseGenericList(
                 self._children.pop(x._name)
         else:
             item._set_parent_generic(None)
-            self._children = OrderedDict({k: v for k, v in self._children.items() if k != item.name})
+            self._children = dict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
-    def __setitem__(self, index: SupportsIndex, value: ParseBase) -> None:
+    def __setitem__(
+        self,
+        index: SupportsIndex,
+        value: ParseBase,
+    ) -> None:
         """Set an item in this list to a new value.
 
         Args:
@@ -225,7 +254,11 @@ class ParseGenericList(
         ...
 
     @overload
-    def __setitem__(self, index: slice, value: Iterable[ParseBase]) -> None:
+    def __setitem__(
+        self,
+        index: slice,
+        value: Iterable[ParseBase],
+    ) -> None:
         """Set items in this list to new values.
 
         Args:
@@ -234,7 +267,11 @@ class ParseGenericList(
         """
         ...
 
-    def __setitem__(self, index: SupportsIndex | slice, value: ParseBase | Iterable[ParseBase]) -> None:
+    def __setitem__(
+        self,
+        index: SupportsIndex | slice,
+        value: ParseBase | Iterable[ParseBase],
+    ) -> None:
         """Set one or more items in this list to new values.
 
         Args:
@@ -242,7 +279,7 @@ class ParseGenericList(
             value: one or more values
         """
         indexed_keys = list(self._children.keys())[index]
-        c: OrderedDict[str, ParseBase] = OrderedDict()
+        c: dict[str, ParseBase] = dict()
         for existing_key in self._children:
             if isinstance(indexed_keys, str) and isinstance(value, ParseBase):
                 if existing_key != indexed_keys:
@@ -268,15 +305,15 @@ class ParseGenericList(
         """
         return len(self._children)
 
-    def _get_children_generic(self) -> OrderedDict[str, ParseBase]:
+    def _get_children_generic(self) -> dict[str, ParseBase]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: OrderedDict[str, ParseBase] | Sequence[ParseBase] | None,
+        children: dict[str, ParseBase] | Sequence[ParseBase] | None,
     ) -> None:
         self._children.clear()
-        if isinstance(children, (dict, OrderedDict)):
+        if isinstance(children, (dict, dict)):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
@@ -297,7 +334,10 @@ class ParseGenericList(
         return self._get_parent_generic()
 
     @parent.setter
-    def parent(self, value: ParseBase | None) -> None:
+    def parent(
+        self,
+        value: ParseBase | None,
+    ) -> None:
         self._set_parent_generic(value)
 
     def __iter__(self) -> Iterator[ParseBase]:

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 from typing import Any, Sequence
 
 from bitarray import bitarray
@@ -111,7 +110,7 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -146,7 +145,7 @@ class TestParseFieldList:
             bits_data=bits_data,
             string_format="{}",
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2}),
+            children=dict({f1.name: f1, f2.name: f2}),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -181,7 +180,7 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2}),
+            children=dict({f1.name: f1, f2.name: f2}),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -210,7 +209,7 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1}),
+            children=dict({f1.name: f1}),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -256,7 +255,7 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
+            children=dict({f1.name: f1, f2.name: f2, f3.name: f3}),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -330,7 +329,7 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3, f4.name: f4}),
+            children=dict({f1.name: f1, f2.name: f2, f3.name: f3, f4.name: f4}),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -365,7 +364,7 @@ class TestParseFieldList:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            children=OrderedDict({f1.name: f1}),
+            children=dict({f1.name: f1}),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -423,7 +422,7 @@ class TestParseFieldList:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
+            children=dict({f1.name: f1, f2.name: f2, f3.name: f3}),
             endian=DEFAULT_ENDIANNESS,
         )
 
@@ -458,7 +457,7 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=DEFAULT_ENDIANNESS,
         )
         obj = ParseFieldList(
@@ -489,8 +488,8 @@ class TestParseFieldList:
         byte_data2 = f2_data
         values1: Sequence[Any] = []
         values2: Sequence[Any] = [f2]
-        children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f2.name: f2})
+        children1: dict[str, ParseGenericValue[Any]] = dict()
+        children2: dict[str, ParseGenericValue[Any]] = dict({f2.name: f2})
         tst = ParseData(
             name="test",
             value=values1,

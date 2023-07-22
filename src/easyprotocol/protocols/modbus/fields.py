@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import math
 import struct
-from collections import OrderedDict
 from typing import Any, Sequence
 
 import crc

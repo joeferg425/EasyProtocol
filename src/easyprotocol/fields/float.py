@@ -130,9 +130,9 @@ class Float32IEEFieldGeneric(
         """
         b = self.bits_lsb.tobytes()
         if self.endian == "little":
-            return cast(F, struct.unpack("<f", b)[0])
+            return cast("F", struct.unpack("<f", b)[0])
         else:
-            return cast(F, struct.unpack(">f", b)[0])
+            return cast("F", struct.unpack(">f", b)[0])
 
     def set_value(self, value: F) -> None:
         """Set the value of this field.

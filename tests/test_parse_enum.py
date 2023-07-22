@@ -1,6 +1,5 @@
 # flake8:noqa
 import struct
-from collections import OrderedDict
 from enum import IntEnum
 from typing import Any
 
@@ -82,7 +81,7 @@ class TestEnums:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -110,7 +109,7 @@ class TestEnums:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -138,7 +137,7 @@ class TestEnums:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -172,7 +171,7 @@ class TestEnums:
             bits_data=bits_data2,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -210,7 +209,7 @@ class TestEnums:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -251,7 +250,7 @@ class TestEnums:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -294,7 +293,7 @@ class TestEnums:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,
@@ -332,7 +331,7 @@ class TestEnums:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = EnumField(
             name=tst.name,

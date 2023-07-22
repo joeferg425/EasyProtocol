@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import math
 import struct
-from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Literal
 
@@ -32,7 +31,7 @@ class ParseData:
     bits_data: bitarray
     byte_data: bytes | bytearray
     parent: ParseBase | None
-    children: OrderedDict[str, ParseBase | parseGenericT[str, Any] | Any]
+    children: dict[str, ParseBase | parseGenericT[str, Any] | Any]
 
 
 def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:

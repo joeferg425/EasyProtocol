@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import math
 import struct
-from collections import OrderedDict
 from typing import Any, Literal
 
 import pytest
@@ -180,7 +179,7 @@ class TestFloat32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian="big",
         )
         obj = Float32Field(
@@ -204,7 +203,7 @@ class TestFloat32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian="little",
         )
         obj = Float32Field(
@@ -235,7 +234,7 @@ class TestFloat32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian="big",
         )
         obj = Float32Field(
@@ -267,7 +266,7 @@ class TestFloat32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian="little",
         )
         obj = Float32Field(
@@ -299,7 +298,7 @@ class TestFloat32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian="big",
         )
         obj = Float32Field(
@@ -331,7 +330,7 @@ class TestFloat32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian="little",
         )
         obj = Float32Field(
@@ -392,7 +391,7 @@ class TestFloat32:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = Float32Field(
             name=tst.name,
@@ -428,7 +427,7 @@ class TestFloat32:
             bits_data=bits_data1,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = Float32Field(
             name=tst.name,
@@ -466,7 +465,7 @@ class TestFloat32:
             bits_data=bits_data1,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = Float32Field(
             name=tst.name,
@@ -500,7 +499,7 @@ class TestFloat32:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = Float32Field(
             name=tst.name,

@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 
 from bitarray import bitarray
 from parse_data import ParseData
@@ -148,7 +147,7 @@ class TestChar:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = CharField(
             name=tst.name,
@@ -172,7 +171,7 @@ class TestChar:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = CharField(
             name=tst.name,
@@ -197,7 +196,7 @@ class TestChar:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = CharField(
             name=tst.name,
@@ -225,7 +224,7 @@ class TestString:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = StringField(
             name=tst.name,
@@ -251,7 +250,7 @@ class TestString:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = StringField(
             name=tst.name,
@@ -279,7 +278,7 @@ class TestByte:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ByteField(
             name=tst.name,
@@ -303,7 +302,7 @@ class TestByte:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ByteField(
             name=tst.name,
@@ -328,7 +327,7 @@ class TestByte:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ByteField(
             name=tst.name,
@@ -356,7 +355,7 @@ class TestBytes:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = BytesField(
             name=tst.name,
@@ -382,7 +381,7 @@ class TestBytes:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = BytesField(
             name=tst.name,

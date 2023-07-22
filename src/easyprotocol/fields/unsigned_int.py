@@ -101,7 +101,7 @@ class UIntFieldGeneric(
         else:
             bits = _bits
         b = bits.tobytes()
-        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
+        return cast("T", int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
     def set_value(self, value: T) -> None:
         """Set the value of this field.
@@ -112,7 +112,7 @@ class UIntFieldGeneric(
         if value is None:
             _value = 0
         elif isinstance(value, ParseGenericValue):
-            _value = int(cast(ParseGenericValue[T], value).value)
+            _value = int(cast("ParseGenericValue[T]", value).value)
         elif not isinstance(value, int):
             _value = int(value)
         else:

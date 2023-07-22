@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections import OrderedDict
+from collections import dict
 
 from easyprotocol.base.utils import hex
 from easyprotocol.protocols.modbus import (
@@ -39,7 +39,7 @@ def ReadCoils(check_crc: bool = False) -> None:
 
     print("│ ├─┐  Changing Frame data")
     readCoilsRequest.set_value(
-        OrderedDict(
+        dict(
             {
                 ModbusFieldNamesEnum.DeviceID.value: ModbusDeviceId(default=17),
                 ModbusFieldNamesEnum.FunctionCode.value: ModbusFunction(default=ModbusFunctionEnum.ReadCoils),

@@ -3,14 +3,14 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 
-from easyprotocol.base.parse_base import ParseBase, dataT, endianT
-from easyprotocol.base.utils import DEFAULT_ENDIANNESS
+from easyprotocol.base.base_field import BaseParseField
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT
 
 T = TypeVar("T", covariant=True)
 
 
-class ParseGenericValue(
-    ParseBase,
+class BaseValueField(
+    BaseParseField,
     Generic[T],
 ):
     """This class is the basic parsing class for value types."""
@@ -18,7 +18,7 @@ class ParseGenericValue(
     def __init__(
         self,
         name: str,
-        default: T | Any = None,
+        default: T | Any | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -52,7 +52,10 @@ class ParseGenericValue(
         """
         raise NotImplementedError()
 
-    def set_value(self, value: Any) -> None:
+    def set_value(
+        self,
+        value: Any,
+    ) -> None:
         """Set the parsed value of this class.
 
         Args:
@@ -64,7 +67,7 @@ class ParseGenericValue(
         raise NotImplementedError()
 
     @property
-    def value(self) -> T:
+    def value(self) -> Any:
         """Get the parsed value of the field.
 
         Returns:
@@ -73,18 +76,8 @@ class ParseGenericValue(
         return self.get_value()
 
     @value.setter
-    def value(self, value: T | Any) -> None:
+    def value(
+        self,
+        value: Any,
+    ) -> None:
         self.set_value(value)
-
-    @property
-    def parent(self) -> ParseBase | None:
-        """Get the parsed value of the field.
-
-        Returns:
-            the value of the field
-        """
-        return self._get_parent_generic()
-
-    @parent.setter
-    def parent(self, value: ParseBase) -> None:
-        self._set_parent_generic(value)

@@ -2,20 +2,19 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 from typing import Any
 
 import pytest
 from bitarray import bitarray
 from parse_data import ParseData
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
-from easyprotocol.fields.array import ArrayValueField
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS
+from easyprotocol.fields.array import Array
 from easyprotocol.fields.unsigned_int import BoolField, UInt8Field
 
 
 def check_array_strings(
-    obj: ArrayValueField[Any],
+    obj: ArrayFixedLengthField[Any],
     tst: ParseData,
 ) -> None:
     # assert tst.format.format(tst.value) == obj.string_value, (
@@ -39,7 +38,7 @@ def check_array_strings(
 
 
 def check_array_value(
-    obj: ArrayValueField[int],
+    obj: ArrayFixedLengthField[int],
     tst: ParseData,
 ) -> None:
     assert (
@@ -48,7 +47,7 @@ def check_array_value(
 
 
 def check_array_properties(
-    obj: ArrayValueField[int],
+    obj: ArrayFixedLengthField[int],
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -71,7 +70,7 @@ def check_array_properties(
 
 
 def check_array(
-    obj: ArrayValueField[Any],
+    obj: ArrayFixedLengthField[Any],
     tst: ParseData,
 ) -> None:
     check_array_value(
@@ -102,9 +101,9 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
@@ -129,9 +128,9 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
@@ -148,7 +147,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = UInt8Field(name=f1_name)
         name = "array"
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=name,
             count=1,
             array_item_class=UInt8Field,
@@ -169,7 +168,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = UInt8Field(name=f1_name)
         name = "array"
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=name,
             count=3,
             array_item_class=UInt8Field,
@@ -187,7 +186,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = ParseList(name=f1_name)
         name = "array"
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=name,
             count=3,
             array_item_class=UInt8Field,
@@ -202,7 +201,7 @@ class TestArray:
         name = "parent"
         count = 8
         name = "array"
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=name,
             count=count,
             array_item_class=BoolField,
@@ -231,9 +230,9 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=tst.name,
             count=count,
             array_item_class=BoolField,
@@ -264,9 +263,9 @@ class TestArray:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ArrayValueField(
+        obj = ArrayFixedLengthField(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,

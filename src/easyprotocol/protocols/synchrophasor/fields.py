@@ -10,7 +10,7 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
-from easyprotocol.base.parse_field_dict import ParseFieldDict
+from easyprotocol.base.dict_field import DictField
 from easyprotocol.fields import (
     ArrayField,
     BoolField,
@@ -57,7 +57,7 @@ class FRAMETYPE(EnumField[FrameTypeEnum]):
         )
 
 
-class SYNC(ParseFieldDict):
+class SYNC(DictField):
     """SYNC field parser."""
 
     def __init__(
@@ -144,7 +144,7 @@ class CoordinateFormatEnum(IntEnum):
     RECTANGULAR = 1
 
 
-class FORMAT(ParseFieldDict):
+class FORMAT(DictField):
     """Number and coordinate format field."""
 
     def __init__(
@@ -449,7 +449,7 @@ class PHASOR:
         return self.get_summary()
 
 
-class PHASOR_POLAR_FLOAT(ParseFieldDict, PHASOR):
+class PHASOR_POLAR_FLOAT(DictField, PHASOR):
     """Phasor field with polar and floating point values."""
 
     def __init__(
@@ -528,7 +528,7 @@ class PHASOR_POLAR_FLOAT(ParseFieldDict, PHASOR):
         return math.degrees(self.angle)
 
 
-class PHASOR_POLAR_INT(ParseFieldDict, PHASOR):
+class PHASOR_POLAR_INT(DictField, PHASOR):
     """Phasor field with polar and integer values."""
 
     def __init__(
@@ -562,7 +562,7 @@ class PHASOR_POLAR_INT(ParseFieldDict, PHASOR):
         return self.summary
 
 
-class PHASOR_RECTANGULAR_FLOAT(ParseFieldDict, PHASOR):
+class PHASOR_RECTANGULAR_FLOAT(DictField, PHASOR):
     """Phasor field with rectangular and floating-point values."""
 
     def __init__(
@@ -641,7 +641,7 @@ class PHASOR_RECTANGULAR_FLOAT(ParseFieldDict, PHASOR):
         return math.degrees(self.angle)
 
 
-class PHASOR_RECTANGULAR_INT(ParseFieldDict, PHASOR):
+class PHASOR_RECTANGULAR_INT(DictField, PHASOR):
     """Phasor field with rectangular and integer values."""
 
     def __init__(

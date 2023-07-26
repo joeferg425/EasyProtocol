@@ -12,7 +12,7 @@ UNDEFINED = "?UNDEFINED?"
 T = TypeVar("T")
 
 
-class ParseBase(SupportsBytes):
+class BaseParseField(SupportsBytes):
     """The base parsing object for handling parsing in a convenient (to modify) package."""
 
     def __init__(
@@ -40,8 +40,8 @@ class ParseBase(SupportsBytes):
         self._bit_count: int = bit_count
         self._name = name
         self._initialized = False
-        self._parent: ParseBase | None = None
-        self._children: dict[str, ParseBase] = dict()
+        self._parent: BaseParseField | None = None
+        self._children: dict[str, BaseParseField] = dict()
         if string_format is None:
             self._string_format = "{}"
         else:
@@ -109,21 +109,21 @@ class ParseBase(SupportsBytes):
         """
         raise NotImplementedError()
 
-    def _get_parent_generic(self) -> ParseBase | None:
+    def _get_parent_generic(self) -> BaseParseField | None:
         return self._parent
 
-    def _set_parent_generic(self, parent: ParseBase | None) -> None:
+    def _set_parent_generic(self, parent: BaseParseField | None) -> None:
         self._parent = parent
 
-    def _get_children_generic(self) -> dict[str, ParseBase]:
+    def _get_children_generic(self) -> dict[str, BaseParseField]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: dict[str, ParseBase] | Sequence[ParseBase],
+        children: dict[str, BaseParseField] | Sequence[BaseParseField] | None,
     ) -> None:
         self._children.clear()
-        if isinstance(children, (dict, dict)):
+        if isinstance(children, dict):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
@@ -300,3 +300,35 @@ class ParseBase(SupportsBytes):
             a nicely formatted string describing this field
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
+
+    @property
+    def value(self) -> Any:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        raise NotImplementedError()
+
+    @value.setter
+    def value(
+        self,
+        value: Any,
+    ) -> None:
+        raise NotImplementedError()
+
+    @property
+    def parent(self) -> BaseParseField | None:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        return self._get_parent_generic()
+
+    @parent.setter
+    def parent(
+        self,
+        value: BaseParseField,
+    ) -> None:
+        self._set_parent_generic(value)

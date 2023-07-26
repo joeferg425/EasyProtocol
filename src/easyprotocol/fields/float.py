@@ -7,15 +7,18 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
+from easyprotocol.base.base_value_field import BaseValueField
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 F = TypeVar("F", bound=Union[float, Any])
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(ParseGenericValue[F]):
+class FloatField(
+    BaseValueField[F],
+    BaseParseField,
+):
     """The base floating-point number field parsing."""
 
     def __init__(
@@ -51,6 +54,7 @@ class FloatField(ParseGenericValue[F]):
 
 class Float32IEEFieldGeneric(
     FloatField[F],
+    BaseParseField,
     Generic[F],
 ):
     """Base thirty-two bit IEEE floating-point number field parsing.
@@ -130,9 +134,9 @@ class Float32IEEFieldGeneric(
         """
         b = self.bits_lsb.tobytes()
         if self.endian == "little":
-            return cast(F, struct.unpack("<f", b)[0])
+            return cast("F", struct.unpack("<f", b)[0])
         else:
-            return cast(F, struct.unpack(">f", b)[0])
+            return cast("F", struct.unpack(">f", b)[0])
 
     def set_value(self, value: F) -> None:
         """Set the value of this field.
@@ -181,13 +185,19 @@ class Float32IEEFieldGeneric(
         return self.string_format.format(self.value)
 
 
-class Float32IEEField(Float32IEEFieldGeneric[float]):
+class Float32IEEField(
+    Float32IEEFieldGeneric[float],
+    BaseParseField,
+):
     """Thirty-two bit IEEE floating-point number field parsing."""
 
     ...
 
 
-class Float32Field(Float32IEEField):
+class Float32Field(
+    Float32IEEField,
+    BaseParseField,
+):
     """Thirty-two bit IEEE floating-point number field parsing."""
 
     ...

@@ -7,9 +7,10 @@ from typing import cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField
+from easyprotocol.base.base_list_field import BaseListField
 from easyprotocol.base.utils import dataT
-from easyprotocol.fields.array import ArrayValueField
+from easyprotocol.fields.array import ArrayField, ArrayValueField
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
 DEFAULT_CHAR_FORMAT: str = '"{}"'
@@ -18,7 +19,10 @@ DEFAULT_BYTE_FORMAT: str = '"{}"(byte)'
 DEFAULT_BYTES_FORMAT: str = '"{}"(bytes)'
 
 
-class CharField(UIntFieldGeneric[str]):
+class CharField(
+    UIntFieldGeneric[str],
+    BaseParseField,
+):
     """Single ASCII character field."""
 
     def __init__(
@@ -74,13 +78,19 @@ class CharField(UIntFieldGeneric[str]):
         self._bits = bits[: self._bit_count]
 
 
-class UInt8CharField(CharField):
+class UInt8CharField(
+    CharField,
+    BaseParseField,
+):
     """Single ASCII character field."""
 
     ...
 
 
-class StringField(ArrayValueField[str]):
+class StringField(
+    ArrayValueField[CharField],
+    BaseParseField,
+):
     """String parsing field."""
 
     def __init__(
@@ -110,10 +120,11 @@ class StringField(ArrayValueField[str]):
             count=count,
             array_item_class=CharField,
             array_item_default=char_default,
-            default=[s for s in default],
+            default=None,
             data=data,
             string_format=string_format,
         )
+        self.set([s for s in default])
 
     def get_value(self) -> str:
         """Get the parsed value of this class.
@@ -131,7 +142,7 @@ class StringField(ArrayValueField[str]):
         """
         for index, item in enumerate(value):
             if index < len(self._children):
-                kid = cast(CharField, self[index])
+                kid = cast("CharField", self[index])
                 kid.value = item
             else:
                 f = self._array_item_class(f"#{index}", default=self._array_item_default)
@@ -160,7 +171,10 @@ class StringField(ArrayValueField[str]):
         return self._string_format.format(self.value)
 
 
-class ByteField(UIntFieldGeneric[bytes]):
+class ByteField(
+    UIntFieldGeneric[bytes],
+    BaseParseField,
+):
     """Single byte field that returns bytes object instead of int."""
 
     def __init__(
@@ -235,13 +249,19 @@ class ByteField(UIntFieldGeneric[bytes]):
         return self._string_format.format(self.hex_value)
 
 
-class UInt8ByteField(ByteField):
+class UInt8ByteField(
+    ByteField,
+    BaseParseField,
+):
     """Single byte field that returns bytes object instead of int."""
 
     ...
 
 
-class BytesField(ArrayValueField[bytes]):
+class BytesField(
+    BaseListField[ByteField],
+    BaseParseField,
+):
     """Variable length bytes field that returns bytes."""
 
     def __init__(
@@ -302,7 +322,7 @@ class BytesField(ArrayValueField[bytes]):
         """
         for index, item in enumerate(value):
             if index < len(self._children):
-                kid = cast(ByteField, self[index])
+                kid = cast("ByteField", self[index])
                 kid.value = item
             else:
                 f = self._array_item_class(

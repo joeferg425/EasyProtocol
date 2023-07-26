@@ -6,8 +6,8 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
+from easyprotocol.base.base_value_field import BaseValueField
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 INT_STRING_FORMAT = "{}"
@@ -21,7 +21,8 @@ T = TypeVar("T", bound=Union[Any, int])
 
 
 class IntFieldGeneric(
-    ParseGenericValue[T],
+    BaseValueField[T],
+    BaseParseField,
     Generic[T],
 ):
     """Base signed integer parsing class."""
@@ -101,7 +102,7 @@ class IntFieldGeneric(
         else:
             bits = _bits
         b = bits.tobytes()
-        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
+        return cast("T", int.from_bytes(bytes=b, byteorder=self.endian, signed=True))
 
     def set_value(self, value: T) -> None:
         """Set the value of this field.
@@ -162,7 +163,10 @@ class IntFieldGeneric(
         self._bits = _bits[: self._bit_count]
 
 
-class IntField(IntFieldGeneric[int]):
+class IntField(
+    IntFieldGeneric[int],
+    BaseParseField,
+):
     """Signed integer parsing class."""
 
     def __init__(
@@ -194,7 +198,10 @@ class IntField(IntFieldGeneric[int]):
         )
 
 
-class Int8Field(IntField):
+class Int8Field(
+    IntField,
+    BaseParseField,
+):
     """Signed eight bit integer parsing class."""
 
     def __init__(
@@ -224,7 +231,10 @@ class Int8Field(IntField):
         )
 
 
-class Int16Field(IntField):
+class Int16Field(
+    IntField,
+    BaseParseField,
+):
     """Signed sixteen bit integer parsing class."""
 
     def __init__(
@@ -254,7 +264,10 @@ class Int16Field(IntField):
         )
 
 
-class Int24Field(IntField):
+class Int24Field(
+    IntField,
+    BaseParseField,
+):
     """Signed twenty-four bit integer parsing class."""
 
     def __init__(
@@ -284,7 +297,10 @@ class Int24Field(IntField):
         )
 
 
-class Int32Field(IntField):
+class Int32Field(
+    IntField,
+    BaseParseField,
+):
     """Signed thirty-two bit integer parsing class."""
 
     def __init__(
@@ -314,7 +330,10 @@ class Int32Field(IntField):
         )
 
 
-class Int64Field(IntField):
+class Int64Field(
+    IntField,
+    BaseParseField,
+):
     """Signed sixty-four bit integer parsing class."""
 
     def __init__(

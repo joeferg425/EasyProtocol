@@ -5,7 +5,6 @@ from easyprotocol.base.utils import hex
 from easyprotocol.protocols.modbus import (
     ModbusAddress,
     ModbusCount,
-    ModbusFieldNamesEnum,
     ModbusFunction,
     ModbusRTUReadCoilsRequest,
     ModbusRTUReadCoilsResponse,
@@ -42,14 +41,12 @@ def ReadCoils(check_crc: bool = False) -> None:
 
     print("│ ├─┐  Changing Frame data")
     readCoilsRequest.set_value(
-        dict(
-            {
-                ModbusFieldNamesEnum.Address.value: ModbusAddress(default=17),
-                ModbusFieldNamesEnum.FunctionCode.value: ModbusFunction(default=ModbusFunctionEnum.ReadCoils),
-                ModbusFieldNamesEnum.Address.value: ModbusAddress(default=19),
-                ModbusFieldNamesEnum.Count.value: ModbusCount(default=37),
-            }
-        )
+        [
+            ModbusAddress(default=17),
+            ModbusFunction(default=ModbusFunctionEnum.ReadCoils),
+            ModbusAddress(default=19),
+            ModbusCount(default=37),
+        ]
     )
     print(f"│ │ ├─ parser:\t\t{readCoilsRequest}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")

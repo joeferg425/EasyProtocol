@@ -6,8 +6,8 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
+from easyprotocol.base.base_value_field import BaseValueField
 from easyprotocol.base.utils import dataT, input_to_bytes
 
 UINT_STRING_FORMAT = "{:X}(hex)"
@@ -21,7 +21,8 @@ T = TypeVar("T", bound=Union[Any, int])
 
 
 class UIntFieldGeneric(
-    ParseGenericValue[T],
+    BaseValueField[T],
+    BaseParseField,
     Generic[T],
 ):
     """Base unsigned integer parsing class."""
@@ -101,7 +102,7 @@ class UIntFieldGeneric(
         else:
             bits = _bits
         b = bits.tobytes()
-        return cast(T, int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
+        return cast("T", int.from_bytes(bytes=b, byteorder=self.endian, signed=False))
 
     def set_value(self, value: T) -> None:
         """Set the value of this field.
@@ -111,8 +112,8 @@ class UIntFieldGeneric(
         """
         if value is None:
             _value = 0
-        elif isinstance(value, ParseGenericValue):
-            _value = int(cast(ParseGenericValue[T], value).value)
+        elif isinstance(value, BaseValueField):
+            _value = int(cast("BaseValueField[T]", value).value)
         elif not isinstance(value, int):
             _value = int(value)
         else:
@@ -164,7 +165,10 @@ class UIntFieldGeneric(
         self._bits = _bits[: self._bit_count]
 
 
-class UIntField(UIntFieldGeneric[int]):
+class UIntField(
+    UIntFieldGeneric[int],
+    BaseParseField,
+):
     """Unsigned integer parsing class."""
 
     def __init__(
@@ -196,7 +200,10 @@ class UIntField(UIntFieldGeneric[int]):
         )
 
 
-class BoolField(UIntFieldGeneric[bool]):
+class BoolField(
+    UIntFieldGeneric[bool],
+    BaseParseField,
+):
     """Boolean parsing class."""
 
     def __init__(
@@ -241,7 +248,10 @@ class BoolField(UIntFieldGeneric[bool]):
         self._bits = bits[: self._bit_count]
 
 
-class UInt8Field(UIntField):
+class UInt8Field(
+    UIntField,
+    BaseParseField,
+):
     """Unsigned eight bit integer parsing class."""
 
     def __init__(
@@ -271,7 +281,10 @@ class UInt8Field(UIntField):
         )
 
 
-class UInt16Field(UIntField):
+class UInt16Field(
+    UIntField,
+    BaseParseField,
+):
     """Unsigned sixteen bit integer parsing class."""
 
     def __init__(
@@ -301,7 +314,10 @@ class UInt16Field(UIntField):
         )
 
 
-class UInt24Field(UIntField):
+class UInt24Field(
+    UIntField,
+    BaseParseField,
+):
     """Unsigned twenty-four bit integer parsing class."""
 
     def __init__(
@@ -331,7 +347,10 @@ class UInt24Field(UIntField):
         )
 
 
-class UInt32Field(UIntField):
+class UInt32Field(
+    UIntField,
+    BaseParseField,
+):
     """Unsigned thirty-two bit integer parsing class."""
 
     def __init__(
@@ -361,7 +380,10 @@ class UInt32Field(UIntField):
         )
 
 
-class UInt64Field(UIntField):
+class UInt64Field(
+    UIntField,
+    BaseParseField,
+):
     """Unsigned sixty-four bit integer parsing class."""
 
     def __init__(

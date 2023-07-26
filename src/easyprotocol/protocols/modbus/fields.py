@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import struct
-from typing import Sequence
+from typing import Any, Sequence
 
 import crc
 from bitarray import bitarray

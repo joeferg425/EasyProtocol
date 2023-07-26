@@ -3,15 +3,14 @@ from __future__ import annotations
 
 import math
 import struct
-from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Literal
 
 import pytest
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import ParseBase
-from easyprotocol.base.parse_field_list import parseGenericT
+from easyprotocol.base.base_field import BaseParseField
+from easyprotocol.base.base_types import fieldGenericT
 from easyprotocol.base.utils import hex
 
 PARAMETER_NAMES = [
@@ -31,8 +30,8 @@ class ParseData:
     string_format: str
     bits_data: bitarray
     byte_data: bytes | bytearray
-    parent: ParseBase | None
-    children: OrderedDict[str, ParseBase | parseGenericT[str, Any] | Any]
+    parent: BaseParseField | None
+    children: dict[str, BaseParseField | fieldGenericT[Any] | Any]
 
 
 def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:

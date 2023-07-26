@@ -6,15 +6,15 @@ from typing import Any, Generic, Mapping, Sequence, TypeVar
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase, endianT
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.base_field import BaseParseField
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
 
 T = TypeVar("T")
 
 
-class ParseGenericDict(
-    ParseBase,
-    Mapping[str, ParseBase],
+class BaseDictField(
+    BaseParseField,
+    Mapping[str, BaseParseField],
     Generic[T],
 ):
     """This class is the basic parsing class for dictionary types."""
@@ -22,7 +22,7 @@ class ParseGenericDict(
     def __init__(
         self,
         name: str,
-        default: dict[str, ParseBase] | Sequence[ParseBase] | Any = None,
+        default: dict[str, BaseParseField] | Sequence[BaseParseField] | Any | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -49,7 +49,10 @@ class ParseGenericDict(
         if data is not None:
             self.parse(data)
 
-    def parse(self, data: dataT) -> bitarray:
+    def parse(
+        self,
+        data: dataT,
+    ) -> bitarray:
         """Parse the bits of this field into meaningful data.
 
         Args:
@@ -63,7 +66,7 @@ class ParseGenericDict(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self) -> tuple[str, ParseBase]:
+    def popitem(self) -> tuple[str, BaseParseField]:
         """Remove item from list.
 
         Returns:
@@ -71,7 +74,11 @@ class ParseGenericDict(
         """
         return self._children.popitem()
 
-    def pop(self, name: str, default: ParseBase | None = None) -> ParseBase | None:
+    def pop(
+        self,
+        name: str,
+        default: BaseParseField | None = None,
+    ) -> BaseParseField | None:
         """Pop item from dictionary by name.
 
         Args:
@@ -91,7 +98,7 @@ class ParseGenericDict(
 
     def get_value(
         self,
-    ) -> dict[str, ParseBase]:
+    ) -> dict[str, BaseParseField]:
         """Get the parsed value of the field.
 
         Returns:
@@ -101,7 +108,7 @@ class ParseGenericDict(
 
     def set_value(
         self,
-        value: dict[str, ParseBase] | Sequence[ParseBase],
+        value: dict[str, BaseParseField] | Sequence[BaseParseField],
     ) -> None:
         """Set the parsed value of the field.
 
@@ -130,12 +137,12 @@ class ParseGenericDict(
             data += value.bits_lsb
         return data
 
-    def _get_children_generic(self) -> dict[str, ParseBase]:
+    def _get_children_generic(self) -> dict[str, BaseParseField]:
         return self._children
 
     def _set_children_generic(
         self,
-        children: dict[str, ParseBase] | Sequence[ParseBase] | None,
+        children: dict[str, BaseParseField] | Sequence[BaseParseField] | None,
     ) -> None:
         self._children.clear()
         if isinstance(children, (dict)):
@@ -158,7 +165,7 @@ class ParseGenericDict(
         return f'{{{", ".join([str(value) for value in self._children.values()])}}}'
 
     @property
-    def value(self) -> dict[str, ParseBase]:
+    def value(self) -> dict[str, BaseParseField]:
         """Get the parsed value of the field.
 
         Returns:
@@ -169,12 +176,12 @@ class ParseGenericDict(
     @value.setter
     def value(
         self,
-        value: dict[str, ParseBase] | Sequence[ParseBase] | Any,
+        value: dict[str, BaseParseField] | Sequence[BaseParseField] | Any,
     ) -> None:
         self.set_value(value)
 
     @property
-    def children(self) -> dict[str, ParseBase]:
+    def children(self) -> dict[str, BaseParseField]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -185,7 +192,7 @@ class ParseGenericDict(
     @children.setter
     def children(
         self,
-        children: dict[str, ParseBase] | Sequence[ParseBase] | None,
+        children: dict[str, BaseParseField] | Sequence[BaseParseField] | None,
     ) -> None:
         self._set_children_generic(children=children)
 
@@ -213,7 +220,11 @@ class ParseGenericDict(
         """
         return f"<{self.__class__.__name__}> {self.__str__()}"
 
-    def __setitem__(self, name: object, value: ParseBase) -> None:
+    def __setitem__(
+        self,
+        name: Any,
+        value: BaseParseField,
+    ) -> None:
         """Set an item in this dictionary to a new value.
 
         Args:
@@ -226,7 +237,10 @@ class ParseGenericDict(
         value._set_parent_generic(self)
         return self._children.__setitem__(str(name), value)
 
-    def __getitem__(self, name: object) -> ParseBase:
+    def __getitem__(
+        self,
+        name: Any,
+    ) -> BaseParseField:
         """Get an item in this dictionary by name.
 
         Args:
@@ -237,7 +251,10 @@ class ParseGenericDict(
         """
         return self._children.__getitem__(str(name))
 
-    def __delitem__(self, name: object) -> None:
+    def __delitem__(
+        self,
+        name: Any,
+    ) -> None:
         """Delete an item in this dictionary by name.
 
         Args:
@@ -255,16 +272,3 @@ class ParseGenericDict(
             the length of this field dictionary
         """
         return len(self._children)
-
-    @property
-    def parent(self) -> ParseBase | None:
-        """Get the parsed value of the field.
-
-        Returns:
-            the value of the field
-        """
-        return self._get_parent_generic()
-
-    @parent.setter
-    def parent(self, value: ParseBase | None) -> None:
-        self._set_parent_generic(value)

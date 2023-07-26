@@ -1,6 +1,5 @@
 # flake8:noqa
 import struct
-from collections import OrderedDict
 
 import pytest
 from bitarray import bitarray
@@ -21,8 +20,8 @@ from parse_data import (
     ParseData,
 )
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.base_value_field import BaseValueField
 from easyprotocol.fields.unsigned_int import (
     UINT08_STRING_FORMAT,
     UINT16_STRING_FORMAT,
@@ -40,7 +39,7 @@ from easyprotocol.fields.unsigned_int import (
 
 
 def check_int_properties(
-    obj: ParseGenericValue[int],
+    obj: BaseValueField[int],
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -63,7 +62,7 @@ def check_int_properties(
 
 
 def check_int_children(
-    obj: ParseGenericValue[int],
+    obj: BaseValueField[int],
     tst: ParseData,
 ) -> None:
     assert len(obj._children) == len(tst.children), (  # pyright:ignore[reportPrivateUsage]
@@ -93,7 +92,7 @@ def check_int_children(
 
 
 def check_int_value(
-    obj: ParseGenericValue[int],
+    obj: BaseValueField[int],
     tst: ParseData,
 ) -> None:
     assert (
@@ -102,7 +101,7 @@ def check_int_value(
 
 
 def check_int_strings(
-    obj: ParseGenericValue[int],
+    obj: BaseValueField[int],
     tst: ParseData,
 ) -> None:
     assert tst.string_format.format(tst.value) == obj.string_value, (
@@ -123,7 +122,7 @@ def check_int_strings(
 
 
 def check_int(
-    obj: ParseGenericValue[int],
+    obj: BaseValueField[int],
     tst: ParseData,
 ) -> None:
     check_int_value(
@@ -158,7 +157,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -183,7 +182,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian="little",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -208,7 +207,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -245,7 +244,7 @@ class TestUIntField:
             bits_data=bits_data1,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -284,7 +283,7 @@ class TestUIntField:
             bits_data=bits_data1,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -319,7 +318,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -358,7 +357,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -391,7 +390,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -424,7 +423,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -457,7 +456,7 @@ class TestUIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UIntField(
             name=tst.name,
@@ -486,7 +485,7 @@ class TestUInt08:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt8Field(
             name=tst.name,
@@ -511,7 +510,7 @@ class TestUInt08:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt8Field(
             name=tst.name,
@@ -542,7 +541,7 @@ class TestUInt08:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt8Field(
             name=tst.name,
@@ -574,7 +573,7 @@ class TestUInt08:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt8Field(
             name=tst.name,
@@ -605,7 +604,7 @@ class TestUInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = UInt8Field(
@@ -637,7 +636,7 @@ class TestUInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = UInt8Field(
@@ -718,7 +717,7 @@ class TestUInt16:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt16Field(
             name=tst.name,
@@ -742,7 +741,7 @@ class TestUInt16:
             bits_data=bits_data,
             parent=None,
             endian="little",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt16Field(
             name=tst.name,
@@ -773,7 +772,7 @@ class TestUInt16:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt16Field(
             name=tst.name,
@@ -805,7 +804,7 @@ class TestUInt16:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt16Field(
             name=tst.name,
@@ -837,7 +836,7 @@ class TestUInt16:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt16Field(
             name=tst.name,
@@ -869,7 +868,7 @@ class TestUInt16:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt16Field(
             name=tst.name,
@@ -948,7 +947,7 @@ class TestUInt24:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt24Field(
             name=tst.name,
@@ -972,7 +971,7 @@ class TestUInt24:
             bits_data=bits_data,
             parent=None,
             endian="little",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt24Field(
             name=tst.name,
@@ -1003,7 +1002,7 @@ class TestUInt24:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt24Field(
             name=tst.name,
@@ -1035,7 +1034,7 @@ class TestUInt24:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt24Field(
             name=tst.name,
@@ -1067,7 +1066,7 @@ class TestUInt24:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt24Field(
             name=tst.name,
@@ -1099,7 +1098,7 @@ class TestUInt24:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt24Field(
             name=tst.name,
@@ -1182,7 +1181,7 @@ class TestUInt32:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt32Field(
             name=tst.name,
@@ -1206,7 +1205,7 @@ class TestUInt32:
             bits_data=bits_data,
             parent=None,
             endian="little",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt32Field(
             name=tst.name,
@@ -1237,7 +1236,7 @@ class TestUInt32:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt32Field(
             name=tst.name,
@@ -1269,7 +1268,7 @@ class TestUInt32:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt32Field(
             name=tst.name,
@@ -1301,7 +1300,7 @@ class TestUInt32:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt32Field(
             name=tst.name,
@@ -1333,7 +1332,7 @@ class TestUInt32:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt32Field(
             name=tst.name,
@@ -1412,7 +1411,7 @@ class TestUInt64:
             bits_data=bits_data,
             parent=None,
             endian="big",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt64Field(
             name=tst.name,
@@ -1436,7 +1435,7 @@ class TestUInt64:
             bits_data=bits_data,
             parent=None,
             endian="little",
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt64Field(
             name=tst.name,
@@ -1467,7 +1466,7 @@ class TestUInt64:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt64Field(
             name=tst.name,
@@ -1499,7 +1498,7 @@ class TestUInt64:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt64Field(
             name=tst.name,
@@ -1531,7 +1530,7 @@ class TestUInt64:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt64Field(
             name=tst.name,
@@ -1563,7 +1562,7 @@ class TestUInt64:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = UInt64Field(
             name=tst.name,

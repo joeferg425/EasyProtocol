@@ -3,9 +3,9 @@ from __future__ import annotations
 
 from typing import Sequence, cast
 
-from easyprotocol.base import ParseFieldDict, dataT
-from easyprotocol.base.parse_base import ParseBase
-from easyprotocol.base.parse_field_dict import T, parseGenericT
+from easyprotocol.base import DictField, dataT
+from easyprotocol.base.base_field import BaseParseField
+from easyprotocol.base.dict_field import T, fieldGenericT
 from easyprotocol.protocols.modbus.constants import (
     ModbusFieldNamesEnum,
     ModbusFunctionEnum,
@@ -25,7 +25,7 @@ from easyprotocol.protocols.modbus.fields import (
 )
 
 
-class ModbusRTUFrame(ParseFieldDict):
+class ModbusRTUFrame(DictField):
     """Modbus header fields plus the checksum."""
 
     def __init__(
@@ -36,7 +36,10 @@ class ModbusRTUFrame(ParseFieldDict):
         data: dataT | None = None,
         address: int = 1,
         update_crc: bool = False,
-        additional_fields: Sequence[ParseBase] | Sequence[ParseBase] | Sequence[parseGenericT[T]] | None = None,
+        additional_fields: Sequence[BaseParseField]
+        | Sequence[BaseParseField]
+        | Sequence[fieldGenericT[T]]
+        | None = None,
     ) -> None:
         """Modbus header fields plus the checksum.
 
@@ -119,7 +122,7 @@ class ModbusRTUFrame(ParseFieldDict):
             crc.value = value
 
 
-class ModbusTCPFrame(ParseFieldDict):
+class ModbusTCPFrame(DictField):
     """Modbus header fields plus the checksum."""
 
     def __init__(
@@ -131,7 +134,10 @@ class ModbusTCPFrame(ParseFieldDict):
         protocol_id: int = 0,
         length: int | None = None,
         address: int = 1,
-        additional_fields: Sequence[ParseBase] | Sequence[ParseBase] | Sequence[parseGenericT[T]] | None = None,
+        additional_fields: Sequence[BaseParseField]
+        | Sequence[BaseParseField]
+        | Sequence[fieldGenericT[T]]
+        | None = None,
     ) -> None:
         """Modbus header fields plus the checksum.
 

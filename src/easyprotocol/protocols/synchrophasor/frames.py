@@ -5,7 +5,7 @@ from typing import cast
 
 from bitarray import bitarray
 
-from easyprotocol.base import ParseFieldDict, dataT
+from easyprotocol.base import DictField, dataT
 from easyprotocol.base.utils import input_to_bytes
 from easyprotocol.fields import ArrayField, Float32Field, UInt16Field, UInt32Field
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
@@ -27,7 +27,7 @@ from easyprotocol.protocols.synchrophasor.fields import (
 )
 
 
-class HEADER(ParseFieldDict):
+class HEADER(DictField):
     """Packet header class for determining what type of frame it is."""
 
     def __init__(
@@ -59,7 +59,7 @@ class HEADER(ParseFieldDict):
         return frame_type.value
 
 
-class PMU_CONFIGURATION(ParseFieldDict):
+class PMU_CONFIGURATION(DictField):
     """PMU configuration object."""
 
     def __init__(
@@ -166,7 +166,7 @@ class PMU_CONFIGURATION(ParseFieldDict):
         return [name.value for name in cast(list[StringFixedLengthField], dignams.value)]
 
 
-class CONFIGURATION1(ParseFieldDict):
+class CONFIGURATION1(DictField):
     """Configuration Frame Type 1."""
 
     def __init__(
@@ -286,7 +286,7 @@ class CONFIGURATION2(CONFIGURATION1):
         )
 
 
-class COMMAND(ParseFieldDict):
+class COMMAND(DictField):
     """Command frame."""
 
     def __init__(
@@ -313,7 +313,7 @@ class COMMAND(ParseFieldDict):
         )
 
 
-class PMU_DATA(ParseFieldDict):
+class PMU_DATA(DictField):
     """Data field of a Data frame."""
 
     def __init__(
@@ -459,7 +459,7 @@ class PMUDataArrayField(ArrayField[PMU_DATA]):
         return bit_data
 
 
-class DATA(ParseFieldDict):
+class DATA(DictField):
     """Data parser."""
 
     def __init__(

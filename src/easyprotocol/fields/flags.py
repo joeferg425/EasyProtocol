@@ -4,14 +4,17 @@ from __future__ import annotations
 from enum import IntFlag
 from typing import Sequence, TypeVar, Union, cast
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 F = TypeVar("F", bound=Union[IntFlag, int])
 
 
-class FlagsField(UIntFieldGeneric[F]):
+class FlagsField(
+    UIntFieldGeneric[F],
+    BaseParseField,
+):
     """Base flags parsing class."""
 
     def __init__(
@@ -100,7 +103,10 @@ class FlagsField(UIntFieldGeneric[F]):
         self.set_value(value)
 
 
-class UInt8FlagsField(FlagsField[F]):
+class UInt8FlagsField(
+    FlagsField[F],
+    BaseParseField,
+):
     """Eight bit flags parsing class."""
 
     def __init__(
@@ -133,13 +139,19 @@ class UInt8FlagsField(FlagsField[F]):
         )
 
 
-class Flags8Field(UInt8FlagsField[F]):
+class Flags8Field(
+    UInt8FlagsField[F],
+    BaseParseField,
+):
     """Eight bit flags parsing class."""
 
     ...
 
 
-class UInt16FlagsField(FlagsField[F]):
+class UInt16FlagsField(
+    FlagsField[F],
+    BaseParseField,
+):
     """Sixteen bit flags parsing class."""
 
     def __init__(
@@ -172,13 +184,19 @@ class UInt16FlagsField(FlagsField[F]):
         )
 
 
-class Flags16Field(UInt16FlagsField[F]):
+class Flags16Field(
+    UInt16FlagsField[F],
+    BaseParseField,
+):
     """Sixteen bit flags parsing class."""
 
     ...
 
 
-class UInt24FlagsField(FlagsField[F]):
+class UInt24FlagsField(
+    FlagsField[F],
+    BaseParseField,
+):
     """Twenty-four bit flags parsing class."""
 
     def __init__(
@@ -211,13 +229,19 @@ class UInt24FlagsField(FlagsField[F]):
         )
 
 
-class Flags24Field(UInt24FlagsField[F]):
+class Flags24Field(
+    UInt24FlagsField[F],
+    BaseParseField,
+):
     """Twenty-four bit flags parsing class."""
 
     ...
 
 
-class UInt32FlagsField(FlagsField[F]):
+class UInt32FlagsField(
+    FlagsField[F],
+    BaseParseField,
+):
     """Thirty-two bit flags parsing class."""
 
     def __init__(
@@ -250,7 +274,10 @@ class UInt32FlagsField(FlagsField[F]):
         )
 
 
-class Flags32Field(UInt32FlagsField[F]):
+class Flags32Field(
+    UInt32FlagsField[F],
+    BaseParseField,
+):
     """Thirty-two bit flags parsing class."""
 
     ...

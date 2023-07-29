@@ -9,8 +9,9 @@ from typing import Any, Literal
 import pytest
 from bitarray import bitarray
 
-from easyprotocol.base.base_field import BaseParseField
-from easyprotocol.base.base_types import fieldGenericT
+from easyprotocol.base.base import BaseField
+
+# from easyprotocol.base.base_types import fieldGenericT
 from easyprotocol.base.utils import hex
 
 PARAMETER_NAMES = [
@@ -30,8 +31,8 @@ class ParseData:
     string_format: str
     bits_data: bitarray
     byte_data: bytes | bytearray
-    parent: BaseParseField | None
-    children: dict[str, BaseParseField | fieldGenericT[Any] | Any]
+    parent: BaseField | None
+    children: dict[str, BaseField]
 
 
 def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:

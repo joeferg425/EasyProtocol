@@ -76,7 +76,7 @@ class ModbusTransceiver:
                         pass
                     try:
                         msg = ModbusTCPReadCoilsRequest(data=self._bytes_buffer)
-                        self._bytes_buffer = self._bytes_buffer[len(msg.byte_value) :]
+                        self._bytes_buffer = self._bytes_buffer[len(msg.value_as_bytes) :]
                     except Exception as ex:
                         self.logger.debug("Failed to parse %s: %s", ModbusFunctionEnum.ReadCoils, ex)
                 if header.functionCode.value == ModbusFunctionEnum.ReadDiscreteInputs:
@@ -90,7 +90,7 @@ class ModbusTransceiver:
                         pass
                     try:
                         msg = ModbusTCPReadDiscreteInputsRequest(data=self._bytes_buffer)
-                        self._bytes_buffer = self._bytes_buffer[len(msg.byte_value) :]
+                        self._bytes_buffer = self._bytes_buffer[len(msg.value_as_bytes) :]
                     except Exception as ex:
                         self.logger.debug("Failed to parse %s: %s", ModbusFunctionEnum.ReadDiscreteInputs, ex)
         return msg
@@ -106,7 +106,7 @@ class ModbusTransceiver:
         """
         if self._modbus_socket is None:
             self.start()
-        frame_bytes = frame.byte_value
+        frame_bytes = frame.value_as_bytes
         frame_length = len(frame_bytes)
         sent_count = 0
         try:

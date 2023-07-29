@@ -8,7 +8,7 @@ from bitarray import bitarray
 from parse_data import ParseData
 from test_uint import check_int_properties, check_int_value
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS
+from easyprotocol.base.base import DEFAULT_ENDIANNESS
 from easyprotocol.fields.flags import FlagsField
 
 
@@ -16,17 +16,17 @@ def check_flags_strings(
     obj: FlagsField[IntFlag],
     tst: ParseData,
 ) -> None:
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
+    assert len(obj.value_as_string) > 0, (
+        f"{obj}: obj.value_as_string is not the expected value " + f"(? != expected value: {obj.value_as_string})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.value_as_string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's string vale ({obj.value_as_string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.value_as_string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's repr vale ({obj.value_as_string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"

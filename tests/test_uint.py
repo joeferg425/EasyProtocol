@@ -20,8 +20,7 @@ from parse_data import (
     ParseData,
 )
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.base_value_field import BaseValueField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.fields.unsigned_int import (
     UINT08_STRING_FORMAT,
     UINT16_STRING_FORMAT,
@@ -39,7 +38,7 @@ from easyprotocol.fields.unsigned_int import (
 
 
 def check_int_properties(
-    obj: BaseValueField[int],
+    obj: BaseField,
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -54,7 +53,7 @@ def check_int_properties(
         obj._parent == tst.parent  # pyright:ignore[reportPrivateUsage]
     ), f"{obj}: obj.parent is not the expected value ({obj._parent} != expected value: {tst.parent})"  # pyright:ignore[reportPrivateUsage]
     assert (
-        obj.byte_value == tst.byte_data
+        obj.value_as_bytes == tst.byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
         obj.endian == tst.endian
@@ -62,7 +61,7 @@ def check_int_properties(
 
 
 def check_int_children(
-    obj: BaseValueField[int],
+    obj: BaseField,
     tst: ParseData,
 ) -> None:
     assert len(obj._children) == len(tst.children), (  # pyright:ignore[reportPrivateUsage]
@@ -84,15 +83,15 @@ def check_int_children(
         )
 
     for v in tst.children.values():
-        assert v.string_value in obj.string_value
-        assert v.string_value in str(obj)
-        assert v.string_value in repr(obj)
+        assert v.value_as_string in obj.value_as_string
+        assert v.value_as_string in str(obj)
+        assert v.value_as_string in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 
 
 def check_int_value(
-    obj: BaseValueField[int],
+    obj: BaseField,
     tst: ParseData,
 ) -> None:
     assert (
@@ -101,28 +100,28 @@ def check_int_value(
 
 
 def check_int_strings(
-    obj: BaseValueField[int],
+    obj: BaseField,
     tst: ParseData,
 ) -> None:
-    assert tst.string_format.format(tst.value) == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
+    assert tst.string_format.format(tst.value) == obj.value_as_string, (
+        f"{obj}: obj.value_as_string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.value_as_string})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.value_as_string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's string vale ({obj.value_as_string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.value_as_string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's repr vale ({obj.value_as_string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
 
 
 def check_int(
-    obj: BaseValueField[int],
+    obj: BaseField,
     tst: ParseData,
 ) -> None:
     check_int_value(
@@ -667,7 +666,7 @@ class TestUInt08:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_uint8field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -898,7 +897,7 @@ class TestUInt16:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_uint16field_create_parse_too_little_data(self) -> None:
         value = 0x0FFF
@@ -1132,7 +1131,7 @@ class TestUInt24:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_uint24field_create_parse_too_little_data(self) -> None:
         value = 0x0FFFFF
@@ -1362,7 +1361,7 @@ class TestUInt32:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_uint32field_create_parse_too_little_data(self) -> None:
         value = 0x0FFFFFFF
@@ -1592,7 +1591,7 @@ class TestUInt64:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_uint64field_create_parse_too_little_data(self) -> None:
         value = 0x0FFFFFFFFFFFFFFF

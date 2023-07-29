@@ -16,7 +16,7 @@ from parse_data import (
 )
 from test_uint import check_int
 
-from easyprotocol.base.base_field import endianT
+from easyprotocol.base.base import endianT
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, hex
 from easyprotocol.fields.signed_int import (
     INT08_STRING_FORMAT,
@@ -1322,7 +1322,7 @@ class TestInt08:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int8field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -1554,7 +1554,7 @@ class TestInt16:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int16field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -1790,7 +1790,7 @@ class TestInt24:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int24field_create_parse_too_little_data(self) -> None:
         value = 0x0FFF
@@ -2022,7 +2022,7 @@ class TestInt32:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int32field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -2256,7 +2256,7 @@ class TestInt64:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int64field_create_parse_too_little_data(self) -> None:
         value = 0x0F

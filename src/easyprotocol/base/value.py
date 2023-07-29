@@ -3,14 +3,14 @@ from __future__ import annotations
 
 from typing import Any, Generic, TypeVar
 
-from easyprotocol.base.base_field import BaseParseField
+from easyprotocol.base.base import BaseField, defaultT
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT
 
 T = TypeVar("T", covariant=True)
 
 
-class BaseValueField(
-    BaseParseField,
+class ValueFieldGeneric(
+    BaseField,
     Generic[T],
 ):
     """This class is the basic parsing class for value types."""
@@ -18,7 +18,7 @@ class BaseValueField(
     def __init__(
         self,
         name: str,
-        default: T | Any | None = None,
+        default: defaultT | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
@@ -40,9 +40,8 @@ class BaseValueField(
             bit_count,
             string_format,
             endian,
+            default=default,
         )
-        if data is None and default is not None:
-            self.value = default
 
     def get_value(self) -> Any:
         """Get the parsed value of this class.

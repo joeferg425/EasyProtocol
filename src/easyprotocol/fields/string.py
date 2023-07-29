@@ -3,25 +3,24 @@ from __future__ import annotations
 
 import math
 import struct
-from typing import cast
+from typing import Sequence, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField
-from easyprotocol.base.base_list_field import BaseListField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField
 from easyprotocol.base.utils import dataT
-from easyprotocol.fields.array import ArrayField, ArrayValueField
+from easyprotocol.fields.array import ArrayFieldGeneric
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
-DEFAULT_CHAR_FORMAT: str = '"{}"'
-DEFAULT_STRING_FORMAT: str = '"{}"'
+DEFAULT_CHAR_FORMAT: str = "{}"
+DEFAULT_STRING_FORMAT: str = "{}"
 DEFAULT_BYTE_FORMAT: str = '"{}"(byte)'
 DEFAULT_BYTES_FORMAT: str = '"{}"(bytes)'
 
 
 class CharField(
     UIntFieldGeneric[str],
-    BaseParseField,
+    BaseField,
 ):
     """Single ASCII character field."""
 
@@ -30,7 +29,7 @@ class CharField(
         name: str,
         default: str = "\x00",
         data: dataT | None = None,
-        string_format: str = '"{}"',
+        string_format: str = "{}",
         string_encoding: str = "latin1",
     ) -> None:
         """Create eight-bit character field.
@@ -77,10 +76,18 @@ class CharField(
         bits.frombytes(my_bytes)
         self._bits = bits[: self._bit_count]
 
+    def __str__(self) -> str:
+        """Get a nicely formatted string describing this field.
+
+        Returns:
+            a nicely formatted string describing this field
+        """
+        return f'{self._name}: "{self.value_as_string}"'
+
 
 class UInt8CharField(
     CharField,
-    BaseParseField,
+    BaseField,
 ):
     """Single ASCII character field."""
 
@@ -88,8 +95,8 @@ class UInt8CharField(
 
 
 class StringField(
-    ArrayValueField[CharField],
-    BaseParseField,
+    ArrayFieldGeneric[str],
+    BaseField,
 ):
     """String parsing field."""
 
@@ -98,7 +105,7 @@ class StringField(
         name: str,
         count: UIntField | int = 0,
         data: dataT | None = None,
-        string_format: str = '"{}"',
+        string_format: str = "{}",
         string_encoding: str = "latin1",
         default: str = "",
         char_default: str = "\x00",
@@ -120,60 +127,32 @@ class StringField(
             count=count,
             array_item_class=CharField,
             array_item_default=char_default,
-            default=None,
+            default=default,
             data=data,
             string_format=string_format,
         )
-        self.set([s for s in default])
 
-    def get_value(self) -> str:
-        """Get the parsed value of this class.
-
-        Returns:
-            the parsed value of this class
-        """
-        return "".join([v.value for v in self.children.values()])
-
-    def set_value(self, value: str) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
-        """Set the value of this field.
-
-        Args:
-            value: the new value to assign to this field
-        """
-        for index, item in enumerate(value):
-            if index < len(self._children):
-                kid = cast("CharField", self[index])
-                kid.value = item
-            else:
-                f = self._array_item_class(f"#{index}", default=self._array_item_default)
-                f.value = item
-                self._children[f.name] = f
-
-    @property
-    def value(self) -> str:
-        """Get the parsed value of this class.
+    def get_value_concatenated(self) -> str:
+        """Get list values as a single concatenated value (if supported).
 
         Returns:
-            the parsed value of this class
+            list values as a single concatenated value (if supported)
         """
-        return self.get_value()
+        return "".join([v.value for v in cast("Sequence[CharField]", self.value)])
 
-    @value.setter
-    def value(self, value: str) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
-        self.set_value(value=value)
-
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return self._string_format.format(self.value)
+        s = self.get_value_concatenated()
+        return self.string_format.format(s)
 
 
 class ByteField(
     UIntFieldGeneric[bytes],
-    BaseParseField,
+    BaseField,
 ):
     """Single byte field that returns bytes object instead of int."""
 
@@ -207,7 +186,7 @@ class ByteField(
         Returns:
             the parsed value of this class
         """
-        return self.byte_value
+        return self.value_as_bytes
 
     @property
     def value(self) -> bytes:
@@ -240,18 +219,18 @@ class ByteField(
         bits.frombytes(my_bytes)
         self._bits = bits[: self._bit_count]
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return self._string_format.format(self.hex_value)
+        return self._string_format.format(self.value.decode("latin1"))
 
 
 class UInt8ByteField(
     ByteField,
-    BaseParseField,
+    BaseField,
 ):
     """Single byte field that returns bytes object instead of int."""
 
@@ -259,8 +238,8 @@ class UInt8ByteField(
 
 
 class BytesField(
-    BaseListField[ByteField],
-    BaseParseField,
+    ArrayFieldGeneric[bytes],
+    BaseField,
 ):
     """Variable length bytes field that returns bytes."""
 
@@ -293,49 +272,19 @@ class BytesField(
             string_format=string_format,
         )
 
-    @property
-    def value(self) -> bytes:  # pyright:ignore[reportIncompatibleMethodOverride]
-        """Get the parsed value of this class.
+    def get_value_concatenated(self) -> bytes:
+        """Get list values as a single concatenated value (if supported).
 
         Returns:
-            the parsed value of this class
+            list values as a single concatenated value (if supported)
         """
-        return self.get_value()
+        return b"".join([v.value for v in cast("Sequence[ByteField]", self.value)])
 
-    @value.setter
-    def value(self, value: bytes) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
-        self.set_value(value=value)
-
-    def get_value(self) -> bytes:  # pyright:ignore[reportIncompatibleMethodOverride]
-        """Get the parsed value of this class.
-
-        Returns:
-            the parsed value of this class
-        """
-        return b"".join([v.value for v in self.children.values()])
-
-    def set_value(self, value: bytes) -> None:  # pyright:ignore[reportIncompatibleMethodOverride]
-        """Set the value of this field.
-
-        Args:
-            value: the new value to assign to this field
-        """
-        for index, item in enumerate(value):
-            if index < len(self._children):
-                kid = cast("ByteField", self[index])
-                kid.value = item
-            else:
-                f = self._array_item_class(
-                    name=f"#{index}",
-                    default=self._array_item_default,
-                )
-                f.value = bytes([item])
-                self._children[f.name] = f
-
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return self.string_format.format(self.get_hex_value())
+        s = self.get_value_concatenated().decode("latin1")
+        return self.string_format.format(s)

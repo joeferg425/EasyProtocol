@@ -6,9 +6,9 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
-from easyprotocol.base.base_value_field import BaseValueField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.value import ValueFieldGeneric
 
 UINT_STRING_FORMAT = "{:X}(hex)"
 UINT08_STRING_FORMAT = "{:02X}(hex)"
@@ -21,8 +21,8 @@ T = TypeVar("T", bound=Union[Any, int])
 
 
 class UIntFieldGeneric(
-    BaseValueField[T],
-    BaseParseField,
+    ValueFieldGeneric[T],
+    BaseField,
     Generic[T],
 ):
     """Base unsigned integer parsing class."""
@@ -112,8 +112,8 @@ class UIntFieldGeneric(
         """
         if value is None:
             _value = 0
-        elif isinstance(value, BaseValueField):
-            _value = int(cast("BaseValueField[T]", value).value)
+        elif isinstance(value, BaseField):
+            _value = int(value.value)
         elif not isinstance(value, int):
             _value = int(value)
         else:
@@ -124,7 +124,7 @@ class UIntFieldGeneric(
         bits.frombytes(my_bytes)
         self._bits = bits[: self._bit_count]
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get the string value of this field.
 
         Returns:
@@ -167,7 +167,7 @@ class UIntFieldGeneric(
 
 class UIntField(
     UIntFieldGeneric[int],
-    BaseParseField,
+    BaseField,
 ):
     """Unsigned integer parsing class."""
 
@@ -202,7 +202,7 @@ class UIntField(
 
 class BoolField(
     UIntFieldGeneric[bool],
-    BaseParseField,
+    BaseField,
 ):
     """Boolean parsing class."""
 
@@ -250,7 +250,7 @@ class BoolField(
 
 class UInt8Field(
     UIntField,
-    BaseParseField,
+    BaseField,
 ):
     """Unsigned eight bit integer parsing class."""
 
@@ -283,7 +283,7 @@ class UInt8Field(
 
 class UInt16Field(
     UIntField,
-    BaseParseField,
+    BaseField,
 ):
     """Unsigned sixteen bit integer parsing class."""
 
@@ -316,7 +316,7 @@ class UInt16Field(
 
 class UInt24Field(
     UIntField,
-    BaseParseField,
+    BaseField,
 ):
     """Unsigned twenty-four bit integer parsing class."""
 
@@ -349,7 +349,7 @@ class UInt24Field(
 
 class UInt32Field(
     UIntField,
-    BaseParseField,
+    BaseField,
 ):
     """Unsigned thirty-two bit integer parsing class."""
 
@@ -382,7 +382,7 @@ class UInt32Field(
 
 class UInt64Field(
     UIntField,
-    BaseParseField,
+    BaseField,
 ):
     """Unsigned sixty-four bit integer parsing class."""
 

@@ -79,7 +79,7 @@ python -m pip install easyprotocol
 
     # You can access parsed elements of a ParseList by numeric index.
     for child in exampleParser.children.values():
-        print(f'{child.name}:\t{child.value}\t"{child.string_value}"')
+        print(f'{child.name}:\t{child.value}\t"{child.value_as_string}"')
     print()
 
     # Wait, I don't really like hexadecimal
@@ -95,7 +95,7 @@ python -m pip install easyprotocol
     print(f"bytes:\t{bytes(exampleParser)!r}")
     print(f"hex:\t{exampleParser.hex_value}\n")
     for child in exampleParser.children.values():
-        print(f'{child.name}:\t{child.value}\t"{child.string_value}"')
+        print(f'{child.name}:\t{child.value}\t"{child.value_as_string}"')
     ```
 
 - Output

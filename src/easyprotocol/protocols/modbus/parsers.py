@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from typing import Any, Mapping, Sequence, cast
+from typing import Sequence, cast
 
 from easyprotocol.base import DictField, dataT
-from easyprotocol.base.base_field import BaseParseField
+from easyprotocol.base.base import BaseField
 from easyprotocol.protocols.modbus.constants import (
     ModbusFieldNamesEnum,
     ModbusFunctionEnum,
@@ -14,8 +14,8 @@ from easyprotocol.protocols.modbus.fields import (
     ModbusCoilArray,
     ModbusCount,
     ModbusCRC,
-    ModbusDeviceId,
     ModbusFunction,
+    ModbusRegister,
 )
 
 
@@ -24,10 +24,10 @@ class ModbusHeader(DictField):
         self,
         name: str = "modbusHeader",
         data: dataT | None = None,
-        children: Sequence[BaseParseField] = [
-            ModbusDeviceId(),
-            ModbusFunction(),
+        children: Sequence[BaseField] = [
             ModbusAddress(),
+            ModbusFunction(),
+            ModbusRegister(),
             ModbusCRC(),
         ],
     ) -> None:
@@ -38,15 +38,15 @@ class ModbusHeader(DictField):
         )
 
     @property
-    def deviceId(self) -> ModbusDeviceId:
-        return cast("ModbusDeviceId", self[ModbusFieldNamesEnum.DeviceID.value])
+    def deviceId(self) -> ModbusAddress:
+        return cast("ModbusAddress", self[ModbusFieldNamesEnum.Address.value])
 
     @deviceId.setter
     def deviceId(self, value: int) -> None:
-        if isinstance(value, ModbusDeviceId):
-            self[ModbusFieldNamesEnum.DeviceID.value] = value
+        if isinstance(value, ModbusAddress):
+            self[ModbusFieldNamesEnum.Address.value] = value
         else:
-            id = cast("ModbusDeviceId", self[ModbusFieldNamesEnum.DeviceID.value])
+            id = cast("ModbusAddress", self[ModbusFieldNamesEnum.Address.value])
             id.value = value
 
     @property
@@ -107,9 +107,9 @@ class ModbusReadCoilsRequest(ModbusHeader):
             name=ModbusFunctionEnum.ReadCoils.name + "Request",
             data=data,
             children=[
-                ModbusDeviceId(),
-                ModbusFunction(),
                 ModbusAddress(),
+                ModbusFunction(),
+                ModbusRegister(),
                 ModbusCount(),
                 ModbusCRC(),
             ],
@@ -126,7 +126,7 @@ class ModbusReadCoilsResponse(ModbusHeader):
             name=ModbusFunctionEnum.ReadCoils.name + "Response",
             data=data,
             children=[
-                ModbusDeviceId(),
+                ModbusAddress(),
                 ModbusFunction(),
                 count_field,
                 ModbusCoilArray(count=count_field),
@@ -156,9 +156,9 @@ class ModbusReadDiscreteInputsRequest(ModbusHeader):
             name=ModbusFunctionEnum.ReadDiscreteInputs.name + "Request",
             data=data,
             children=[
-                ModbusDeviceId(),
-                ModbusFunction(),
                 ModbusAddress(),
+                ModbusFunction(),
+                ModbusRegister(),
                 ModbusCount(),
                 ModbusCRC(),
             ],

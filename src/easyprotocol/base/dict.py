@@ -1,35 +1,34 @@
-"""The base parsing object for handling parsing in a convenient package."""
+"""This class is the basic parsing class for dictionary types."""
 from __future__ import annotations
 
 from enum import Enum
-from typing import Any, Generic, Iterator, Mapping, Sequence, cast
+from typing import Any, Generic, Iterator, Mapping, Sequence, TypeVar
 
 from bitarray import bitarray
 
-from easyprotocol.base.base_dict_field import BaseDictField, T
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
-from easyprotocol.base.base_types import collectionGenericT, fieldGenericT
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.base import BaseField, defaultT
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
+
+T = TypeVar("T")
 
 
 class DictFieldGeneric(
-    BaseDictField[T],
-    BaseParseField,
-    Mapping[str, fieldGenericT[T]],
+    BaseField,
+    Mapping[str, BaseField],
     Generic[T],
 ):
-    """The base parsing object for handling parsing in a convenient package."""
+    """This class is the basic parsing class for dictionary types."""
 
     def __init__(
         self,
         name: str,
-        default: collectionGenericT[T] | Any | None = None,
+        default: defaultT | None = None,
         data: dataT = None,
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
-        """Create the base parsing object for handling parsing in a convenient package.
+        """Create the basic parsing class for dictionary types.
 
         Args:
             name: name of parsed object
@@ -41,16 +40,12 @@ class DictFieldGeneric(
         """
         super().__init__(
             name=name,
-            data=None,
+            data=data,
             bit_count=bit_count,
             string_format=string_format,
             endian=endian,
+            default=default,
         )
-        if default is not None:
-            if isinstance(default, list):
-                self.set_children(children=default)
-        if data is not None:
-            self.parse(data)
 
     def parse(
         self,
@@ -69,22 +64,19 @@ class DictFieldGeneric(
             bit_data = field.parse(data=bit_data)
         return bit_data
 
-    def popitem(self) -> tuple[str, fieldGenericT[T]]:
+    def popitem(self) -> tuple[str, BaseField]:
         """Remove item from list.
 
         Returns:
             the popped item
         """
-        return cast(
-            "tuple[str,fieldGenericT[T]]",
-            self._children.popitem(),
-        )
+        return self._children.popitem()
 
     def pop(
         self,
         name: str,
-        default: fieldGenericT[T] | None = None,
-    ) -> fieldGenericT[T] | None:
+        default: Any | BaseField | None = None,
+    ) -> Any | BaseField | None:
         """Pop item from dictionary by name.
 
         Args:
@@ -97,42 +89,48 @@ class DictFieldGeneric(
         if isinstance(name, Enum):
             p = self._children.pop(name.name, default)
         else:
-            p = self._children.pop(str(name), default)
+            p = self._children.pop(name, default)
         if p is not None:
-            p._set_parent_generic(None)
-        return cast("fieldGenericT[ T]", p)
+            p.set_parent(None)
+        return p
 
     def get_value(
         self,
-    ) -> dict[str, fieldGenericT[T]]:
+    ) -> dict[str, Any] | dict[str, BaseField]:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return cast(
-            "dict[str, fieldGenericT[ T]]",
-            dict(self._children),
-        )
+        return dict(self._children)
 
     def set_value(
         self,
-        value: dict[str, fieldGenericT[T]] | Sequence[fieldGenericT[T]],
+        value: defaultT,
     ) -> None:
-        """Set the fields that are part of this field.
+        """Set the value of the field.
 
         Args:
-            value: the new list of fields or dictionary of fields to assign to this field
+            value: the value of the field
+
+        Raises:
+            TypeError: if assigned value is of the wrong type
         """
         if isinstance(value, dict):
             for key, item in value.items():
-                self.__setitem__(key, item)
-                item._set_parent_generic(self)
+                if not isinstance(item, BaseField):
+                    raise TypeError(f"Cannot assign item of type {type(item)} to value of {self.__class__.__name__}")
+                else:
+                    self.__setitem__(key, item)
+                    item.set_parent(self)
         else:
             for item in value:
-                key = item.name
-                self.__setitem__(key, item)
-                item._set_parent_generic(self)
+                if not isinstance(item, BaseField):
+                    raise TypeError(f"Cannot assign item of type {type(item)} to value of {self.__class__.__name__}")
+                else:
+                    key = item.name
+                    self.__setitem__(key, item)
+                    item.set_parent(self)
 
     def get_bits_lsb(self) -> bitarray:
         """Get the bits of this field in least-significant-bit first format.
@@ -146,17 +144,17 @@ class DictFieldGeneric(
             data += value.bits_lsb
         return data
 
-    def get_children(self) -> dict[str, fieldGenericT[Any]]:
+    def get_children(self) -> dict[str, BaseField]:
         """Get the children of this field as an ordered dictionary.
 
         Returns:
             the children of this field
         """
-        return cast("dict[str, fieldGenericT[Any]]", self._children)
+        return self._children
 
     def set_children(
         self,
-        children: collectionGenericT[T] | Any,
+        children: Sequence[Any] | dict[str, Any] | Sequence[BaseField] | dict[str, BaseField] | None,
     ) -> None:
         """Set the children of this field using an ordered dictionary.
 
@@ -168,24 +166,24 @@ class DictFieldGeneric(
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
-                self._children[str(key)] = value
-                value._set_parent_generic(self)
+                self._children[key] = value
+                value.set_parent(self)
         elif isinstance(children, list):
             for value in children:
                 self._children[value._name] = value
-                value._set_parent_generic(self)
+                value.set_parent(self)
 
-    def get_parent(self) -> fieldGenericT[Any] | None:
+    def get_parent(self) -> BaseField | None:
         """Get the field (if any) that is this field's parent.
 
         Returns:
             this field's parent (or None)
         """
-        return cast("fieldGenericT[Any]", self._parent)
+        return self._parent
 
     def set_parent(
         self,
-        parent: fieldGenericT[Any] | None,
+        parent: BaseField | None,
     ) -> None:
         """Set this field's parent.
 
@@ -194,16 +192,17 @@ class DictFieldGeneric(
         """
         self._parent = parent
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return f'{{{", ".join([str(value) for value in self._children.values()])}}}'
+        s = f'{{{", ".join([str(value) for value in self._children.values()])}}}'
+        return self.string_format.format(s)
 
     @property
-    def value(self) -> dict[str, fieldGenericT[T]]:
+    def value(self) -> dict[str, BaseField]:
         """Get the parsed value of the field.
 
         Returns:
@@ -214,12 +213,12 @@ class DictFieldGeneric(
     @value.setter
     def value(
         self,
-        value: collectionGenericT[T],
+        value: defaultT,
     ) -> None:
         self.set_value(value)
 
     @property
-    def parent(self) -> fieldGenericT[Any] | None:
+    def parent(self) -> BaseField | None:
         """Get the field (if any) that is this field's parent.
 
         Returns:
@@ -230,12 +229,12 @@ class DictFieldGeneric(
     @parent.setter
     def parent(
         self,
-        value: fieldGenericT[Any] | None,
+        value: BaseField | None,
     ) -> None:
         self.set_parent(value)
 
     @property
-    def children(self) -> dict[str, fieldGenericT[Any]]:
+    def children(self) -> dict[str, BaseField]:
         """Get the parse objects that are contained by this one.
 
         Returns:
@@ -246,45 +245,75 @@ class DictFieldGeneric(
     @children.setter
     def children(
         self,
-        children: collectionGenericT[T],
+        children: dict[str, Any] | Sequence[Any] | dict[str, BaseField] | Sequence[BaseField] | None,
     ) -> None:
         self.set_children(children=children)
 
     def __setitem__(
         self,
-        name: str,
-        value: fieldGenericT[T],
+        name: Any,
+        value: BaseField,
     ) -> None:
-        """Set an item in this list to a new value.
+        """Set an item in this dictionary to a new value.
 
         Args:
-            name: name of item to replace
-            value: new field value
+            name: a field name
+            value: a new field value
         """
-        value._set_parent_generic(self)
+        value.set_parent(self)
         self._children.__setitem__(str(name), value)
+
+    def set_by_key(
+        self,
+        name: Any,
+        value: T,
+    ) -> None:
+        """Set an item in this dictionary to a new value.
+
+        Args:
+            name: a field name
+            value: a new field value
+        """
+        self[name].value = T
 
     def __getitem__(
         self,
-        name: str,
-    ) -> fieldGenericT[T]:
-        """Get a field from this class by name.
+        name: Any,
+    ) -> BaseField:
+        """Get an item in this dictionary by name.
 
         Args:
-            name: name of the sub-field to retrieve
+            name: a field name
 
         Returns:
-            the field
+            the named field
         """
-        return cast("fieldGenericT[T]", self._children.__getitem__(str(name)))
+        return self._children.__getitem__(str(name))
 
-    def __delitem__(self, name: str) -> None:
-        """Delete item from this list by name.
+    def get_by_key(
+        self,
+        name: Any,
+    ) -> T:
+        """Get an item in this dictionary by name.
 
         Args:
-            name: name of item to delete
+            name: a field name
+
+        Returns:
+            the named field
         """
-        self._children.__delitem__(name)
+        return self[name].value
+
+    def __delitem__(
+        self,
+        name: Any,
+    ) -> None:
+        """Delete an item in this dictionary by name.
+
+        Args:
+            name: a field name
+        """
+        self._children.__delitem__(str(name))
 
     def __len__(self) -> int:
         """Get the count of this field's sub-fields.
@@ -293,6 +322,30 @@ class DictFieldGeneric(
             the length of this field dictionary
         """
         return len(self._children)
+
+    def __bytes__(self) -> bytes:
+        """Get the bytes that make up this field.
+
+        Returns:
+            the bytes of this field
+        """
+        return self.bits_lsb.tobytes()
+
+    def __str__(self) -> str:
+        """Get a nicely formatted string describing this field.
+
+        Returns:
+            a nicely formatted string describing this field
+        """
+        return f"{self._name}: {self.value_as_string}"
+
+    def __repr__(self) -> str:
+        """Get a nicely formatted string describing this field.
+
+        Returns:
+            a nicely formatted string describing this field
+        """
+        return f"<{self.__class__.__name__}> {self.__str__()}"
 
     def __iter__(self) -> Iterator[str]:
         """Iterate over the fields in this list.
@@ -305,8 +358,29 @@ class DictFieldGeneric(
 
 class DictField(
     DictFieldGeneric[Any],
-    BaseParseField,
+    BaseField,
 ):
-    """The base field dictionary."""
+    """_summary_
 
-    ...
+    Args:
+        DictFieldGeneric: _description_
+        BaseField: _description_
+    """
+
+    def __init__(
+        self,
+        name: str,
+        default: defaultT | None = None,
+        data: dataT = None,
+        bit_count: int = -1,
+        string_format: str | None = None,
+        endian: endianT = DEFAULT_ENDIANNESS,
+    ) -> None:
+        super().__init__(
+            name=name,
+            default=default,
+            data=data,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
+        )

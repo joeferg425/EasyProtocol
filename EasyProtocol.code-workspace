@@ -48,6 +48,7 @@
 			"PHNMR",
 			"PHUNIT",
 			"pyright",
+			"pyshark",
 			"pytest",
 			"Synchrophasor",
 			"tobytes",

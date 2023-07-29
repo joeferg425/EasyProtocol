@@ -35,6 +35,18 @@ from easyprotocol.protocols.modbus.frames import (  # noqa
     ModbusRTUReadDiscreteInputsResponse as ModbusRTUReadDiscreteInputsResponse,
 )
 from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUReadHoldingRegisterRequest as ModbusRTUReadHoldingRegisterRequest,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUReadHoldingRegisterResponse as ModbusRTUReadHoldingRegisterResponse,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUWriteHoldingRegisterRequest as ModbusRTUWriteHoldingRegisterRequest,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusRTUWriteHoldingRegisterResponse as ModbusRTUWriteHoldingRegisterResponse,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
     ModbusTCPReadCoilsRequest as ModbusTCPReadCoilsRequest,
 )
 from easyprotocol.protocols.modbus.frames import (  # noqa
@@ -45,6 +57,18 @@ from easyprotocol.protocols.modbus.frames import (  # noqa
 )
 from easyprotocol.protocols.modbus.frames import (  # noqa
     ModbusTCPReadDiscreteInputsResponse as ModbusTCPReadDiscreteInputsResponse,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusTCPReadHoldingRegisterRequest as ModbusTCPReadHoldingRegisterRequest,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusTCPReadHoldingRegisterResponse as ModbusTCPReadHoldingRegisterResponse,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusTCPWriteHoldingRegisterRequest as ModbusTCPWriteHoldingRegisterRequest,
+)
+from easyprotocol.protocols.modbus.frames import (  # noqa
+    ModbusTCPWriteHoldingRegisterResponse as ModbusTCPWriteHoldingRegisterResponse,
 )
 from easyprotocol.protocols.modbus.modbus_client import (  # noqa
     ModbusClient as ModbusClient,

@@ -4,6 +4,7 @@ from __future__ import annotations
 import logging
 import math
 import socket
+import sys
 from typing import Generator, cast
 
 from easyprotocol.base.utils import hex
@@ -17,8 +18,8 @@ from easyprotocol.protocols.modbus.frames import (
 )
 from easyprotocol.protocols.modbus.modbus_transceiver import ModbusTransceiver
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+LOGGER = logging.getLogger(__file__)
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class ModbusServer(ModbusTransceiver):
@@ -38,7 +39,7 @@ class ModbusServer(ModbusTransceiver):
             verbose: logging verbosity. Defaults to False.
         """
         super().__init__(logger=LOGGER)
-        if verbose:
+        if verbose is True:
             LOGGER.setLevel(logging.DEBUG)
         self._server_ip = ip
         self._server_port = port
@@ -154,9 +155,9 @@ class ModbusServer(ModbusTransceiver):
             if self._modbus_socket is not None:
                 rx_msg, tx_msg = self.receive_and_send()
                 if rx_msg is not None:
-                    LOGGER.debug("Server: RX: %s (%s)", rx_msg, hex(rx_msg.byte_value))
+                    LOGGER.debug("Server: RX: %s (%s)", rx_msg, hex(rx_msg.value_as_bytes))
                 if tx_msg is not None:
-                    LOGGER.debug("Server: TX: %s (%s)", str(tx_msg), hex(tx_msg.byte_value))
+                    LOGGER.debug("Server: TX: %s (%s)", str(tx_msg), hex(tx_msg.value_as_bytes))
                 if rx_msg is not None:
                     yield rx_msg, tx_msg
 
@@ -251,3 +252,29 @@ class ModbusServer(ModbusTransceiver):
             return self._client_port
         else:
             return None
+
+
+if __name__ == "__main__":
+    import argparse
+    import time
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ip_address", nargs="?", default="127.0.0.1", help="The IP Address to run the server on.")
+    parser.add_argument("-p", "--port", type=int, default=502, help="The TCP port to run the server on.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Set flag to see debugging messages.")
+    args = parser.parse_args()
+
+    server = ModbusServer(ip=args.ip_address, port=args.port, verbose=args.verbose)
+    server.add_mapping(ModbusFunctionEnum.ReadCoils, 0, {0: False})
+    while True:
+        try:
+            for rx, tx in server.run():
+                if rx is not None:
+                    LOGGER.info("Message received")
+        except KeyboardInterrupt:
+            break
+        except Exception as ex:
+            LOGGER.error(ex)
+        time.sleep(1)
+
+    LOGGER.info("Modbus Server Exiting")

@@ -1,8 +1,8 @@
 """Define common field types in an easy to modify manner."""
-from easyprotocol.base.base_field import BaseParseField as BaseParseField  # noqa
+from easyprotocol.base.base import BaseField as BaseField  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa
 from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
-from easyprotocol.fields.array import ArrayField as ArrayField  # noqa
+from easyprotocol.fields.array import ArrayFieldGeneric as ArrayFieldGeneric  # noqa
 from easyprotocol.fields.checksum import ChecksumField as ChecksumField  # noqa
 from easyprotocol.fields.enum import Enum8Field as Enum8Field  # noqa
 from easyprotocol.fields.enum import Enum16Field as Enum16Field  # noqa
@@ -24,7 +24,7 @@ from easyprotocol.fields.flags import UInt24FlagsField as UInt24FlagsField  # no
 from easyprotocol.fields.flags import UInt32FlagsField as UInt32FlagsField  # noqa
 from easyprotocol.fields.float import Float32Field as Float32Field  # noqa
 from easyprotocol.fields.float import Float32IEEField as Float32IEEField  # noqa
-from easyprotocol.fields.float import FloatField as FloatField  # noqa
+from easyprotocol.fields.float import FloatFieldGeneric as FloatFieldGeneric  # noqa
 from easyprotocol.fields.signed_int import Int8Field as Int8Field  # noqa
 from easyprotocol.fields.signed_int import Int16Field as Int16Field  # noqa
 from easyprotocol.fields.signed_int import Int32Field as Int32Field  # noqa

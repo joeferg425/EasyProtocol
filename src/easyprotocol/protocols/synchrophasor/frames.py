@@ -7,7 +7,12 @@ from bitarray import bitarray
 
 from easyprotocol.base import DictField, dataT
 from easyprotocol.base.utils import input_to_bytes
-from easyprotocol.fields import ArrayField, Float32Field, UInt16Field, UInt32Field
+from easyprotocol.fields import (
+    ArrayFieldGeneric,
+    Float32Field,
+    UInt16Field,
+    UInt32Field,
+)
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 from easyprotocol.protocols.synchrophasor.fields import (
     CHK,
@@ -88,13 +93,13 @@ class PMU_CONFIGURATION(DictField):
                 self._ph_nmr,
                 self._an_nmr,
                 self._dg_nmr,
-                ArrayField(
+                ArrayFieldGeneric(
                     name="PHNAMS",
                     array_item_class=StringFixedLengthField,
                     array_item_default="",
                     count=self._ph_nmr,
                 ),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="ANNAMS",
                     array_item_class=StringFixedLengthField,
                     array_item_default="",
@@ -103,19 +108,19 @@ class PMU_CONFIGURATION(DictField):
                 DIGNAMS(
                     count=self._dg_nmr,
                 ),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="PHUNIT",
                     array_item_class=Float32Field,
                     array_item_default=0.0,
                     count=self._ph_nmr,
                 ),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="ANUNIT",
                     array_item_class=Float32Field,
                     array_item_default=0.0,
                     count=self._an_nmr,
                 ),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="DIGUNIT",
                     array_item_class=UInt32Field,
                     array_item_default=0.0,
@@ -133,7 +138,7 @@ class PMU_CONFIGURATION(DictField):
         Returns:
             the station name
         """
-        return cast("StringFixedLengthField", self["STN"]).value
+        return cast("StringFixedLengthField", self["STN"]).get_item()
 
     @property
     def phasor_names(self) -> list[str]:
@@ -142,8 +147,8 @@ class PMU_CONFIGURATION(DictField):
         Returns:
             the phasor names
         """
-        phnams = cast("ArrayField[str]", self["PHNAMS"])
-        return [name.value for name in cast(list[StringFixedLengthField], phnams.value)]
+        phnams = cast("ArrayFieldGeneric[str]", self["PHNAMS"])
+        return phnams.values
 
     @property
     def analog_names(self) -> list[str]:
@@ -152,8 +157,8 @@ class PMU_CONFIGURATION(DictField):
         Returns:
             the analog names
         """
-        annams = cast("ArrayField[str]", self["ANNAMS"])
-        return [name.value for name in cast(list[StringFixedLengthField], annams.value)]
+        annams = cast("ArrayFieldGeneric[str]", self["ANNAMS"])
+        return annams.values
 
     @property
     def digital_names(self) -> list[str]:
@@ -163,7 +168,7 @@ class PMU_CONFIGURATION(DictField):
             the digital names
         """
         dignams = cast("DIGNAMS", self["DIGNAMS"])
-        return [name.value for name in cast(list[StringFixedLengthField], dignams.value)]
+        return dignams.values
 
 
 class CONFIGURATION1(DictField):
@@ -191,7 +196,7 @@ class CONFIGURATION1(DictField):
                 UInt32Field(name="FRACSEC"),
                 UInt32Field(name="TIME_BASE"),
                 self._num_pmu,
-                ArrayField[PMU_CONFIGURATION](
+                ArrayFieldGeneric[PMU_CONFIGURATION](
                     name="PMU_CONFIGURATIONS",
                     array_item_class=type(PMU_CONFIGURATION),
                     array_item_default=PMU_CONFIGURATION(),
@@ -360,7 +365,7 @@ class PMU_DATA(DictField):
             name=name,
             default=[
                 UInt16Field(name="STAT"),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="PHASORS",
                     array_item_class=self._phasor_class,
                     array_item_default=0,
@@ -368,13 +373,13 @@ class PMU_DATA(DictField):
                 ),
                 self._freq_class(name="FREQ"),
                 self._freq_class(name="DFREQ"),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="ANALOGS",
                     array_item_class=self._analogs_class,
                     array_item_default=0,
                     count=analog_count,
                 ),
-                ArrayField(
+                ArrayFieldGeneric(
                     name="DIGITALS",
                     array_item_class=UInt16Field,
                     array_item_default=0,
@@ -393,11 +398,11 @@ class PMU_DATA(DictField):
         Returns:
             phasor fields
         """
-        array = cast("ArrayField[PHASOR]", self["PHASORS"])
+        array = cast("ArrayFieldGeneric[PHASOR]", self["PHASORS"])
         return cast("list[PHASOR]", array.value)
 
 
-class PMUDataArrayField(ArrayField[PMU_DATA]):
+class PMUDataArrayField(ArrayFieldGeneric[PMU_DATA]):
     """PMU data array field."""
 
     def __init__(

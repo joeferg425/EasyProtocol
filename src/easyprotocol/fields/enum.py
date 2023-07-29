@@ -4,7 +4,7 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import TypeVar, Union
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -13,7 +13,7 @@ E = TypeVar("E", bound=Union[IntEnum, int])
 
 class EnumField(
     UIntFieldGeneric[E],
-    BaseParseField,
+    BaseField,
 ):
     """Base IntEnum parsing class."""
 
@@ -74,7 +74,7 @@ class EnumField(
             _value = value
         super().set_value(_value)
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -103,7 +103,7 @@ class EnumField(
 
 class UInt8EnumField(
     EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Eight bit enum parsing class."""
 
@@ -139,7 +139,7 @@ class UInt8EnumField(
 
 class Enum8Field(
     UInt8EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Eight bit enum parsing class."""
 
@@ -148,7 +148,7 @@ class Enum8Field(
 
 class UInt16EnumField(
     EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Sixteen bit enum parsing class."""
 
@@ -184,7 +184,7 @@ class UInt16EnumField(
 
 class Enum16Field(
     UInt16EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Sixteen bit enum parsing class."""
 
@@ -193,7 +193,7 @@ class Enum16Field(
 
 class UInt24EnumField(
     EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Twenty-four bit enum parsing class."""
 
@@ -229,7 +229,7 @@ class UInt24EnumField(
 
 class Enum24Field(
     UInt24EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Twenty-four bit enum parsing class."""
 
@@ -238,7 +238,7 @@ class Enum24Field(
 
 class UInt32EnumField(
     EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Thirty-two bit enum parsing class."""
 
@@ -274,7 +274,7 @@ class UInt32EnumField(
 
 class Enum32Field(
     UInt32EnumField[E],
-    BaseParseField,
+    BaseField,
 ):
     """Thirty-two bit enum parsing class."""
 

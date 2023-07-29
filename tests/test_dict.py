@@ -9,9 +9,8 @@ from bitarray import bitarray
 from parse_data import ParseData
 from test_uint import check_int
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField
-from easyprotocol.base.base_value_field import BaseValueField
-from easyprotocol.base.dict_field import DictField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField
+from easyprotocol.base.dict import DictField
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField
@@ -36,9 +35,9 @@ def check_parsedict_value(
 
     for key in obj.value.keys():
         v = obj[key]
-        assert v.string_value in obj.string_value
-        assert v.string_value in str(obj)
-        assert v.string_value in repr(obj)
+        assert v.value_as_string in obj.value_as_string
+        assert v.value_as_string in str(obj)
+        assert v.value_as_string in repr(obj)
 
 
 def check_parsedict_properties(
@@ -81,15 +80,15 @@ def check_parsedict_children(
             f"{obj}: obj.children[key] is not the expected value "
             + f"({obj.children[key]} != expected value: {tst.children[key]})"
         )
-        assert obj.children[key]._get_parent_generic() == obj, (  # pyright:ignore[reportPrivateUsage]
+        assert obj.children[key].parent == obj, (
             f"{obj}: obj.children[key].parent is not the expected value "
-            + f"({obj.children[key]._get_parent_generic()} != expected value: {obj})"  # pyright:ignore[reportPrivateUsage]
+            + f"({obj.children[key].parent} != expected value: {obj})"
         )
 
     for v in tst.children.values():
-        assert v.string_value in obj.string_value
-        assert v.string_value in str(obj)
-        assert v.string_value in repr(obj)
+        assert v.value_as_string in obj.value_as_string
+        assert v.value_as_string in str(obj)
+        assert v.value_as_string in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 
@@ -146,7 +145,7 @@ class TestParseDict:
         bits_data = f1.bits
         byte_data = bits_data.tobytes()
         values = dict({f1.name: f1})
-        children: dict[str, BaseValueField[Any]] = dict({f1.name: f1})
+        children: dict[str, BaseField] = dict({f1.name: f1})
         tst = ParseData(
             name="test",
             value=values,
@@ -173,7 +172,7 @@ class TestParseDict:
         f1_bits = bitarray()
         f1_bits.frombytes(f1_bytes)
         f1 = UInt8Field(name=f1_name)
-        children: dict[str, BaseValueField[Any]] = dict({f1.name: f1})
+        children: dict[str, BaseField] = dict({f1.name: f1})
         byte_data = f1_bytes
         bits_data = f1_bits
         tst = ParseData(
@@ -204,7 +203,7 @@ class TestParseDict:
         f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
-        f_children: dict[str, BaseValueField[Any]] = dict()
+        f_children: dict[str, BaseField] = dict()
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
@@ -219,7 +218,7 @@ class TestParseDict:
         f3 = UInt8Field(name=f3_name)
         byte_data = f1_data + f2_data + f3_data
         bits_data = f1_bits + f2_bits + f3_bits
-        children = dict({f1_name: f1, f2_name: f2, f3_name: f3})
+        children: dict[str, BaseField] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
         tst = ParseData(
             name="test",
             value=children,
@@ -295,8 +294,8 @@ class TestParseDict:
         bits_data1.frombytes(byte_data1)
         bits_data2 = f1_bits
         left_over = bitarray()
-        children1: dict[str, BaseValueField[Any]] = dict({f1_name: f1})
-        children2: dict[str, BaseValueField[Any]] = dict({f1_name: f1})
+        children1: dict[str, BaseField] = dict({f1_name: f1})
+        children2: dict[str, BaseField] = dict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=children1,
@@ -343,7 +342,7 @@ class TestParseDict:
         f1_bits = bitarray()
         f1_bits.frombytes(f1_data)
         f1 = UInt8Field(name=f1_name)
-        f_children: dict[str, BaseValueField[Any]] = dict()
+        f_children: dict[str, BaseField] = dict()
         f2_name = "f2"
         f2_value = 187
         f2_data = b"\xbb"
@@ -361,8 +360,8 @@ class TestParseDict:
         byte_data2 = f1_data + f2_data + f3_data
         bits_data1 = u_bits + u_bits + u_bits
         bits_data2 = f1_bits + f2_bits + f3_bits
-        children1: dict[str, BaseValueField[Any]] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
-        children2: dict[str, BaseValueField[Any]] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
+        children1: dict[str, BaseField] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
+        children2: dict[str, BaseField] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
         tst = ParseData(
             name="test",
             value=children1,
@@ -514,7 +513,7 @@ class TestParseDict:
             endian=DEFAULT_ENDIANNESS,
         )
 
-        f_children: dict[str, BaseValueField[Any]] = dict()
+        f_children: dict[str, BaseField] = dict()
 
         left_over = bitarray()
         byte_data1 = b"\x00\x00"
@@ -523,8 +522,8 @@ class TestParseDict:
         bits_data1.frombytes(byte_data1)
         bits_data2 = bitarray()
         bits_data2.frombytes(byte_data2)
-        children1: dict[str, BaseValueField[Any]] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
-        children2: dict[str, BaseValueField[Any]] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
+        children1: dict[str, BaseField] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
+        children2: dict[str, BaseField] = dict({f1_name: f1, f2_name: f2, f3_name: f3})
         tst = ParseData(
             name="test",
             value=children1,
@@ -639,9 +638,9 @@ class TestParseDict:
         f1 = UInt8Field(name=f1_name, default=v2)
         values1: dict[str, Any] = dict()
         # values3: dict[str, Any] = dict({f1_name: v3})
-        children1: dict[str, BaseValueField[Any]] = dict()
-        children2: dict[str, BaseValueField[Any]] = dict({f1.name: f1})
-        # children3: dict[str, BaseValueField[Any]] = children2.copy()
+        children1: dict[str, BaseField] = dict()
+        children2: dict[str, BaseField] = dict({f1.name: f1})
+        # children3: dict[str, ValueField[Any]] = children2.copy()
         tst = ParseData(
             name="test",
             value=values1,
@@ -688,8 +687,8 @@ class TestParseDict:
         bits_data2 = f1_bits
         f1 = UInt8Field(name=f1_name)
         values1: dict[str, Any] = dict()
-        children1: dict[str, BaseParseField] = dict()
-        children2: dict[str, BaseParseField] = dict({f1_name: f1})
+        children1: dict[str, BaseField] = dict()
+        children2: dict[str, BaseField] = dict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=values1,
@@ -732,8 +731,8 @@ class TestParseDict:
         f1 = UInt8Field(name=f1_name)
         values1: dict[str, Any] = dict()
         values2: dict[str, Any] = dict({f1.name: f1.value})
-        children1: dict[str, BaseParseField] = dict()
-        children2: dict[str, BaseParseField] = dict({f1_name: f1})
+        children1: dict[str, BaseField] = dict()
+        children2: dict[str, BaseField] = dict({f1_name: f1})
         tst = ParseData(
             name="test",
             value=values1,
@@ -770,7 +769,7 @@ class TestParseDict:
         f1 = UInt8Field(name=f1_name)
         f2_name = "f2"
         f2 = UInt8Field(name=f2_name)
-        children: dict[str, BaseValueField[Any]] = dict({f1.name: f1, f2.name: f2})
+        children: dict[str, BaseField] = dict({f1.name: f1, f2.name: f2})
         obj = DictField(
             name=name,
             default=list(children.values()),

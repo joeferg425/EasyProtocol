@@ -10,9 +10,9 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
-from easyprotocol.base.dict_field import DictField
+from easyprotocol.base.dict import DictField
 from easyprotocol.fields import (
-    ArrayField,
+    ArrayFieldGeneric,
     BoolField,
     ChecksumField,
     Float32Field,
@@ -263,14 +263,6 @@ class StringFixedLengthField(StringField):
             data=data,
         )
 
-    def get_value(self) -> str:
-        """Get the parsed value of this class.
-
-        Returns:
-            the parsed value of this class
-        """
-        return super().get_value().strip()
-
 
 class STN(StringFixedLengthField):
     """Station name field."""
@@ -318,7 +310,7 @@ class CHNAM(StringFixedLengthField):
         )
 
 
-class DIGNAMS(ArrayField[str]):
+class DIGNAMS(ArrayFieldGeneric[str]):
     """Array of digital names."""
 
     def __init__(
@@ -474,7 +466,7 @@ class PHASOR_POLAR_FLOAT(DictField, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:
@@ -553,7 +545,7 @@ class PHASOR_POLAR_INT(DictField, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:
@@ -587,7 +579,7 @@ class PHASOR_RECTANGULAR_FLOAT(DictField, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:
@@ -666,7 +658,7 @@ class PHASOR_RECTANGULAR_INT(DictField, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:

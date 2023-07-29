@@ -1,7 +1,7 @@
 """The base parsing object for handling parsing in a convenient (to modify) package."""
 from __future__ import annotations
 
-from typing import Any, Literal, Sequence, SupportsBytes, TypeVar
+from typing import Any, Literal, Sequence, SupportsBytes, TypeVar, Union
 
 from bitarray import bitarray
 
@@ -11,8 +11,11 @@ UNDEFINED = "?UNDEFINED?"
 
 T = TypeVar("T")
 
+defaultT = Union[Any, "Sequence[Any]", "Sequence[BaseField]", "dict[str, Any]", "dict[str, BaseField]"]
+fieldsT = Union["BaseField", "Sequence[BaseField]", "dict[str, BaseField]"]
 
-class BaseParseField(SupportsBytes):
+
+class BaseField(SupportsBytes):
     """The base parsing object for handling parsing in a convenient (to modify) package."""
 
     def __init__(
@@ -22,7 +25,7 @@ class BaseParseField(SupportsBytes):
         bit_count: int = -1,
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
-        default: Any = None,
+        default: defaultT | None = None,
     ) -> None:
         """Create the base parsing object for handling parsing in a convenient package.
 
@@ -40,12 +43,14 @@ class BaseParseField(SupportsBytes):
         self._bit_count: int = bit_count
         self._name = name
         self._initialized = False
-        self._parent: BaseParseField | None = None
-        self._children: dict[str, BaseParseField] = dict()
+        self._parent: BaseField | None = None
+        self._children: dict[str, BaseField] = dict()
         if string_format is None:
             self._string_format = "{}"
         else:
             self._string_format = string_format
+        if default is not None:
+            self.value = default
         if data is not None:
             self.parse(data=data)
 
@@ -68,13 +73,13 @@ class BaseParseField(SupportsBytes):
         """
         return self._name
 
-    def set_name(self, value: str) -> None:
+    def set_name(self, name: str) -> None:
         """Set the name of this field.
 
         Args:
-            value: the new name of this field
+            name: the new name of this field
         """
-        self._name = value
+        self._name = name
 
     def get_bits_lsb(self) -> bitarray:
         """Get the bits of this field in least-significant-bit first format.
@@ -109,32 +114,57 @@ class BaseParseField(SupportsBytes):
         """
         raise NotImplementedError()
 
-    def _get_parent_generic(self) -> BaseParseField | None:
+    def get_parent(self) -> BaseField | None:
+        """Get parent field.
+
+        Returns:
+            parent field
+        """
         return self._parent
 
-    def _set_parent_generic(self, parent: BaseParseField | None) -> None:
+    def set_parent(self, parent: BaseField | None) -> None:
+        """Set parent field.
+
+        Args:
+            parent: parent field object
+        """
         self._parent = parent
 
-    def _get_children_generic(self) -> dict[str, BaseParseField]:
+    def get_children(self) -> dict[str, BaseField]:
+        """Get the dictionary of child fields.
+
+        Returns:
+            dictionary of children
+        """
         return self._children
 
-    def _set_children_generic(
+    def set_children(
         self,
-        children: dict[str, BaseParseField] | Sequence[BaseParseField] | None,
+        children: defaultT,
     ) -> None:
+        """Assign children to this field.
+
+        Args:
+            children: dictionary of children
+
+        Raises:
+            TypeError: if children are incompatible with this parent
+        """
         self._children.clear()
         if isinstance(children, dict):
             keys = list(children.keys())
             for key in keys:
                 value = children[key]
                 self._children[key] = value
-                value._set_parent_generic(self)
-        elif isinstance(children, list):
+                value.set_parent(self)
+        elif isinstance(children, Sequence):
             for value in children:
                 self._children[value._name] = value
-                value._set_parent_generic(self)
+                value.set_parent(self)
+        else:
+            raise TypeError(f"children: {children}")
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -142,7 +172,7 @@ class BaseParseField(SupportsBytes):
         """
         return UNDEFINED
 
-    def get_bytes_value(self) -> bytes:
+    def get_value_as_bytes(self) -> bytes:
         """Get the bytes that make up this field.
 
         If there are not enough bits, the last byte is padded with zeros.
@@ -152,13 +182,13 @@ class BaseParseField(SupportsBytes):
         """
         return self.__bytes__()
 
-    def get_hex_value(self) -> str:
+    def get_value_as_hex_string(self) -> str:
         """Get the hexadecimal value of this field.
 
         Returns:
             the hexadecimal value of this field
         """
-        return hex(self.get_bytes_value())
+        return hex(self.get_value_as_bytes())
 
     @property
     def name(self) -> str:
@@ -236,7 +266,7 @@ class BaseParseField(SupportsBytes):
         return self._endian
 
     @property
-    def byte_value(self) -> bytes:
+    def value_as_bytes(self) -> bytes:
         """Get the byte value of this object.
 
         Returns:
@@ -260,22 +290,22 @@ class BaseParseField(SupportsBytes):
             return self.name
 
     @property
-    def string_value(self) -> str:
+    def value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return self.get_string_value()
+        return self.get_value_as_string()
 
     @property
-    def hex_value(self) -> str:
+    def value_as_hex_string(self) -> str:
         """Get the hexadecimal value of this field.
 
         Returns:
             the hexadecimal value of this field
         """
-        return self.get_hex_value()
+        return self.get_value_as_hex_string()
 
     def __bytes__(self) -> bytes:
         """Get the bytes that make up this field.
@@ -291,7 +321,7 @@ class BaseParseField(SupportsBytes):
         Returns:
             a nicely formatted string describing this field
         """
-        return f"{self._name}: {self.string_value}"
+        return f"{self._name}: {self.value_as_string}"
 
     def __repr__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -305,8 +335,8 @@ class BaseParseField(SupportsBytes):
     def value(self) -> Any:
         """Get the parsed value of the field.
 
-        Returns:
-            the value of the field
+        Raises:
+            NotImplementedError: until implemented in a non-base field
         """
         raise NotImplementedError()
 
@@ -318,17 +348,33 @@ class BaseParseField(SupportsBytes):
         raise NotImplementedError()
 
     @property
-    def parent(self) -> BaseParseField | None:
+    def parent(self) -> BaseField | None:
         """Get the parsed value of the field.
 
         Returns:
             the value of the field
         """
-        return self._get_parent_generic()
+        return self.get_parent()
 
     @parent.setter
     def parent(
         self,
-        value: BaseParseField,
+        value: BaseField,
     ) -> None:
-        self._set_parent_generic(value)
+        self.set_parent(value)
+
+    @property
+    def children(self) -> dict[str, BaseField]:
+        """Get the dictionary of child fields.
+
+        Returns:
+            the child field dictionary
+        """
+        return self.get_children()
+
+    @children.setter
+    def children(
+        self,
+        children: dict[str, Any] | Sequence[Any] | dict[str, BaseField] | Sequence[BaseField] | None,
+    ) -> None:
+        self.set_children(children=children)

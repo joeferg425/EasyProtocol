@@ -7,17 +7,17 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
-from easyprotocol.base.base_value_field import BaseValueField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.value import ValueFieldGeneric
 
 F = TypeVar("F", bound=Union[float, Any])
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(
-    BaseValueField[F],
-    BaseParseField,
+class FloatFieldGeneric(
+    ValueFieldGeneric[F],
+    BaseField,
 ):
     """The base floating-point number field parsing."""
 
@@ -53,8 +53,8 @@ class FloatField(
 
 
 class Float32IEEFieldGeneric(
-    FloatField[F],
-    BaseParseField,
+    FloatFieldGeneric[F],
+    BaseField,
     Generic[F],
 ):
     """Base thirty-two bit IEEE floating-point number field parsing.
@@ -176,7 +176,7 @@ class Float32IEEFieldGeneric(
             _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self.bit_count]
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get the string value of this field.
 
         Returns:
@@ -187,7 +187,7 @@ class Float32IEEFieldGeneric(
 
 class Float32IEEField(
     Float32IEEFieldGeneric[float],
-    BaseParseField,
+    BaseField,
 ):
     """Thirty-two bit IEEE floating-point number field parsing."""
 
@@ -196,7 +196,7 @@ class Float32IEEField(
 
 class Float32Field(
     Float32IEEField,
-    BaseParseField,
+    BaseField,
 ):
     """Thirty-two bit IEEE floating-point number field parsing."""
 

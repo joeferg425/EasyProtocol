@@ -9,9 +9,13 @@ import pytest
 from bitarray import bitarray
 from parse_data import PARAMETER_NAMES, TEST_VALUES_32_BIT_UINT, ParseData
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, endianT
 from easyprotocol.base.utils import hex
-from easyprotocol.fields.float import FLOAT_STRING_FORMAT, Float32Field, FloatField
+from easyprotocol.fields.float import (
+    FLOAT_STRING_FORMAT,
+    Float32Field,
+    FloatFieldGeneric,
+)
 
 
 def get_float_value(value: int) -> float:
@@ -57,7 +61,7 @@ TEST_VALUES_32_BIT_FLOAT_BE = [
 
 
 def check_float_value(
-    obj: FloatField[Any],
+    obj: FloatFieldGeneric[Any],
     tst: ParseData,
 ) -> None:
     if not math.isnan(obj.value):
@@ -71,7 +75,7 @@ def check_float_value(
 
 
 def check_float_properties(
-    obj: FloatField[int],
+    obj: FloatFieldGeneric[int],
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -86,7 +90,7 @@ def check_float_properties(
         obj.parent == tst.parent
     ), f"{obj}: obj.parent is not the expected value ({obj.parent} != expected value: {tst.parent})"
     assert (
-        obj.byte_value == tst.byte_data
+        obj.value_as_bytes == tst.byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
         obj.endian == tst.endian
@@ -94,7 +98,7 @@ def check_float_properties(
 
 
 def check_float_children(
-    obj: FloatField[int],
+    obj: FloatFieldGeneric[int],
     tst: ParseData,
 ) -> None:
     assert len(obj._children) == len(tst.children), (  # pyright:ignore[reportPrivateUsage]
@@ -116,36 +120,36 @@ def check_float_children(
         )
 
     for v in tst.children.values():
-        assert v.string_value in obj.string_value
-        assert v.string_value in str(obj)
-        assert v.string_value in repr(obj)
+        assert v.value_as_string in obj.value_as_string
+        assert v.value_as_string in str(obj)
+        assert v.value_as_string in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 
 
 def check_float_strings(
-    obj: FloatField[int],
+    obj: FloatFieldGeneric[int],
     tst: ParseData,
 ) -> None:
-    assert tst.string_format.format(tst.value) == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
+    assert tst.string_format.format(tst.value) == obj.value_as_string, (
+        f"{obj}: obj.value_as_string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.value_as_string})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.value_as_string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's string vale ({obj.value_as_string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.value_as_string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's repr vale ({obj.value_as_string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
 
 
 def check_float(
-    obj: FloatField[Any],
+    obj: FloatFieldGeneric[Any],
     tst: ParseData,
 ) -> None:
     check_float_properties(
@@ -362,7 +366,7 @@ class TestFloat32:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_float32field_create_parse_too_little_data(self) -> None:
         value = 0xFFFFFFFF

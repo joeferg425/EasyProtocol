@@ -6,9 +6,9 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField, endianT
-from easyprotocol.base.base_value_field import BaseValueField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.value import ValueFieldGeneric
 
 INT_STRING_FORMAT = "{}"
 INT08_STRING_FORMAT = "{}"
@@ -21,8 +21,8 @@ T = TypeVar("T", bound=Union[Any, int])
 
 
 class IntFieldGeneric(
-    BaseValueField[T],
-    BaseParseField,
+    ValueFieldGeneric[T],
+    BaseField,
     Generic[T],
 ):
     """Base signed integer parsing class."""
@@ -122,7 +122,7 @@ class IntFieldGeneric(
         bits.frombytes(my_bytes)
         self._bits = bits[: self._bit_count]
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get the string value of this field.
 
         Returns:
@@ -165,7 +165,7 @@ class IntFieldGeneric(
 
 class IntField(
     IntFieldGeneric[int],
-    BaseParseField,
+    BaseField,
 ):
     """Signed integer parsing class."""
 
@@ -200,7 +200,7 @@ class IntField(
 
 class Int8Field(
     IntField,
-    BaseParseField,
+    BaseField,
 ):
     """Signed eight bit integer parsing class."""
 
@@ -233,7 +233,7 @@ class Int8Field(
 
 class Int16Field(
     IntField,
-    BaseParseField,
+    BaseField,
 ):
     """Signed sixteen bit integer parsing class."""
 
@@ -266,7 +266,7 @@ class Int16Field(
 
 class Int24Field(
     IntField,
-    BaseParseField,
+    BaseField,
 ):
     """Signed twenty-four bit integer parsing class."""
 
@@ -299,7 +299,7 @@ class Int24Field(
 
 class Int32Field(
     IntField,
-    BaseParseField,
+    BaseField,
 ):
     """Signed thirty-two bit integer parsing class."""
 
@@ -332,7 +332,7 @@ class Int32Field(
 
 class Int64Field(
     IntField,
-    BaseParseField,
+    BaseField,
 ):
     """Signed sixty-four bit integer parsing class."""
 

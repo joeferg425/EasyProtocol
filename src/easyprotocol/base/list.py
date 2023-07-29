@@ -14,13 +14,13 @@ from typing import (
 
 from bitarray import bitarray
 
-from easyprotocol.base.base_field import BaseParseField, T
+from easyprotocol.base.base import BaseField, T, defaultT
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
 
 
-class BaseListField(
-    BaseParseField,
-    MutableSequence[BaseParseField],
+class ListFieldGeneric(
+    BaseField,
+    MutableSequence[BaseField],
     Generic[T],
 ):
     """The base parsing object for handling parsing in a convenient package."""
@@ -28,7 +28,7 @@ class BaseListField(
     def __init__(
         self,
         name: str,
-        default: Sequence[BaseParseField] | dict[str, BaseParseField] | Any | None = (),
+        default: defaultT | None = (),
         data: dataT = None,
         bit_count: int = -1,
         string_format: str = "{}",
@@ -46,19 +46,12 @@ class BaseListField(
         """
         super().__init__(
             name=name,
-            data=None,
+            data=data,
             bit_count=bit_count,
             string_format=string_format,
             endian=endian,
+            default=default,
         )
-
-        if default is not None:
-            if isinstance(default, dict):
-                self._set_children_generic(default)
-            else:
-                self._set_children_generic(dict({val._name: val for val in default}))
-        if data is not None:
-            self.parse(data)
 
     def parse(
         self,
@@ -80,7 +73,7 @@ class BaseListField(
     def insert(
         self,
         index: SupportsIndex,
-        value: BaseParseField,
+        value: Any | BaseField,
     ) -> None:
         """Insert a new field into this list.
 
@@ -88,16 +81,17 @@ class BaseListField(
             index: the index at which the new field will be inserted
             value: the new field to be inserted
         """
-        c: dict[str, BaseParseField] = dict()
+        c: dict[str, BaseField] = dict()
         existing_values = list(self._children.values())
         existing_values.insert(index, value)
+        value.set_parent(self)
         for v in existing_values:
             c[v._name] = v
         self._children = c
 
     def append(
         self,
-        value: BaseParseField,
+        value: Any | BaseField,
     ) -> None:
         """Append a new field to this list.
 
@@ -106,7 +100,7 @@ class BaseListField(
         """
         self._children[value.name] = value
 
-    def get_value(self) -> Sequence[BaseParseField]:
+    def get_value(self) -> Sequence[BaseField]:
         """Get the parsed fields that are part of this field.
 
         Returns:
@@ -116,32 +110,32 @@ class BaseListField(
 
     def set_value(
         self,
-        value: Sequence[BaseParseField] | dict[str, BaseParseField] | Any,
+        value: defaultT,
     ) -> None:
         """Set the fields that are part of this field.
 
         Args:
             value: the new list of fields to assign to this field
         """
-        if isinstance(value, (dict, dict)):
+        if isinstance(value, dict):
             values = list(value.values())
             for index in range(len(value)):
                 item = values[index]
                 if index < len(self._children):
                     self[index] = item
-                    item._set_parent_generic(self)
+                    item.set_parent(self)
                 else:
                     self._children[item.name] = item
-                    item._set_parent_generic(self)
-        if isinstance(value, (Sequence)):
+                    item.set_parent(self)
+        if isinstance(value, Sequence):
             for index in range(len(value)):
                 item = value[index]
                 if index < len(self._children):
                     self[index] = item
-                    item._set_parent_generic(self)
+                    item.set_parent(self)
                 else:
                     self._children[item.name] = item
-                    item._set_parent_generic(self)
+                    item.set_parent(self)
 
     def get_bits_lsb(self) -> bitarray:
         """Get the bits of this field in least-significant-bit first format.
@@ -155,16 +149,17 @@ class BaseListField(
             data += value.bits_lsb
         return data
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        return f'[{", ".join([str(value) for value in self._children .values()])}]'
+        s = f'[{", ".join([str(value) for value in self._children .values()])}]'
+        return self.string_format.format(s)
 
     @property
-    def value(self) -> Sequence[BaseParseField]:
+    def value(self) -> Sequence[BaseField]:
         """Get the parsed value of the field.
 
         Returns:
@@ -175,7 +170,7 @@ class BaseListField(
     @value.setter
     def value(
         self,
-        value: Sequence[BaseParseField] | Iterable[Any] | Any,
+        value: defaultT,
     ) -> None:
         self.set_value(value=value)
 
@@ -183,7 +178,7 @@ class BaseListField(
     def __getitem__(
         self,
         index: SupportsIndex,
-    ) -> BaseParseField:
+    ) -> BaseField:
         """Get a field from this class by index.
 
         Args:
@@ -195,7 +190,7 @@ class BaseListField(
     def __getitem__(
         self,
         index: slice,
-    ) -> MutableSequence[BaseParseField]:
+    ) -> MutableSequence[BaseField]:
         """Get fields from this class by index.
 
         Args:
@@ -206,7 +201,7 @@ class BaseListField(
     def __getitem__(
         self,
         index: SupportsIndex | slice,
-    ) -> BaseParseField | MutableSequence[BaseParseField]:
+    ) -> BaseField | MutableSequence[BaseField]:
         """Get a field or fields from this class by index.
 
         Args:
@@ -221,6 +216,48 @@ class BaseListField(
         else:
             return vs
 
+    @overload
+    def get_item(
+        self,
+        index: SupportsIndex,
+    ) -> T:
+        """Get a field from this class by index.
+
+        Args:
+            index: index of the sub-field to retrieve
+        """
+        ...
+
+    @overload
+    def get_item(
+        self,
+        index: slice,
+    ) -> MutableSequence[T]:
+        """Get fields from this class by index.
+
+        Args:
+            index: indices of the sub-fields to retrieve
+        """
+        ...
+
+    def get_item(
+        self,
+        index: SupportsIndex | slice,
+    ) -> T | MutableSequence[T]:
+        """Get a field or fields from this class by index.
+
+        Args:
+            index: index or indices of the sub-field(s) to retrieve
+
+        Returns:
+            the field or fields
+        """
+        vs = list(self._children.values())[index]
+        if isinstance(vs, list):
+            return [v.value for v in vs]
+        else:
+            return vs.value
+
     def __delitem__(
         self,
         index: SupportsIndex | slice,
@@ -233,17 +270,17 @@ class BaseListField(
         item = list(self._children.values())[index]
         if isinstance(item, list):
             for x in item:
-                x._set_parent_generic(None)
+                x.set_parent(None)
                 self._children.pop(x._name)
         else:
-            item._set_parent_generic(None)
+            item.set_parent(None)
             self._children = dict({k: v for k, v in self._children.items() if k != item.name})
 
     @overload
     def __setitem__(
         self,
         index: SupportsIndex,
-        value: BaseParseField,
+        value: BaseField,
     ) -> None:
         """Set an item in this list to a new value.
 
@@ -257,7 +294,7 @@ class BaseListField(
     def __setitem__(
         self,
         index: slice,
-        value: Iterable[BaseParseField],
+        value: Iterable[BaseField],
     ) -> None:
         """Set items in this list to new values.
 
@@ -270,7 +307,7 @@ class BaseListField(
     def __setitem__(
         self,
         index: SupportsIndex | slice,
-        value: BaseParseField | Iterable[BaseParseField],
+        value: BaseField | Iterable[BaseField],
     ) -> None:
         """Set one or more items in this list to new values.
 
@@ -279,13 +316,14 @@ class BaseListField(
             value: one or more values
         """
         indexed_keys = list(self._children.keys())[index]
-        c: dict[str, BaseParseField] = dict()
+        c: dict[str, BaseField] = dict()
         for existing_key in self._children:
-            if isinstance(indexed_keys, str) and isinstance(value, BaseParseField):
+            if isinstance(indexed_keys, str) and isinstance(value, BaseField):
                 if existing_key != indexed_keys:
                     c[existing_key] = self._children[existing_key]
                 else:
                     c[indexed_keys] = value
+                    value.set_parent(self)
             else:
                 if isinstance(value, list):
                     for i, sub_key in enumerate(indexed_keys):
@@ -294,7 +332,7 @@ class BaseListField(
                             c[existing_key] = self._children[existing_key]
                         else:
                             c[sub_value._name] = sub_value
-                            sub_value._set_parent_generic(self)
+                            sub_value.set_parent(self)
         self._children = c
 
     def __len__(self) -> int:
@@ -305,29 +343,59 @@ class BaseListField(
         """
         return len(self._children)
 
-    def _get_children_generic(self) -> dict[str, BaseParseField]:
-        return self._children
-
-    def _set_children_generic(
-        self,
-        children: dict[str, BaseParseField] | Sequence[BaseParseField] | None,
-    ) -> None:
-        self._children.clear()
-        if isinstance(children, (dict, dict)):
-            keys = list(children.keys())
-            for key in keys:
-                value = children[key]
-                self._children[key] = value
-                value._set_parent_generic(self)
-        elif isinstance(children, list):
-            for value in children:
-                self._children[value._name] = value
-                value._set_parent_generic(self)
-
-    def __iter__(self) -> Iterator[BaseParseField]:
+    def __iter__(self) -> Iterator[BaseField]:
         """Iterate over the fields in this list.
 
         Returns:
             field iterator
         """
         return self._children.values().__iter__()
+
+    def get_value_concatenated(self) -> T:
+        """Get list values as a single concatenated value (if supported).
+
+        Raises:
+            NotImplementedError: until implemented in supporting field
+        """
+        raise NotImplementedError()
+
+    @property
+    def value_concatenated(self) -> T:
+        """Get list values as a single concatenated value (if supported).
+
+        Returns:
+            list values as a single concatenated value (if supported)
+        """
+        return self.get_value_concatenated()
+
+    @property
+    def value_list(self) -> list[T]:
+        """Get values as a list of value types.
+
+        Returns:
+            values as a list of value types
+        """
+        return [v.value for v in self]
+
+
+class ListField(
+    ListFieldGeneric[Any],
+    BaseField,
+):
+    def __init__(
+        self,
+        name: str,
+        default: defaultT | None = (),
+        data: dataT = None,
+        bit_count: int = -1,
+        string_format: str = "{}",
+        endian: endianT = DEFAULT_ENDIANNESS,
+    ) -> None:
+        super().__init__(
+            name=name,
+            default=default,
+            data=data,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
+        )

@@ -7,9 +7,9 @@ from typing import Any, Sequence
 from bitarray import bitarray
 from parse_data import ParseData
 
-from easyprotocol.base.base_field import DEFAULT_ENDIANNESS, BaseParseField
-from easyprotocol.base.base_value_field import BaseValueField
-from easyprotocol.base.list_field import ListField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField
+from easyprotocol.base.list import ListField
+from easyprotocol.base.value import ValueFieldGeneric
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField
 
@@ -67,15 +67,15 @@ def check_ParseFieldList_children(
             f"{obj}: obj.children[key] is not the expected value "
             + f"({obj.children[key]} != expected value: {tst.children[key]})"
         )
-        assert obj.children[key]._get_parent_generic() == obj, (  # pyright:ignore[reportPrivateUsage]
+        assert obj.children[key].parent == obj, (
             f"{obj}: obj.children[key].parent is not the expected value "
-            + f"({obj.children[key]._get_parent_generic()} != expected value: {obj})"  # pyright:ignore[reportPrivateUsage]
+            + f"({obj.children[key].parent} != expected value: {obj})"
         )
 
     for v in tst.children.values():
-        assert v.string_value in obj.string_value
-        assert v.string_value in str(obj)
-        assert v.string_value in repr(obj)
+        assert v.value_as_string in obj.value_as_string
+        assert v.value_as_string in str(obj)
+        assert v.value_as_string in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 
@@ -137,7 +137,7 @@ class TestParseFieldList:
         bits_data = f2.bits + f1.bits
         byte_data = bytes(f2) + bytes(f1)
         value: list[Any] = [f1, f2]
-        children_list: list[BaseValueField[Any]] = [f1, f2]
+        children_list: list[ValueFieldGeneric[Any]] = [f1, f2]
         tst = ParseData(
             name="test",
             value=value,
@@ -488,8 +488,8 @@ class TestParseFieldList:
         byte_data2 = f2_data
         values1: Sequence[Any] = []
         values2: Sequence[Any] = [f2]
-        children1: dict[str, BaseValueField[Any]] = dict()
-        children2: dict[str, BaseValueField[Any]] = dict({f2.name: f2})
+        children1: dict[str, BaseField] = dict()
+        children2: dict[str, BaseField] = dict({f2.name: f2})
         tst = ParseData(
             name="test",
             value=values1,

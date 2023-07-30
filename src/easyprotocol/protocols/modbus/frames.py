@@ -1459,3 +1459,271 @@ class ModbusTCPReadHoldingRegisterResponse(ModbusTCPFrame):
     def registerValues(self, value: list[UInt16Field] | list[int]) -> None:
         func = cast(ModbusRegisterValueArray, self[ModbusFieldNamesEnum.RegisterValues.value])
         func.set_value(value)
+
+
+class ModbusRTUReadInputRegisterRequest(ModbusRTUFrame):
+    """Modbus read discrete inputs request frame."""
+
+    def __init__(
+        self,
+        address: int = 1,
+        register: int = 0,
+        word_count: int = 0,
+        data: dataT | None = None,
+    ) -> None:
+        """Create modbus read discrete inputs request frame.
+
+        Args:
+            address: modbus address
+            register: modbus discrete input register. Defaults to 0.
+            word_count: number of holding registers
+            data: data to parse. Defaults to None.
+        """
+        super().__init__(
+            name=ModbusFunctionEnum.ReadInputRegisters.name + "Request",
+            function=ModbusFunctionEnum.ReadInputRegisters,
+            data=data,
+            address=address,
+            additional_fields=[
+                ModbusRegister(
+                    default=register,
+                ),
+                ModbusCount(
+                    default=word_count,
+                ),
+            ],
+            update_crc=True,
+        )
+
+    @property
+    def register(self) -> ModbusRegister:
+        """Get modbus coil register.
+
+        Returns:
+            modbus coil register
+        """
+        return cast(ModbusRegister, self[ModbusFieldNamesEnum.Register.value])
+
+    @register.setter
+    def register(self, value: int) -> None:
+        if isinstance(value, ModbusRegister):
+            self[ModbusFieldNamesEnum.Register.value] = value
+        else:
+            addr = cast(ModbusRegister, self[ModbusFieldNamesEnum.Register.value])
+            addr.value = value
+
+    @property
+    def wordCount(self) -> ModbusCount:
+        """Get modbus input count.
+
+        Returns:
+            modbus input count
+        """
+        return cast(ModbusCount, self[ModbusFieldNamesEnum.Count.value])
+
+    @wordCount.setter
+    def wordCount(self, value: int | ModbusCount) -> None:
+        if isinstance(value, ModbusCount):
+            self[ModbusFieldNamesEnum.Count.value] = value
+        else:
+            func = cast(ModbusCount, self[ModbusFieldNamesEnum.Count.value])
+            func.set_value(value)
+
+
+class ModbusTCPReadInputRegisterRequest(ModbusTCPFrame):
+    """Modbus read discrete inputs request frame."""
+
+    def __init__(
+        self,
+        address: int = 1,
+        register: int = 0,
+        word_count: int = 0,
+        data: dataT | None = None,
+    ) -> None:
+        """Create modbus read discrete inputs request frame.
+
+        Args:
+            address: modbus address
+            register: modbus discrete input register. Defaults to 0.
+            word_count: number of holding registers
+            data: data to parse. Defaults to None.
+        """
+        super().__init__(
+            name=ModbusFunctionEnum.ReadInputRegisters.name + "Request",
+            function=ModbusFunctionEnum.ReadInputRegisters,
+            data=data,
+            address=address,
+            additional_fields=[
+                ModbusRegister(
+                    default=register,
+                ),
+                ModbusCount(
+                    default=word_count,
+                ),
+            ],
+        )
+
+    @property
+    def register(self) -> ModbusRegister:
+        """Get modbus coil register.
+
+        Returns:
+            modbus coil register
+        """
+        return cast(ModbusRegister, self[ModbusFieldNamesEnum.Register.value])
+
+    @register.setter
+    def register(self, value: int) -> None:
+        if isinstance(value, ModbusRegister):
+            self[ModbusFieldNamesEnum.Register.value] = value
+        else:
+            addr = cast(ModbusRegister, self[ModbusFieldNamesEnum.Register.value])
+            addr.value = value
+
+    @property
+    def wordCount(self) -> ModbusCount:
+        """Get modbus input count.
+
+        Returns:
+            modbus input count
+        """
+        return cast(ModbusCount, self[ModbusFieldNamesEnum.Count.value])
+
+    @wordCount.setter
+    def wordCount(self, value: int | ModbusCount) -> None:
+        if isinstance(value, ModbusCount):
+            self[ModbusFieldNamesEnum.Count.value] = value
+        else:
+            func = cast(ModbusCount, self[ModbusFieldNamesEnum.Count.value])
+            func.set_value(value)
+
+
+class ModbusRTUReadInputRegisterResponse(ModbusRTUFrame):
+    """Modbus read discrete inputs request frame."""
+
+    def __init__(
+        self,
+        address: int = 1,
+        byte_count: int = 0,
+        register_values: list[int] | None = None,
+        data: dataT | None = None,
+    ) -> None:
+        """Create modbus read discrete inputs request frame.
+
+        Args:
+            address: modbus address
+            byte_count: number of data bytes
+            register_values: the default register values
+            data: data to parse. Defaults to None.
+        """
+        byte_count_field = ModbusByteCount(default=byte_count)
+        super().__init__(
+            name=ModbusFunctionEnum.ReadInputRegisters.name + "Response",
+            function=ModbusFunctionEnum.ReadInputRegisters,
+            data=data,
+            address=address,
+            additional_fields=[
+                byte_count_field,
+                ModbusRegisterValueArray(
+                    count=byte_count_field,
+                    default=register_values,
+                ),
+            ],
+            update_crc=True,
+        )
+
+    @property
+    def byteCount(self) -> ModbusByteCount:
+        """Get modbus coil register.
+
+        Returns:
+            modbus coil register
+        """
+        return cast(ModbusByteCount, self[ModbusFieldNamesEnum.ByteCount.value])
+
+    @byteCount.setter
+    def byteCount(self, value: int) -> None:
+        if isinstance(value, ModbusByteCount):
+            self[ModbusFieldNamesEnum.ByteCount.value] = value
+        else:
+            addr = cast(ModbusByteCount, self[ModbusFieldNamesEnum.ByteCount.value])
+            addr.value = value
+
+    @property
+    def registerValues(self) -> list[UInt16Field]:
+        """Get modbus input count.
+
+        Returns:
+            modbus input count
+        """
+        return cast(list[UInt16Field], self[ModbusFieldNamesEnum.RegisterValues.value])
+
+    @registerValues.setter
+    def registerValues(self, value: list[UInt16Field] | list[int]) -> None:
+        func = cast(ModbusRegisterValueArray, self[ModbusFieldNamesEnum.RegisterValues.value])
+        func.set_value(value)
+
+
+class ModbusTCPReadInputRegisterResponse(ModbusTCPFrame):
+    """Modbus read discrete inputs request frame."""
+
+    def __init__(
+        self,
+        address: int = 1,
+        byte_count: int = 0,
+        register_values: list[int] | None = None,
+        data: dataT | None = None,
+    ) -> None:
+        """Create modbus read discrete inputs request frame.
+
+        Args:
+            address: modbus address
+            byte_count: number of data bytes
+            register_values: the default register values
+            data: data to parse. Defaults to None.
+        """
+        byte_count_field = ModbusByteCount(default=byte_count)
+        super().__init__(
+            name=ModbusFunctionEnum.ReadInputRegisters.name + "Response",
+            function=ModbusFunctionEnum.ReadInputRegisters,
+            data=data,
+            address=address,
+            additional_fields=[
+                byte_count_field,
+                ModbusRegisterValueArray(
+                    count=byte_count_field,
+                    default=register_values,
+                ),
+            ],
+        )
+
+    @property
+    def byteCount(self) -> ModbusByteCount:
+        """Get modbus coil register.
+
+        Returns:
+            modbus coil register
+        """
+        return cast(ModbusByteCount, self[ModbusFieldNamesEnum.ByteCount.value])
+
+    @byteCount.setter
+    def byteCount(self, value: int) -> None:
+        if isinstance(value, ModbusByteCount):
+            self[ModbusFieldNamesEnum.ByteCount.value] = value
+        else:
+            addr = cast(ModbusByteCount, self[ModbusFieldNamesEnum.ByteCount.value])
+            addr.value = value
+
+    @property
+    def registerValues(self) -> ModbusRegisterValueArray:
+        """Get modbus input count.
+
+        Returns:
+            modbus input count
+        """
+        return cast("ModbusRegisterValueArray", self[ModbusFieldNamesEnum.RegisterValues.value])
+
+    @registerValues.setter
+    def registerValues(self, value: list[UInt16Field] | list[int]) -> None:
+        func = cast(ModbusRegisterValueArray, self[ModbusFieldNamesEnum.RegisterValues.value])
+        func.set_value(value)

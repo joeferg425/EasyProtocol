@@ -15,15 +15,19 @@ from easyprotocol.protocols.modbus import (
     ModbusFunctionEnum,
     ModbusTCPReadCoilsRequest,
     ModbusTCPReadCoilsResponse,
+    ModbusTCPReadDiscreteInputsRequest,
+    ModbusTCPReadDiscreteInputsResponse,
     ModbusTCPReadHoldingRegisterRequest,
     ModbusTCPReadHoldingRegisterResponse,
+    ModbusTCPReadInputRegisterRequest,
+    ModbusTCPReadInputRegisterResponse,
     ModbusTCPWriteHoldingRegisterRequest,
     ModbusTCPWriteHoldingRegisterResponse,
 )
 
 
 class TestModbusTCP:
-    def test_modbus_tcp_read_coils_request(self) -> None:
+    def test_modbus_tcp_parse_read_coils_request(self) -> None:
         data = b"\x00\x01\x00\x00\x00\x06\x0a\x01\x00\x00\x00\x01"
         transactionID = 1
         protocolID = 0
@@ -41,7 +45,7 @@ class TestModbusTCP:
         assert frame.register.value == register
         assert frame.count.value == coilCount
 
-    def test_modbus_tcp_read_coils_response(self) -> None:
+    def test_modbus_tcp_parse_read_coils_response(self) -> None:
         data = b"\x00\x01\x00\x00\x00\x04\x0a\x01\x01\x00"
         transactionID = 1
         protocolID = 0
@@ -59,7 +63,7 @@ class TestModbusTCP:
         assert frame.byteCount.value == byteCount
         assert frame.coilArray.value_list == coilValues
 
-    def test_modbus_tcp_write_single_register_request(self) -> None:
+    def test_modbus_tcp_parse_write_single_register_request(self) -> None:
         data = b"\x00\x01\x00\x00\x00\x06\xff\x06\x00\x64\x00\x00"
         transactionID = 1
         protocolID = 0
@@ -77,7 +81,7 @@ class TestModbusTCP:
         assert frame.register.value == register
         assert frame.writeValue.value == writeValue
 
-    def test_modbus_tcp_write_single_register_response(self) -> None:
+    def test_modbus_tcp_parse_write_single_register_response(self) -> None:
         data = b"\x00\x01\x00\x00\x00\x06\xff\x06\x00\x64\x00\x00"
         transactionID = 1
         protocolID = 0
@@ -95,7 +99,7 @@ class TestModbusTCP:
         assert frame.register.value == register
         assert frame.writeValue.value == writeValue
 
-    def test_modbus_tcp_read_holding_registers_request(self) -> None:
+    def test_modbus_tcp_parse_read_holding_registers_request(self) -> None:
         data = b"\x00\x0c\x00\x00\x00\x06\xff\x03\x00\x64\x00\x64"
         transactionID = 12
         protocolID = 0
@@ -113,7 +117,7 @@ class TestModbusTCP:
         assert frame.register.value == register
         assert frame.wordCount.value == wordCount
 
-    def test_modbus_tcp_read_holding_registers_response(self) -> None:
+    def test_modbus_tcp_parse_read_holding_registers_response(self) -> None:
         data = (
             b"\x00\x0c\x00\x00\x00\xcb\xff\x03\xc8\x00\x00\x00\x00\x00\x00\x00"
             b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
@@ -145,3 +149,73 @@ class TestModbusTCP:
         assert frame.functionCode.value == functionCode
         assert frame.byteCount.value == byteCount
         assert frame.registerValues.value_list == register_values
+
+    def test_modbus_tcp_parse_read_input_registers_request(self) -> None:
+        data = b"\x00\x0d\x00\x00\x00\x06\xff\x04\x00\xc8\x00\x64"
+        transactionID = 13
+        protocolID = 0
+        length = 6
+        address = 255
+        functionCode = ModbusFunctionEnum.ReadInputRegisters.value
+        register = 200
+        wordCount = 100
+        frame = ModbusTCPReadInputRegisterRequest(data=data)
+        assert frame.transactionID.value == transactionID
+        assert frame.protocolID.value == protocolID
+        assert frame.length.value == length
+        assert frame.address.value == address
+        assert frame.functionCode.value == functionCode
+        assert frame.register.value == register
+        assert frame.wordCount.value == wordCount
+
+    def test_modbus_tcp_parse_read_input_registers_response(self) -> None:
+        data = (
+            b"\x00\x0d\x00\x00\x00\xcb\xff\x04\xc8\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+            b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"
+        )
+
+        transactionID = 13
+        protocolID = 0
+        length = 203
+        address = 255
+        functionCode = ModbusFunctionEnum.ReadInputRegisters.value
+        byteCount = 200
+        register_values = [0] * 100
+        frame = ModbusTCPReadInputRegisterResponse(data=data)
+        assert frame.transactionID.value == transactionID
+        assert frame.protocolID.value == protocolID
+        assert frame.length.value == length
+        assert frame.address.value == address
+        assert frame.functionCode.value == functionCode
+        assert frame.byteCount.value == byteCount
+        assert frame.registerValues.value_list == register_values
+
+    def test_modbus_tcp_parse_read_discrete_inputs_request(self) -> None:
+        data = b"\x00\x00\x00\x00\x00\x06\x01\x02\x00\x00\x00\x08"
+
+        transactionID = 0
+        protocolID = 0
+        length = 6
+        address = 1
+        functionCode = ModbusFunctionEnum.ReadDiscreteInputs.value
+        register = 0
+        coilCount = 8
+        frame = ModbusTCPReadDiscreteInputsRequest(data=data)
+        assert frame.transactionID.value == transactionID
+        assert frame.protocolID.value == protocolID
+        assert frame.length.value == length
+        assert frame.address.value == address
+        assert frame.functionCode.value == functionCode
+        assert frame.register.value == register
+        assert frame.count.value == coilCount

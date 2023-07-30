@@ -180,7 +180,7 @@ class BaseField(SupportsBytes):
         Returns:
             field bytes
         """
-        return self.__bytes__()
+        return self.get_bits_lsb().tobytes()
 
     def get_value_as_hex_string(self) -> str:
         """Get the hexadecimal value of this field.
@@ -197,11 +197,11 @@ class BaseField(SupportsBytes):
         Returns:
             the name of the field
         """
-        return self._name
+        return self.get_name()
 
     @name.setter
     def name(self, name: str) -> None:
-        self._name = name
+        self.set_name(name)
 
     @property
     def bits_lsb(self) -> bitarray:
@@ -226,7 +226,7 @@ class BaseField(SupportsBytes):
         return self.get_bits_msb()
 
     @property
-    def bits_str(self) -> str:
+    def value_as_binary_string(self) -> str:
         """Get the bit string of this field in most-significant-bit first format.
 
         Returns:
@@ -235,7 +235,7 @@ class BaseField(SupportsBytes):
         return f"{self.bits.to01()}:<b"
 
     @property
-    def bits_str_lsb(self) -> str:
+    def value_as_binary_string_lsb(self) -> str:
         """Get the bit string of this field in least-significant-bit first format.
 
         Returns:
@@ -272,7 +272,7 @@ class BaseField(SupportsBytes):
         Returns:
             the byte value of this object
         """
-        return self.__bytes__()
+        return self.get_value_as_bytes()
 
     @property
     def chain(self) -> str:
@@ -313,7 +313,7 @@ class BaseField(SupportsBytes):
         Returns:
             the bytes of this field
         """
-        return self.get_bits_lsb().tobytes()
+        return self.get_value_as_bytes()
 
     def __str__(self) -> str:
         """Get a nicely formatted string describing this field.
@@ -359,7 +359,7 @@ class BaseField(SupportsBytes):
     @parent.setter
     def parent(
         self,
-        value: BaseField,
+        value: BaseField | None,
     ) -> None:
         self.set_parent(value)
 

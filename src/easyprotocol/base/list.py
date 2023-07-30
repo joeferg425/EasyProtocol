@@ -216,48 +216,6 @@ class ListFieldGeneric(
         else:
             return vs
 
-    @overload
-    def get_item(
-        self,
-        index: SupportsIndex,
-    ) -> T:
-        """Get a field from this class by index.
-
-        Args:
-            index: index of the sub-field to retrieve
-        """
-        ...
-
-    @overload
-    def get_item(
-        self,
-        index: slice,
-    ) -> MutableSequence[T]:
-        """Get fields from this class by index.
-
-        Args:
-            index: indices of the sub-fields to retrieve
-        """
-        ...
-
-    def get_item(
-        self,
-        index: SupportsIndex | slice,
-    ) -> T | MutableSequence[T]:
-        """Get a field or fields from this class by index.
-
-        Args:
-            index: index or indices of the sub-field(s) to retrieve
-
-        Returns:
-            the field or fields
-        """
-        vs = list(self._children.values())[index]
-        if isinstance(vs, list):
-            return [v.value for v in vs]
-        else:
-            return vs.value
-
     def __delitem__(
         self,
         index: SupportsIndex | slice,
@@ -376,6 +334,15 @@ class ListFieldGeneric(
             values as a list of value types
         """
         return [v.value for v in self]
+
+    @property
+    def value_dict(self) -> dict[str, T]:
+        """Get values as a list of value types.
+
+        Returns:
+            values as a list of value types
+        """
+        return {v.name: v.value for v in self}
 
 
 class ListField(

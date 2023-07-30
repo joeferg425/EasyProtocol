@@ -1,7 +1,6 @@
 """This class is the basic parsing class for dictionary types."""
 from __future__ import annotations
 
-from enum import Enum
 from typing import Any, Generic, Iterator, Mapping, Sequence, TypeVar
 
 from bitarray import bitarray
@@ -70,7 +69,9 @@ class DictFieldGeneric(
         Returns:
             the popped item
         """
-        return self._children.popitem()
+        (name, item) = self._children.popitem()
+        item.parent = None
+        return (name, item)
 
     def pop(
         self,
@@ -86,10 +87,7 @@ class DictFieldGeneric(
         Returns:
             the item (or default item)
         """
-        if isinstance(name, Enum):
-            p = self._children.pop(name.name, default)
-        else:
-            p = self._children.pop(name, default)
+        p = self._children.pop(name, default)
         if p is not None:
             p.set_parent(None)
         return p
@@ -173,32 +171,13 @@ class DictFieldGeneric(
                 self._children[value._name] = value
                 value.set_parent(self)
 
-    def get_parent(self) -> BaseField | None:
-        """Get the field (if any) that is this field's parent.
-
-        Returns:
-            this field's parent (or None)
-        """
-        return self._parent
-
-    def set_parent(
-        self,
-        parent: BaseField | None,
-    ) -> None:
-        """Set this field's parent.
-
-        Args:
-            parent: this field's new parent (or None)
-        """
-        self._parent = parent
-
     def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
             the value of the field with custom formatting
         """
-        s = f'{{{", ".join([str(value) for value in self._children.values()])}}}'
+        s = f'{", ".join([str(value) for value in self._children.values()])}'
         return self.string_format.format(s)
 
     @property
@@ -216,22 +195,6 @@ class DictFieldGeneric(
         value: defaultT,
     ) -> None:
         self.set_value(value)
-
-    @property
-    def parent(self) -> BaseField | None:
-        """Get the field (if any) that is this field's parent.
-
-        Returns:
-            this field's parent (or None)
-        """
-        return self.get_parent()
-
-    @parent.setter
-    def parent(
-        self,
-        value: BaseField | None,
-    ) -> None:
-        self.set_parent(value)
 
     @property
     def children(self) -> dict[str, BaseField]:
@@ -263,19 +226,6 @@ class DictFieldGeneric(
         value.set_parent(self)
         self._children.__setitem__(str(name), value)
 
-    def set_by_key(
-        self,
-        name: Any,
-        value: T,
-    ) -> None:
-        """Set an item in this dictionary to a new value.
-
-        Args:
-            name: a field name
-            value: a new field value
-        """
-        self[name].value = T
-
     def __getitem__(
         self,
         name: Any,
@@ -290,30 +240,17 @@ class DictFieldGeneric(
         """
         return self._children.__getitem__(str(name))
 
-    def get_by_key(
-        self,
-        name: Any,
-    ) -> T:
-        """Get an item in this dictionary by name.
-
-        Args:
-            name: a field name
-
-        Returns:
-            the named field
-        """
-        return self[name].value
-
     def __delitem__(
         self,
-        name: Any,
+        name: str,
     ) -> None:
         """Delete an item in this dictionary by name.
 
         Args:
             name: a field name
         """
-        self._children.__delitem__(str(name))
+        self.children[name].parent = None
+        self._children.__delitem__(name)
 
     def __len__(self) -> int:
         """Get the count of this field's sub-fields.
@@ -354,6 +291,24 @@ class DictFieldGeneric(
             field iterator
         """
         return self.children.__iter__()
+
+    @property
+    def value_list(self) -> list[T]:
+        """Get values as a list of value types.
+
+        Returns:
+            values as a list of value types
+        """
+        return [v.value for v in self.values()]
+
+    @property
+    def value_dict(self) -> dict[str, T]:
+        """Get values as a list of value types.
+
+        Returns:
+            values as a list of value types
+        """
+        return {v.name: v.value for v in self.values()}
 
 
 class DictField(

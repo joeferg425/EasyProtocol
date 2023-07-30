@@ -7,15 +7,18 @@ from typing import Any, Generic, TypeVar, Union, cast
 
 from bitarray import bitarray
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.value import ValueFieldGeneric
 
 F = TypeVar("F", bound=Union[float, Any])
 FLOAT_STRING_FORMAT = "{:.3e}"
 
 
-class FloatField(ParseGenericValue[F]):
+class FloatFieldGeneric(
+    ValueFieldGeneric[F],
+    BaseField,
+):
     """The base floating-point number field parsing."""
 
     def __init__(
@@ -50,7 +53,8 @@ class FloatField(ParseGenericValue[F]):
 
 
 class Float32IEEFieldGeneric(
-    FloatField[F],
+    FloatFieldGeneric[F],
+    BaseField,
     Generic[F],
 ):
     """Base thirty-two bit IEEE floating-point number field parsing.
@@ -130,9 +134,9 @@ class Float32IEEFieldGeneric(
         """
         b = self.bits_lsb.tobytes()
         if self.endian == "little":
-            return cast(F, struct.unpack("<f", b)[0])
+            return cast("F", struct.unpack("<f", b)[0])
         else:
-            return cast(F, struct.unpack(">f", b)[0])
+            return cast("F", struct.unpack(">f", b)[0])
 
     def set_value(self, value: F) -> None:
         """Set the value of this field.
@@ -172,7 +176,7 @@ class Float32IEEFieldGeneric(
             _bits = _bits + bitarray("0" * (self.bit_count - len(_bits)), endian="little")
         self._bits = _bits[: self.bit_count]
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get the string value of this field.
 
         Returns:
@@ -181,13 +185,19 @@ class Float32IEEFieldGeneric(
         return self.string_format.format(self.value)
 
 
-class Float32IEEField(Float32IEEFieldGeneric[float]):
+class Float32IEEField(
+    Float32IEEFieldGeneric[float],
+    BaseField,
+):
     """Thirty-two bit IEEE floating-point number field parsing."""
 
     ...
 
 
-class Float32Field(Float32IEEField):
+class Float32Field(
+    Float32IEEField,
+    BaseField,
+):
     """Thirty-two bit IEEE floating-point number field parsing."""
 
     ...

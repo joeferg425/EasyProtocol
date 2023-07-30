@@ -16,6 +16,8 @@ class ModbusFieldNamesEnum(str, Enum):
     TransactionID = "transactionID"
     ProtocolID = "protocolID"
     Length = "length"
+    RegisterValue = "registerValue"
+    RegisterValues = "registerValues"
 
 
 class ModbusFunctionEnum(IntEnum):
@@ -24,9 +26,9 @@ class ModbusFunctionEnum(IntEnum):
     Unknown = 0
     ReadCoils = 1
     ReadDiscreteInputs = 2
-    ReadMultipleHoldingRegisters = 3
-    ReadMultipleInputRegisters = 4
+    ReadHoldingRegisters = 3
+    ReadInputRegisters = 4
     WriteSingleCoil = 5
-    WriteMultipleHoldingRegister = 6
+    WriteHoldingRegister = 6
     WriteMultipleCoils = 15
     WriteMultipleHoldingRegisters = 16

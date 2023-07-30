@@ -10,9 +10,9 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
-from easyprotocol.base.parse_field_dict import ParseFieldDict
+from easyprotocol.base.dict import DictField
 from easyprotocol.fields import (
-    ArrayField,
+    ArrayFieldGeneric,
     BoolField,
     ChecksumField,
     Float32Field,
@@ -34,7 +34,7 @@ class FrameTypeEnum(IntEnum):
     COMMAND = 4
 
 
-class FRAMETYPE(EnumField[FrameTypeEnum]):
+class FrameType(EnumField[FrameTypeEnum]):
     """Frame Type field."""
 
     def __init__(
@@ -57,7 +57,7 @@ class FRAMETYPE(EnumField[FrameTypeEnum]):
         )
 
 
-class SYNC(ParseFieldDict):
+class Sync(DictField):
     """SYNC field parser."""
 
     def __init__(
@@ -77,13 +77,13 @@ class SYNC(ParseFieldDict):
             default=[
                 UInt8Field(name="START", default=0xAA),
                 UIntField(name="VERSION", bit_count=4),
-                FRAMETYPE(default=frame_type),
+                FrameType(default=frame_type),
                 BoolField(name="BIT"),
             ],
         )
 
 
-class CHK(ChecksumField):
+class Checksum(ChecksumField):
     """Checksum class."""
 
     def __init__(
@@ -144,7 +144,7 @@ class CoordinateFormatEnum(IntEnum):
     RECTANGULAR = 1
 
 
-class FORMAT(ParseFieldDict):
+class Format(DictField):
     """Number and coordinate format field."""
 
     def __init__(
@@ -263,16 +263,8 @@ class StringFixedLengthField(StringField):
             data=data,
         )
 
-    def get_value(self) -> str:
-        """Get the parsed value of this class.
 
-        Returns:
-            the parsed value of this class
-        """
-        return super().get_value().strip()
-
-
-class STN(StringFixedLengthField):
+class Station(StringFixedLengthField):
     """Station name field."""
 
     def __init__(
@@ -294,7 +286,7 @@ class STN(StringFixedLengthField):
         )
 
 
-class CHNAM(StringFixedLengthField):
+class ChannelName(StringFixedLengthField):
     """Channel name string."""
 
     def __init__(
@@ -318,7 +310,7 @@ class CHNAM(StringFixedLengthField):
         )
 
 
-class DIGNAMS(ArrayField[CHNAM]):
+class DigitalNames(ArrayFieldGeneric[str]):
     """Array of digital names."""
 
     def __init__(
@@ -335,8 +327,8 @@ class DIGNAMS(ArrayField[CHNAM]):
         super().__init__(
             name="DIGNAMS",
             count=count,
-            array_item_class=StringFixedLengthField,  # pyright:ignore[reportGeneralTypeIssues]
-            array_item_default="",  # pyright:ignore[reportGeneralTypeIssues]
+            array_item_class=StringFixedLengthField,
+            array_item_default="",
             data=data,
         )
 
@@ -354,18 +346,17 @@ class DIGNAMS(ArrayField[CHNAM]):
             count = 16 * self._count
         else:
             count = 16 * self._count.value
-        if count is not None:
-            for i in range(count):
-                f = self._array_item_class(
-                    name=f"#{i}",
-                    default=self._array_item_default,
-                )
-                bit_data = f.parse(data=bit_data)
-                self._children[f.name] = f
+        for i in range(count):
+            f = self._array_item_class(
+                name=f"#{i}",
+                default=self._array_item_default,
+            )
+            bit_data = f.parse(data=bit_data)
+            self._children[f.name] = f
         return bit_data
 
 
-class PHASOR:
+class Phasor:
     """Base phasor class."""
 
     @property
@@ -433,9 +424,7 @@ class PHASOR:
                 s += f"MAGNITUDE: {self.magnitude:.3f}, DEGREES: {self.degrees:.3f}"
             else:
                 s += f"{self.magnitude:.3f}, {self.degrees:.3f}"
-        elif coords is CoordinateFormatEnum.RECTANGULAR or coords is None:
-            if coords is None:
-                s += ", "
+        if coords is CoordinateFormatEnum.RECTANGULAR or coords is None:
             if names:
                 s += f"IMAGINARY: {self.imaginary:.3f}j, REAL: {self.real:.3f}"
             else:
@@ -452,7 +441,7 @@ class PHASOR:
         return self.get_summary()
 
 
-class PHASOR_POLAR_FLOAT(ParseFieldDict, PHASOR):
+class PhasorPolarFloat(DictField, Phasor):
     """Phasor field with polar and floating point values."""
 
     def __init__(
@@ -477,7 +466,7 @@ class PHASOR_POLAR_FLOAT(ParseFieldDict, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:
@@ -531,7 +520,7 @@ class PHASOR_POLAR_FLOAT(ParseFieldDict, PHASOR):
         return math.degrees(self.angle)
 
 
-class PHASOR_POLAR_INT(ParseFieldDict, PHASOR):
+class PhasorPolarInt(DictField, Phasor):
     """Phasor field with polar and integer values."""
 
     def __init__(
@@ -556,7 +545,7 @@ class PHASOR_POLAR_INT(ParseFieldDict, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:
@@ -565,7 +554,7 @@ class PHASOR_POLAR_INT(ParseFieldDict, PHASOR):
         return self.summary
 
 
-class PHASOR_RECTANGULAR_FLOAT(ParseFieldDict, PHASOR):
+class PhasorRectangularFloat(DictField, Phasor):
     """Phasor field with rectangular and floating-point values."""
 
     def __init__(
@@ -590,7 +579,7 @@ class PHASOR_RECTANGULAR_FLOAT(ParseFieldDict, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:
@@ -644,7 +633,7 @@ class PHASOR_RECTANGULAR_FLOAT(ParseFieldDict, PHASOR):
         return math.degrees(self.angle)
 
 
-class PHASOR_RECTANGULAR_INT(ParseFieldDict, PHASOR):
+class PhasorRectangularInt(DictField, Phasor):
     """Phasor field with rectangular and integer values."""
 
     def __init__(
@@ -669,7 +658,7 @@ class PHASOR_RECTANGULAR_INT(ParseFieldDict, PHASOR):
             data=data,
         )
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Override the default string value of field with phasor summary.
 
         Returns:

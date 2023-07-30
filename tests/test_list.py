@@ -2,21 +2,20 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 from typing import Any, Sequence
 
 from bitarray import bitarray
 from parse_data import ParseData
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, ParseBase
-from easyprotocol.base.parse_field_list import ParseFieldList
-from easyprotocol.base.parse_generic_value import ParseGenericValue
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField
+from easyprotocol.base.list import ListField
+from easyprotocol.base.value import ValueFieldGeneric
 from easyprotocol.fields import UInt8Field
 from easyprotocol.fields.unsigned_int import UIntField
 
 
 def check_ParseFieldList_value(
-    obj: ParseFieldList,
+    obj: ListField,
     tst: ParseData,
 ) -> None:
     assert len(obj.value) == len(tst.value), (
@@ -29,7 +28,7 @@ def check_ParseFieldList_value(
 
 
 def check_ParseFieldList_properties(
-    obj: ParseFieldList,
+    obj: ListField,
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -52,7 +51,7 @@ def check_ParseFieldList_properties(
 
 
 def check_ParseFieldList_children(
-    obj: ParseFieldList,
+    obj: ListField,
     tst: ParseData,
 ) -> None:
     assert len(obj.children) == len(tst.children), (
@@ -68,21 +67,21 @@ def check_ParseFieldList_children(
             f"{obj}: obj.children[key] is not the expected value "
             + f"({obj.children[key]} != expected value: {tst.children[key]})"
         )
-        assert obj.children[key]._get_parent_generic() == obj, (  # pyright:ignore[reportPrivateUsage]
+        assert obj.children[key].parent == obj, (
             f"{obj}: obj.children[key].parent is not the expected value "
-            + f"({obj.children[key]._get_parent_generic()} != expected value: {obj})"  # pyright:ignore[reportPrivateUsage]
+            + f"({obj.children[key].parent} != expected value: {obj})"
         )
 
     for v in tst.children.values():
-        assert v.string_value in obj.string_value
-        assert v.string_value in str(obj)
-        assert v.string_value in repr(obj)
+        assert v.value_as_string in obj.value_as_string
+        assert v.value_as_string in str(obj)
+        assert v.value_as_string in repr(obj)
     assert tst.name in str(obj)
     assert tst.name in repr(obj)
 
 
 def ParseFieldList_tests(
-    obj: ParseFieldList,
+    obj: ListField,
     tst: ParseData,
 ) -> None:
     check_ParseFieldList_properties(
@@ -111,10 +110,10 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
         )
         ParseFieldList_tests(
@@ -138,7 +137,7 @@ class TestParseFieldList:
         bits_data = f2.bits + f1.bits
         byte_data = bytes(f2) + bytes(f1)
         value: list[Any] = [f1, f2]
-        children_list: list[ParseGenericValue[Any]] = [f1, f2]
+        children_list: list[ValueFieldGeneric[Any]] = [f1, f2]
         tst = ParseData(
             name="test",
             value=value,
@@ -146,10 +145,10 @@ class TestParseFieldList:
             bits_data=bits_data,
             string_format="{}",
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2}),
+            children=dict({f1.name: f1, f2.name: f2}),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=children_list,
         )
@@ -181,10 +180,10 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2}),
+            children=dict({f1.name: f1, f2.name: f2}),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=tst.children,
         )
@@ -210,10 +209,10 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1}),
+            children=dict({f1.name: f1}),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=[f1],
             data=tst.byte_data,
@@ -256,10 +255,10 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
+            children=dict({f1.name: f1, f2.name: f2, f3.name: f3}),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=[f1, f2, f3],
             data=tst.byte_data,
@@ -330,10 +329,10 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3, f4.name: f4}),
+            children=dict({f1.name: f1, f2.name: f2, f3.name: f3, f4.name: f4}),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=[f1, f2, f3, f4],
             data=tst.byte_data,
@@ -365,10 +364,10 @@ class TestParseFieldList:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            children=OrderedDict({f1.name: f1}),
+            children=dict({f1.name: f1}),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=[f1],
         )
@@ -423,11 +422,11 @@ class TestParseFieldList:
             byte_data=byte_data1,
             bits_data=bits_data1,
             parent=None,
-            children=OrderedDict({f1.name: f1, f2.name: f2, f3.name: f3}),
+            children=dict({f1.name: f1, f2.name: f2, f3.name: f3}),
             endian=DEFAULT_ENDIANNESS,
         )
 
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
             default=[f1, f2, f3],
         )
@@ -458,10 +457,10 @@ class TestParseFieldList:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=DEFAULT_ENDIANNESS,
         )
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
         )
         ParseFieldList_tests(
@@ -489,8 +488,8 @@ class TestParseFieldList:
         byte_data2 = f2_data
         values1: Sequence[Any] = []
         values2: Sequence[Any] = [f2]
-        children1: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict()
-        children2: OrderedDict[str, ParseGenericValue[Any]] = OrderedDict({f2.name: f2})
+        children1: dict[str, BaseField] = dict()
+        children2: dict[str, BaseField] = dict({f2.name: f2})
         tst = ParseData(
             name="test",
             value=values1,
@@ -502,7 +501,7 @@ class TestParseFieldList:
             endian=DEFAULT_ENDIANNESS,
         )
 
-        obj = ParseFieldList(
+        obj = ListField(
             name=tst.name,
         )
         ParseFieldList_tests(
@@ -526,7 +525,7 @@ class TestParseFieldList:
         f1 = UInt8Field(name=f1_name)
         f2_name = "f2"
         f2 = UInt8Field(name=f2_name)
-        obj = ParseFieldList(name=name, default=[f1, f2])
+        obj = ListField(name=name, default=[f1, f2])
 
         assert len(obj) == 2
         assert f1.parent == obj
@@ -544,7 +543,7 @@ class TestParseFieldList:
         f3_name = "f3"
         f3 = UInt8Field(name=f3_name, default=3)
         f3_also = UInt8Field(name=f3_name, default=17)
-        obj = ParseFieldList(name=name, default=[f1, f2, f3])
+        obj = ListField(name=name, default=[f1, f2, f3])
         i: int = 2
 
         assert f1.parent == obj
@@ -568,7 +567,7 @@ class TestParseFieldList:
         f2 = UInt8Field(name=f2_name, default=2)
         f3_name = "f3"
         f3 = UInt8Field(name=f3_name, default=3)
-        obj = ParseFieldList(name=name, default=[f1, f3])
+        obj = ListField(name=name, default=[f1, f3])
 
         assert f1.parent == obj
         assert f2.parent is None

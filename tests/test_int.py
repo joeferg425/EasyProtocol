@@ -1,7 +1,6 @@
 # flake8:noqa
 import math
 import struct
-from collections import OrderedDict
 from typing import Literal
 
 import pytest
@@ -15,9 +14,9 @@ from parse_data import (
     TEST_VALUES_64_BIT_UINT,
     ParseData,
 )
-from test_parse_uint import check_int
+from test_uint import check_int
 
-from easyprotocol.base.parse_base import endianT
+from easyprotocol.base.base import endianT
 from easyprotocol.base.utils import DEFAULT_ENDIANNESS, hex
 from easyprotocol.fields.signed_int import (
     INT08_STRING_FORMAT,
@@ -744,7 +743,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -770,7 +769,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -796,7 +795,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -834,7 +833,7 @@ class TestIntField:
             bits_data=bits_data1,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -874,7 +873,7 @@ class TestIntField:
             bits_data=bits_data1,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -910,7 +909,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -949,7 +948,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -982,7 +981,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -1015,7 +1014,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -1048,7 +1047,7 @@ class TestIntField:
             bits_data=bits_data,
             parent=None,
             endian=endian,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = IntField(
             name=tst.name,
@@ -1076,7 +1075,7 @@ class TestInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1101,7 +1100,7 @@ class TestInt08:
             bits_data=bits_data,
             byte_data=byte_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1132,7 +1131,7 @@ class TestInt08:
             bits_data=bits_data,
             byte_data=byte_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1164,7 +1163,7 @@ class TestInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1196,7 +1195,7 @@ class TestInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1228,7 +1227,7 @@ class TestInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1260,7 +1259,7 @@ class TestInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1292,7 +1291,7 @@ class TestInt08:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int8Field(
@@ -1323,7 +1322,7 @@ class TestInt08:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int8field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -1372,7 +1371,7 @@ class TestInt16:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int16Field(
@@ -1397,7 +1396,7 @@ class TestInt16:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int16Field(
@@ -1428,7 +1427,7 @@ class TestInt16:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int16Field(
@@ -1460,7 +1459,7 @@ class TestInt16:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int16Field(
@@ -1492,7 +1491,7 @@ class TestInt16:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int16Field(
@@ -1524,7 +1523,7 @@ class TestInt16:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int16Field(
@@ -1555,7 +1554,7 @@ class TestInt16:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int16field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -1604,7 +1603,7 @@ class TestInt24:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int24Field(
@@ -1629,7 +1628,7 @@ class TestInt24:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int24Field(
@@ -1660,7 +1659,7 @@ class TestInt24:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int24Field(
@@ -1692,7 +1691,7 @@ class TestInt24:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int24Field(
@@ -1724,7 +1723,7 @@ class TestInt24:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int24Field(
@@ -1756,7 +1755,7 @@ class TestInt24:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int24Field(
@@ -1791,7 +1790,7 @@ class TestInt24:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int24field_create_parse_too_little_data(self) -> None:
         value = 0x0FFF
@@ -1840,7 +1839,7 @@ class TestInt32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int32Field(
@@ -1865,7 +1864,7 @@ class TestInt32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int32Field(
@@ -1896,7 +1895,7 @@ class TestInt32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int32Field(
@@ -1928,7 +1927,7 @@ class TestInt32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int32Field(
@@ -1960,7 +1959,7 @@ class TestInt32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int32Field(
@@ -1992,7 +1991,7 @@ class TestInt32:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int32Field(
@@ -2023,7 +2022,7 @@ class TestInt32:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int32field_create_parse_too_little_data(self) -> None:
         value = 0x0F
@@ -2072,7 +2071,7 @@ class TestInt64:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int64Field(
@@ -2097,7 +2096,7 @@ class TestInt64:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int64Field(
@@ -2128,7 +2127,7 @@ class TestInt64:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int64Field(
@@ -2160,7 +2159,7 @@ class TestInt64:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int64Field(
@@ -2192,7 +2191,7 @@ class TestInt64:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int64Field(
@@ -2224,7 +2223,7 @@ class TestInt64:
             byte_data=byte_data,
             bits_data=bits_data,
             parent=None,
-            children=OrderedDict(),
+            children=dict(),
             endian=endian,
         )
         obj = Int64Field(
@@ -2257,7 +2256,7 @@ class TestInt64:
         remainder = obj.parse(bits_data1)
         assert remainder == extra
         assert obj.bits == bits_data2
-        assert obj.byte_value == byte_data2
+        assert obj.value_as_bytes == byte_data2
 
     def test_int64field_create_parse_too_little_data(self) -> None:
         value = 0x0F

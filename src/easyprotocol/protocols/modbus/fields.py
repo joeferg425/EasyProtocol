@@ -10,7 +10,7 @@ from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
 from easyprotocol.fields import (
-    ArrayField,
+    ArrayFieldGeneric,
     BoolField,
     ChecksumField,
     UInt8EnumField,
@@ -253,7 +253,7 @@ class ModbusCRC(ChecksumField):
         return (crc_int, crc_bytes, crc_bits)
 
 
-class ModbusCoilArray(ArrayField[bool]):
+class ModbusCoilArray(ArrayFieldGeneric[bool]):
     """Modbus coil array field."""
 
     def __init__(
@@ -320,21 +320,18 @@ class ModbusCoilArray(ArrayField[bool]):
         if isinstance(self._count, int):
             _count = self._count * 8
         else:
-            if self._count.value is None:
-                _count = 0
-            else:
-                _count = self._count.value * 8
+            _count = self._count.value * 8
         for i in range(_count):
             f = self._array_item_class(
-                f"+{i}",
-                self._array_item_default,
+                name=f"+{i}",
+                default=self._array_item_default,
             )
             bit_data = f.parse(data=bit_data)
             self.append(f)
         return bit_data
 
     @property
-    def string_value(self) -> str:
+    def value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -354,7 +351,7 @@ class ModbusCoilArray(ArrayField[bool]):
         return f"[{', '.join( chunks)}]"
 
 
-class ModbusDiscreteInputArray(ArrayField[bool]):
+class ModbusDiscreteInputArray(ArrayFieldGeneric[bool]):
     """Modbus discrete input array field."""
 
     def __init__(
@@ -421,21 +418,18 @@ class ModbusDiscreteInputArray(ArrayField[bool]):
         if isinstance(self._count, int):
             _count = self._count * 8
         else:
-            if self._count.value is None:
-                _count = 0
-            else:
-                _count = self._count.value * 8
+            _count = self._count.value * 8
         for i in range(_count):
             f = self._array_item_class(
-                f"+{i}",
-                self._array_item_default,
+                name=f"+{i}",
+                default=self._array_item_default,
             )
             bit_data = f.parse(data=bit_data)
             self.append(f)
         return bit_data
 
     @property
-    def string_value(self) -> str:
+    def value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -453,3 +447,52 @@ class ModbusDiscreteInputArray(ArrayField[bool]):
                 vals = "".join(["1" if self.children[keys[j]].value else "0" for j in range(i, len(keys))]) + xtra
             chunks.append(chunk_key + ":" + vals)
         return f"[{', '.join( chunks)}]"
+
+
+class ModbusRegisterValueArray(ArrayFieldGeneric[int]):
+    """Modbus discrete input array field."""
+
+    def __init__(
+        self,
+        count: int | UIntField,
+        data: dataT | None = None,
+        default: Sequence[int] | None = None,
+    ) -> None:
+        """Create modbus discrete input array field.
+
+        Args:
+            count: _description_
+            default: default crc value
+            data: bytes to be parsed
+        """
+        super().__init__(
+            name=ModbusFieldNamesEnum.RegisterValues.value,
+            count=count,
+            array_item_class=UInt16Field,
+            array_item_default=0,
+            data=data,
+            default=default,
+        )
+
+    def parse(self, data: dataT) -> bitarray:
+        """Parse bytes that make of this protocol field into meaningful data.
+
+        Args:
+            data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
+        """
+        bit_data = input_to_bytes(data=data)
+        if isinstance(self._count, int):
+            _count = self._count // 2
+        else:
+            _count = self._count.value // 2
+        for i in range(_count):
+            f = self._array_item_class(
+                name=f"+{i}",
+                default=self._array_item_default,
+            )
+            bit_data = f.parse(data=bit_data)
+            self.append(f)
+        return bit_data

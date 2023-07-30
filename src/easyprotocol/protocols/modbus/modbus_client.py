@@ -3,13 +3,17 @@ from __future__ import annotations
 
 import logging
 import socket
+import sys
 
 from easyprotocol.base.utils import hex
-from easyprotocol.protocols.modbus.frames import ModbusTCPFrame
+from easyprotocol.protocols.modbus.frames import (
+    ModbusTCPFrame,
+    ModbusTCPReadCoilsRequest,
+)
 from easyprotocol.protocols.modbus.modbus_transceiver import ModbusTransceiver
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+LOGGER.addHandler(logging.StreamHandler(sys.stdout))
 
 
 class ModbusClient(ModbusTransceiver):
@@ -29,7 +33,7 @@ class ModbusClient(ModbusTransceiver):
             verbose: logging verbosity. Defaults to False.
         """
         super().__init__(logger=LOGGER)
-        if verbose:
+        if verbose is True:
             LOGGER.setLevel(logging.DEBUG)
         self._ip = ip
         self._port = port
@@ -103,14 +107,31 @@ class ModbusClient(ModbusTransceiver):
         Returns:
             response frame or none
         """
-        LOGGER.debug("Client: TX: %s (%s)", frame, hex(frame.byte_value))
+        LOGGER.debug("Client: TX: %s (%s)", frame, hex(frame.value_as_bytes))
         if self.send_message(frame=frame):
             rx_frame = self.read_message()
             if rx_frame:
-                LOGGER.debug("Client: RX: %s (%s)", rx_frame, hex(rx_frame.byte_value))
+                LOGGER.debug("Client: RX: %s (%s)", rx_frame, hex(rx_frame.value_as_bytes))
             return rx_frame
         return None
 
     @property
     def _buffer_len(self) -> int:
         return len(self._bytes_buffer)
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ip_address", nargs="?", default="127.0.0.1", help="The IP Address of the Modbus server.")
+    parser.add_argument("-p", "--port", type=int, default=502, help="The TCP port of the server.")
+    parser.add_argument("-v", "--verbose", action="store_true", help="Set flag to see debugging messages.")
+    args = parser.parse_args()
+
+    client = ModbusClient(ip=args.ip_address, port=args.port, verbose=args.verbose)
+    client.start()
+    read_coils = ModbusTCPReadCoilsRequest()
+    LOGGER.info(read_coils)
+    LOGGER.info(client.send_receive_frame(read_coils))
+    client.stop()

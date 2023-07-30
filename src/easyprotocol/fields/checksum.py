@@ -7,12 +7,15 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Calculator, Configuration
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 
-class ChecksumField(UIntFieldGeneric[int]):
+class ChecksumField(
+    UIntFieldGeneric[int],
+    BaseField,
+):
     """Base class for handling checksums."""
 
     def __init__(

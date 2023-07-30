@@ -7,12 +7,18 @@ from easyprotocol.protocols.synchrophasor.fields import (  # noqa
 from easyprotocol.protocols.synchrophasor.fields import (  # noqa
     NumberFormatEnum as NumberFormatEnum,
 )
-from easyprotocol.protocols.synchrophasor.frames import COMMAND as COMMAND  # noqa
 from easyprotocol.protocols.synchrophasor.frames import (  # noqa
-    CONFIGURATION1 as CONFIGURATION1,
+    SynchrophasorCommand as SynchrophasorCommand,
 )
 from easyprotocol.protocols.synchrophasor.frames import (  # noqa
-    CONFIGURATION2 as CONFIGURATION2,
+    SynchrophasorConfiguration1 as SynchrophasorConfiguration1,
 )
-from easyprotocol.protocols.synchrophasor.frames import DATA as DATA  # noqa
-from easyprotocol.protocols.synchrophasor.frames import HEADER as HEADER  # noqa
+from easyprotocol.protocols.synchrophasor.frames import (  # noqa
+    SynchrophasorConfiguration2 as SynchrophasorConfiguration2,
+)
+from easyprotocol.protocols.synchrophasor.frames import (  # noqa
+    SynchrophasorData as SynchrophasorData,
+)
+from easyprotocol.protocols.synchrophasor.frames import (  # noqa
+    SynchrophasorHeader as SynchrophasorHeader,
+)

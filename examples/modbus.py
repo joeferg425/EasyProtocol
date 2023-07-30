@@ -5,11 +5,10 @@ from easyprotocol.base.utils import hex
 from easyprotocol.protocols.modbus import (
     ModbusAddress,
     ModbusCount,
-    ModbusFieldNamesEnum,
     ModbusFunction,
-    ModbusTCPReadCoilsRequest,
-    ModbusTCPReadCoilsResponse,
-    ModbusTCPReadDiscreteInputsRequest,
+    ModbusRTUReadCoilsRequest,
+    ModbusRTUReadCoilsResponse,
+    ModbusRTUReadDiscreteInputsRequest,
 )
 from easyprotocol.protocols.modbus.constants import ModbusFunctionEnum
 
@@ -26,7 +25,7 @@ def ReadCoils(check_crc: bool = False) -> None:
     print(f"│ ├─ input:\t\t{hex(bytes(readCoilsRequestBytes))}")
     print("│ │")
 
-    readCoilsRequest = ModbusTCPReadCoilsRequest()
+    readCoilsRequest = ModbusRTUReadCoilsRequest()
     readCoilsRequest.parse(readCoilsRequestBytes)
     print(f"│ ├─ parser:\t\t{readCoilsRequest}")
     print(f"│ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")
@@ -42,14 +41,12 @@ def ReadCoils(check_crc: bool = False) -> None:
 
     print("│ ├─┐  Changing Frame data")
     readCoilsRequest.set_value(
-        dict(
-            {
-                ModbusFieldNamesEnum.Address.value: ModbusAddress(default=17),
-                ModbusFieldNamesEnum.FunctionCode.value: ModbusFunction(default=ModbusFunctionEnum.ReadCoils),
-                ModbusFieldNamesEnum.Address.value: ModbusAddress(default=19),
-                ModbusFieldNamesEnum.Count.value: ModbusCount(default=37),
-            }
-        )
+        [
+            ModbusAddress(default=17),
+            ModbusFunction(default=ModbusFunctionEnum.ReadCoils),
+            ModbusAddress(default=19),
+            ModbusCount(default=37),
+        ]
     )
     print(f"│ │ ├─ parser:\t\t{readCoilsRequest}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readCoilsRequest))}")
@@ -67,7 +64,7 @@ def ReadCoils(check_crc: bool = False) -> None:
     print(f"│ ├─ input:\t\t{hex(bytes(readCoilsResponseBytes))}")
     print("│ │")
 
-    readCoilsResponse = ModbusTCPReadCoilsResponse()
+    readCoilsResponse = ModbusRTUReadCoilsResponse()
     readCoilsResponse.parse(readCoilsResponseBytes)
     print(f"│ ├─ parser:\t\t{readCoilsResponse}")
     print(f"│ ├─ parser bytes:\t{hex(bytes(readCoilsResponse))}")
@@ -110,7 +107,7 @@ def ReadDiscreteInputs(check_crc: bool = False) -> None:
     print(f"│ ├─ input:\t\t{hex(bytes(readDiscreteInputsRequestBytes))}")
     print("│ │")
 
-    readDiscreteInputsRequest = ModbusTCPReadDiscreteInputsRequest()
+    readDiscreteInputsRequest = ModbusRTUReadDiscreteInputsRequest()
     readDiscreteInputsRequest.parse(readDiscreteInputsRequestBytes)
     print(f"│ ├─ parser:\t\t{readDiscreteInputsRequest}")
     print(f"│ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")
@@ -126,7 +123,7 @@ def ReadDiscreteInputs(check_crc: bool = False) -> None:
     print("│ ├─┐  Changing Frame data")
     readDiscreteInputsRequest.address.set_value(11)
     readDiscreteInputsRequest.functionCode.set_value(ModbusFunctionEnum.ReadDiscreteInputs)
-    readDiscreteInputsRequest.address.set_value(0xC400)
+    readDiscreteInputsRequest.register.set_value(0xC400)
     readDiscreteInputsRequest.count.set_value(16)
     print(f"│ │ ├─ parser:\t\t{readDiscreteInputsRequest}")
     print(f"│ │ ├─ parser bytes:\t{hex(bytes(readDiscreteInputsRequest))}")

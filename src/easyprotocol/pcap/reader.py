@@ -1,25 +1,37 @@
+"""A pcap reader for the easy protocol library."""
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Generator
+from typing import Generator, cast
 
-import pyshark
+from pyshark import FileCapture
+from pyshark.packet.packet import Packet
 
-from easyprotocol.base.utils import hex
 
+def tcp_pcap_reader(filename: str | Path) -> Generator[bytes, None, None]:
+    """Read a pcap file and returns each TCP payload for parsing.
 
-def tcp_payload_reader(filename: str | Path) -> Generator[bytes, None, None]:
+    Args:
+        filename: pcap file name
+
+    Yields:
+        TCP data bytes from each frame
+    """
     filename = Path(filename).resolve().absolute()
-    fc = pyshark.FileCapture(filename)
-
+    fc = FileCapture(filename)
     previous: bytes = b""
-    for frame in fc:
+
+    for frame in fc:  # pyright:ignore[reportUnknownVariableType]
+        frame = cast("Packet", frame)
         if hasattr(frame, "tcp"):
-            packet = frame["tcp"]
+            packet = cast("Packet", frame["tcp"])
             if hasattr(packet, "payload"):
-                payload = packet.payload
+                payload = cast("str", packet.payload)  # pyright:ignore[reportUnknownMemberType]
                 b = bytes([int(b, 16) for b in payload.split(":")])
-                if packet.flags_push == "1":
+                push = "0"
+                if hasattr(packet, "flags_push"):
+                    push = cast("str", packet.flags_push)  # pyright:ignore[reportUnknownMemberType]
+                if push == "1":
                     yield previous + b
                     previous = b""
                 else:
@@ -27,11 +39,20 @@ def tcp_payload_reader(filename: str | Path) -> Generator[bytes, None, None]:
 
 
 def udp_payload_reader(filename: str | Path) -> Generator[bytes, None, None]:
+    """Read a pcap file and returns each UDP payload for parsing.
+
+    Args:
+        filename: pcap file name
+
+    Yields:
+        UDP data bytes from each frame
+    """
     filename = Path(filename).resolve().absolute()
-    fc = pyshark.FileCapture(filename)
-    for frame in fc:
+    fc = FileCapture(filename)
+    for frame in fc:  # pyright:ignore[reportUnknownVariableType]
+        frame = cast("Packet", frame)
         if hasattr(frame, "udp"):
-            packet = frame["udp"]
+            packet = cast("Packet", frame["udp"])
             if hasattr(packet, "payload"):
-                payload = packet.payload
+                payload = cast("str", packet.payload)  # pyright:ignore[reportUnknownMemberType]
                 yield bytes([int(b, 16) for b in payload.split(":")])

@@ -4,14 +4,19 @@ from __future__ import annotations
 from enum import IntFlag
 from typing import Sequence, TypeVar, Union, cast
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT
+from easyprotocol.base.value import ValueFieldGeneric
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 F = TypeVar("F", bound=Union[IntFlag, int])
 
 
-class FlagsField(UIntFieldGeneric[F]):
+class FlagsField(
+    UIntFieldGeneric[F],
+    ValueFieldGeneric[F],
+    BaseField,
+):
     """Base flags parsing class."""
 
     def __init__(
@@ -45,7 +50,7 @@ class FlagsField(UIntFieldGeneric[F]):
             string_format=string_format,
         )
 
-    def get_value(self) -> F | int:  # pyright:ignore[reportIncompatibleMethodOverride]
+    def get_value(self) -> F:
         """Get the parsed value of this class.
 
         Returns the integer value if the Enum.IntFlag value is not defined.
@@ -71,7 +76,7 @@ class FlagsField(UIntFieldGeneric[F]):
             _value = value
         super().set_value(_value)
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -87,7 +92,7 @@ class FlagsField(UIntFieldGeneric[F]):
         return self.string_format.format(s)
 
     @property
-    def value(self) -> F | int:  # pyright:ignore[reportIncompatibleMethodOverride]
+    def value(self) -> F:
         """Get the parsed value of the field.
 
         Returns:
@@ -100,7 +105,10 @@ class FlagsField(UIntFieldGeneric[F]):
         self.set_value(value)
 
 
-class UInt8FlagsField(FlagsField[F]):
+class UInt8FlagsField(
+    FlagsField[F],
+    BaseField,
+):
     """Eight bit flags parsing class."""
 
     def __init__(
@@ -133,13 +141,19 @@ class UInt8FlagsField(FlagsField[F]):
         )
 
 
-class Flags8Field(UInt8FlagsField[F]):
+class Flags8Field(
+    UInt8FlagsField[F],
+    BaseField,
+):
     """Eight bit flags parsing class."""
 
     ...
 
 
-class UInt16FlagsField(FlagsField[F]):
+class UInt16FlagsField(
+    FlagsField[F],
+    BaseField,
+):
     """Sixteen bit flags parsing class."""
 
     def __init__(
@@ -172,13 +186,19 @@ class UInt16FlagsField(FlagsField[F]):
         )
 
 
-class Flags16Field(UInt16FlagsField[F]):
+class Flags16Field(
+    UInt16FlagsField[F],
+    BaseField,
+):
     """Sixteen bit flags parsing class."""
 
     ...
 
 
-class UInt24FlagsField(FlagsField[F]):
+class UInt24FlagsField(
+    FlagsField[F],
+    BaseField,
+):
     """Twenty-four bit flags parsing class."""
 
     def __init__(
@@ -211,13 +231,19 @@ class UInt24FlagsField(FlagsField[F]):
         )
 
 
-class Flags24Field(UInt24FlagsField[F]):
+class Flags24Field(
+    UInt24FlagsField[F],
+    BaseField,
+):
     """Twenty-four bit flags parsing class."""
 
     ...
 
 
-class UInt32FlagsField(FlagsField[F]):
+class UInt32FlagsField(
+    FlagsField[F],
+    BaseField,
+):
     """Thirty-two bit flags parsing class."""
 
     def __init__(
@@ -250,7 +276,10 @@ class UInt32FlagsField(FlagsField[F]):
         )
 
 
-class Flags32Field(UInt32FlagsField[F]):
+class Flags32Field(
+    UInt32FlagsField[F],
+    BaseField,
+):
     """Thirty-two bit flags parsing class."""
 
     ...

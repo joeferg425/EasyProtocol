@@ -2,12 +2,11 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 
 from bitarray import bitarray
 from parse_data import ParseData
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
+from easyprotocol.base.base import DEFAULT_ENDIANNESS
 from easyprotocol.base.utils import hex
 from easyprotocol.fields.string import (
     DEFAULT_BYTE_FORMAT,
@@ -25,9 +24,14 @@ def check_str_byte_value(
     obj: CharField | StringField | ByteField | BytesField,
     tst: ParseData,
 ) -> None:
-    assert (
-        obj.value == tst.value
-    ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
+    if isinstance(obj, (StringField, BytesField)):
+        assert (
+            obj.value_concatenated == tst.value
+        ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
+    else:
+        assert (
+            obj.value == tst.value
+        ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
 
 
 def check_str_byte_properties(
@@ -54,21 +58,18 @@ def check_str_strings(
     obj: CharField | StringField,
     tst: ParseData,
 ) -> None:
-    assert f'"{tst.value}"' == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
-    )
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
+    assert f"{tst.value}" == obj.value_as_string, (
+        f"{obj}: obj.value_as_string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.value_as_string})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.value_as_string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's string vale ({obj.value_as_string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.value_as_string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's repr vale ({obj.value_as_string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -96,21 +97,21 @@ def check_byte_strings(
     obj: ByteField | BytesField,
     tst: ParseData,
 ) -> None:
-    assert f'"{hex(tst.value)}"(bytes)' == obj.string_value, (
-        f"{obj}: obj.string_value is not the expected value "
-        + f"({tst.string_format.format(tst.value)} != expected value: {obj.string_value})"
+    assert f'"{tst.value.decode("latin1") }"(bytes)' == obj.value_as_string, (
+        f"{obj}: obj.value_as_string is not the expected value "
+        + f"({tst.string_format.format(tst.value)} != expected value: {obj.value_as_string})"
     )
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
+    assert len(obj.value_as_string) > 0, (
+        f"{obj}: obj.value_as_string is not the expected value " + f"(? != expected value: {obj.value_as_string})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.value_as_string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's string vale ({obj.value_as_string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.value_as_string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's repr vale ({obj.value_as_string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
@@ -148,7 +149,7 @@ class TestChar:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = CharField(
             name=tst.name,
@@ -172,7 +173,7 @@ class TestChar:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = CharField(
             name=tst.name,
@@ -197,7 +198,7 @@ class TestChar:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = CharField(
             name=tst.name,
@@ -225,7 +226,7 @@ class TestString:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = StringField(
             name=tst.name,
@@ -251,7 +252,7 @@ class TestString:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = StringField(
             name=tst.name,
@@ -279,7 +280,7 @@ class TestByte:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ByteField(
             name=tst.name,
@@ -303,7 +304,7 @@ class TestByte:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ByteField(
             name=tst.name,
@@ -328,7 +329,7 @@ class TestByte:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = ByteField(
             name=tst.name,
@@ -356,7 +357,7 @@ class TestBytes:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = BytesField(
             name=tst.name,
@@ -382,7 +383,7 @@ class TestBytes:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
         obj = BytesField(
             name=tst.name,

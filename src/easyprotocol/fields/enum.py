@@ -4,14 +4,17 @@ from __future__ import annotations
 from enum import IntEnum
 from typing import TypeVar, Union
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS, endianT
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 E = TypeVar("E", bound=Union[IntEnum, int])
 
 
-class EnumField(UIntFieldGeneric[E]):
+class EnumField(
+    UIntFieldGeneric[E],
+    BaseField,
+):
     """Base IntEnum parsing class."""
 
     def __init__(
@@ -71,7 +74,7 @@ class EnumField(UIntFieldGeneric[E]):
             _value = value
         super().set_value(_value)
 
-    def get_string_value(self) -> str:
+    def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
 
         Returns:
@@ -98,7 +101,10 @@ class EnumField(UIntFieldGeneric[E]):
         self.set_value(value)
 
 
-class UInt8EnumField(EnumField[E]):
+class UInt8EnumField(
+    EnumField[E],
+    BaseField,
+):
     """Eight bit enum parsing class."""
 
     def __init__(
@@ -131,13 +137,19 @@ class UInt8EnumField(EnumField[E]):
         )
 
 
-class Enum8Field(UInt8EnumField[E]):
+class Enum8Field(
+    UInt8EnumField[E],
+    BaseField,
+):
     """Eight bit enum parsing class."""
 
     ...
 
 
-class UInt16EnumField(EnumField[E]):
+class UInt16EnumField(
+    EnumField[E],
+    BaseField,
+):
     """Sixteen bit enum parsing class."""
 
     def __init__(
@@ -170,13 +182,19 @@ class UInt16EnumField(EnumField[E]):
         )
 
 
-class Enum16Field(UInt16EnumField[E]):
+class Enum16Field(
+    UInt16EnumField[E],
+    BaseField,
+):
     """Sixteen bit enum parsing class."""
 
     ...
 
 
-class UInt24EnumField(EnumField[E]):
+class UInt24EnumField(
+    EnumField[E],
+    BaseField,
+):
     """Twenty-four bit enum parsing class."""
 
     def __init__(
@@ -209,13 +227,19 @@ class UInt24EnumField(EnumField[E]):
         )
 
 
-class Enum24Field(UInt24EnumField[E]):
+class Enum24Field(
+    UInt24EnumField[E],
+    BaseField,
+):
     """Twenty-four bit enum parsing class."""
 
     ...
 
 
-class UInt32EnumField(EnumField[E]):
+class UInt32EnumField(
+    EnumField[E],
+    BaseField,
+):
     """Thirty-two bit enum parsing class."""
 
     def __init__(
@@ -248,7 +272,10 @@ class UInt32EnumField(EnumField[E]):
         )
 
 
-class Enum32Field(UInt32EnumField[E]):
+class Enum32Field(
+    UInt32EnumField[E],
+    BaseField,
+):
     """Thirty-two bit enum parsing class."""
 
     ...

@@ -2,53 +2,52 @@
 from __future__ import annotations
 
 import struct
-from collections import OrderedDict
 from typing import Any
 
 import pytest
 from bitarray import bitarray
 from parse_data import ParseData
 
-from easyprotocol.base.parse_base import DEFAULT_ENDIANNESS
-from easyprotocol.fields.array import ParseValueArrayField
+from easyprotocol.base.base import DEFAULT_ENDIANNESS
+from easyprotocol.fields.array import ArrayFieldGeneric
 from easyprotocol.fields.unsigned_int import BoolField, UInt8Field
 
 
 def check_array_strings(
-    obj: ParseValueArrayField[Any],
+    obj: ArrayFieldGeneric[Any],
     tst: ParseData,
 ) -> None:
-    # assert tst.format.format(tst.value) == obj.string_value, (
-    #     f"{obj}: obj.string_value is not the expected value "
-    #     + f"({tst.format.format(tst.value)} != expected value: {obj.string_value})"
+    # assert tst.format.format(tst.value) == obj.value_as_string, (
+    #     f"{obj}: obj.value_as_string is not the expected value "
+    #     + f"({tst.format.format(tst.value)} != expected value: {obj.value_as_string})"
     # )
-    assert len(obj.string_value) > 0, (
-        f"{obj}: obj.string_value is not the expected value " + f"(? != expected value: {obj.string_value})"
+    assert len(obj.value_as_string) > 0, (
+        f"{obj}: obj.value_as_string is not the expected value " + f"(? != expected value: {obj.value_as_string})"
     )
     assert tst.name in str(obj), f"{obj}: obj.name is not in the object's string vale ({obj.name} not in {str(obj)})"
-    assert obj.string_value in str(
+    assert obj.value_as_string in str(
         obj
-    ), f"{obj}: obj.string_value is not in the object's string vale ({obj.string_value} not in {str(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's string vale ({obj.value_as_string} not in {str(obj)})"
     assert tst.name in repr(obj), f"{obj}: obj.name is not in the object's repr vale ({obj.name} not in {repr(obj)})"
-    assert obj.string_value in repr(
+    assert obj.value_as_string in repr(
         obj
-    ), f"{obj}: obj.string_value is not in the object's repr vale ({obj.string_value} not in {repr(obj)})"
+    ), f"{obj}: obj.value_as_string is not in the object's repr vale ({obj.value_as_string} not in {repr(obj)})"
     assert obj.__class__.__name__ in repr(
         obj
     ), f"{obj}: obj.__class__.__name__ is not in the object's repr vale ({obj.__class__.__name__} not in {repr(obj)})"
 
 
 def check_array_value(
-    obj: ParseValueArrayField[int],
+    obj: ArrayFieldGeneric[int],
     tst: ParseData,
 ) -> None:
     assert (
-        obj.value == tst.value
+        obj.value_list == tst.value
     ), f"{obj}: obj.value is not the expected value ({obj.value} != expected value: {tst.value})"
 
 
 def check_array_properties(
-    obj: ParseValueArrayField[int],
+    obj: ArrayFieldGeneric[int],
     tst: ParseData,
 ) -> None:
     assert obj is not None, "Object is None"
@@ -63,7 +62,7 @@ def check_array_properties(
         obj._parent == tst.parent  # pyright:ignore[reportPrivateUsage]
     ), f"{obj}: obj.parent is not the expected value ({obj._parent} != expected value: {tst.parent})"  # pyright:ignore[reportPrivateUsage]
     assert (
-        obj.byte_value == tst.byte_data
+        obj.value_as_bytes == tst.byte_data
     ), f"{obj}: bytes(obj) is not the expected value ({bytes(obj)!r} != expected value: {tst.byte_data!r})"
     assert (
         obj.endian == tst.endian
@@ -71,7 +70,7 @@ def check_array_properties(
 
 
 def check_array(
-    obj: ParseValueArrayField[Any],
+    obj: ArrayFieldGeneric[Any],
     tst: ParseData,
 ) -> None:
     check_array_value(
@@ -102,9 +101,9 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
@@ -129,9 +128,9 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,
@@ -148,7 +147,7 @@ class TestArray:
         # f1_name = "count"
         # f1 = UInt8Field(name=f1_name)
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=name,
             count=1,
             array_item_class=UInt8Field,
@@ -162,14 +161,14 @@ class TestArray:
         obj.parse(data=data)
 
         # assert f1.value == 1
-        assert obj.value == [0]
+        assert obj.value_list == [0]
 
     def test_array_create_three(self) -> None:
         name = "parent"
         # f1_name = "count"
         # f1 = UInt8Field(name=f1_name)
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=name,
             count=3,
             array_item_class=UInt8Field,
@@ -180,14 +179,14 @@ class TestArray:
         obj.parse(data=data)
 
         # assert f1.value == 3
-        assert obj.value == [0, 1, 2]
+        assert obj.value_list == [0, 1, 2]
 
     def test_array_create_invalid(self) -> None:
         name = "parent"
         # f1_name = "count"
         # f1 = ParseList(name=f1_name)
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=name,
             count=3,
             array_item_class=UInt8Field,
@@ -202,7 +201,7 @@ class TestArray:
         name = "parent"
         count = 8
         name = "array"
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=name,
             count=count,
             array_item_class=BoolField,
@@ -231,9 +230,9 @@ class TestArray:
             bits_data=bits_data,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=tst.name,
             count=count,
             array_item_class=BoolField,
@@ -252,9 +251,10 @@ class TestArray:
         )
 
     def test_array_set_parent(self) -> None:
-        value: list[Any] = []
+        value: list[Any] = [0, 0]
         byte_data1 = bytes(value)
         bits_data1 = bitarray()
+        bits_data1.frombytes(byte_data1)
         count = 2
         tst = ParseData(
             name="test",
@@ -264,9 +264,9 @@ class TestArray:
             bits_data=bits_data1,
             parent=None,
             endian=DEFAULT_ENDIANNESS,
-            children=OrderedDict(),
+            children=dict(),
         )
-        obj = ParseValueArrayField(
+        obj = ArrayFieldGeneric(
             name=tst.name,
             count=count,
             array_item_class=UInt8Field,

@@ -34,7 +34,7 @@ class FrameTypeEnum(IntEnum):
     COMMAND = 4
 
 
-class FRAMETYPE(EnumField[FrameTypeEnum]):
+class FrameType(EnumField[FrameTypeEnum]):
     """Frame Type field."""
 
     def __init__(
@@ -57,7 +57,7 @@ class FRAMETYPE(EnumField[FrameTypeEnum]):
         )
 
 
-class SYNC(DictField):
+class Sync(DictField):
     """SYNC field parser."""
 
     def __init__(
@@ -77,13 +77,13 @@ class SYNC(DictField):
             default=[
                 UInt8Field(name="START", default=0xAA),
                 UIntField(name="VERSION", bit_count=4),
-                FRAMETYPE(default=frame_type),
+                FrameType(default=frame_type),
                 BoolField(name="BIT"),
             ],
         )
 
 
-class CHK(ChecksumField):
+class Checksum(ChecksumField):
     """Checksum class."""
 
     def __init__(
@@ -144,7 +144,7 @@ class CoordinateFormatEnum(IntEnum):
     RECTANGULAR = 1
 
 
-class FORMAT(DictField):
+class Format(DictField):
     """Number and coordinate format field."""
 
     def __init__(
@@ -264,7 +264,7 @@ class StringFixedLengthField(StringField):
         )
 
 
-class STN(StringFixedLengthField):
+class Station(StringFixedLengthField):
     """Station name field."""
 
     def __init__(
@@ -286,7 +286,7 @@ class STN(StringFixedLengthField):
         )
 
 
-class CHNAM(StringFixedLengthField):
+class ChannelName(StringFixedLengthField):
     """Channel name string."""
 
     def __init__(
@@ -310,7 +310,7 @@ class CHNAM(StringFixedLengthField):
         )
 
 
-class DIGNAMS(ArrayFieldGeneric[str]):
+class DigitalNames(ArrayFieldGeneric[str]):
     """Array of digital names."""
 
     def __init__(
@@ -356,7 +356,7 @@ class DIGNAMS(ArrayFieldGeneric[str]):
         return bit_data
 
 
-class PHASOR:
+class Phasor:
     """Base phasor class."""
 
     @property
@@ -441,7 +441,7 @@ class PHASOR:
         return self.get_summary()
 
 
-class PHASOR_POLAR_FLOAT(DictField, PHASOR):
+class PhasorPolarFloat(DictField, Phasor):
     """Phasor field with polar and floating point values."""
 
     def __init__(
@@ -520,7 +520,7 @@ class PHASOR_POLAR_FLOAT(DictField, PHASOR):
         return math.degrees(self.angle)
 
 
-class PHASOR_POLAR_INT(DictField, PHASOR):
+class PhasorPolarInt(DictField, Phasor):
     """Phasor field with polar and integer values."""
 
     def __init__(
@@ -554,7 +554,7 @@ class PHASOR_POLAR_INT(DictField, PHASOR):
         return self.summary
 
 
-class PHASOR_RECTANGULAR_FLOAT(DictField, PHASOR):
+class PhasorRectangularFloat(DictField, Phasor):
     """Phasor field with rectangular and floating-point values."""
 
     def __init__(
@@ -633,7 +633,7 @@ class PHASOR_RECTANGULAR_FLOAT(DictField, PHASOR):
         return math.degrees(self.angle)
 
 
-class PHASOR_RECTANGULAR_INT(DictField, PHASOR):
+class PhasorRectangularInt(DictField, Phasor):
     """Phasor field with rectangular and integer values."""
 
     def __init__(

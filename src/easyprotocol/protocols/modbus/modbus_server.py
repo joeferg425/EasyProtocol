@@ -271,6 +271,10 @@ if __name__ == "__main__":
             for rx, tx in server.run():
                 if rx is not None:
                     LOGGER.info("Message received")
+                if tx is not None:
+                    LOGGER.info("Reply sent")
+                else:
+                    LOGGER.info("Reply not sent")
         except KeyboardInterrupt:
             break
         except Exception as ex:

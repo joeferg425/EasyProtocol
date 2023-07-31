@@ -1,11 +1,12 @@
 """Synchrophasor packet classes."""
 from __future__ import annotations
 
-from typing import cast
+from typing import Union, cast
 
 from bitarray import bitarray
 
 from easyprotocol.base import DictField, dataT
+from easyprotocol.base.base import BaseField
 from easyprotocol.base.utils import input_to_bytes
 from easyprotocol.fields import (
     ArrayFieldGeneric,
@@ -17,9 +18,11 @@ from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 from easyprotocol.protocols.synchrophasor.fields import (
     Checksum,
     CoordinateFormatEnum,
-    DigitalNames,
+    FieldNameEnum,
+    FixedLengthStringArray,
     Format,
     FrameTypeEnum,
+    FrameTypeNameEnum,
     NumberFormatEnum,
     Phasor,
     PhasorPolarFloat,
@@ -31,45 +34,77 @@ from easyprotocol.protocols.synchrophasor.fields import (
 )
 
 
-class SynchrophasorHeader(DictField):
+class SynchrophasorFrame(DictField):
     """Packet header class for determining what type of frame it is."""
 
     def __init__(
         self,
+        name: str = FrameTypeNameEnum.Frame.value,
         data: dataT = None,
+        default: list[BaseField] | None = None,
     ) -> None:
         """Create packet header with frame type information.
 
         Args:
+            name: name of frame
             data: data to parse. Defaults to None.
+            default: default child fields
         """
+        if default is None:
+            default = []
         super().__init__(
-            name="Header",
+            name=name,
             default=[
                 Sync(),
-            ],
+            ]
+            + default,
             data=data,
         )
 
     @property
-    def frame_type(self) -> FrameTypeEnum:
+    def start(self) -> int:
+        """Get start value integer.
+
+        Returns:
+            start value
+        """
+        return cast("Sync", self[FieldNameEnum.Sync.value]).start
+
+    @property
+    def version(self) -> int:
+        """Get version integer.
+
+        Returns:
+            version value
+        """
+        return cast("Sync", self[FieldNameEnum.Sync.value]).version
+
+    @property
+    def frameType(self) -> FrameTypeEnum:
         """Get frame type enumeration.
 
         Returns:
             frame type enumeration
         """
-        sync = cast("SYNC", self["SYNC"])
-        frame_type = cast("FRAMETYPE", sync["FRAMETYPE"])
-        return frame_type.value
+        return cast("Sync", self[FieldNameEnum.Sync.value]).frameType
+
+    @property
+    def syncBit(self) -> bool:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
+        return cast("Sync", self[FieldNameEnum.Sync.value]).syncBit
 
 
-class SynchrophasorConfiguration(DictField):
+class SynchrophasorConfigurationFrame(SynchrophasorFrame):
     """PMU configuration object."""
 
     def __init__(
         self,
-        name: str = "PMU_CONFIGURATION",
-        default: None = None,
+        name: str = FieldNameEnum.PMUConfiguration.value,
+        default: list[BaseField] | None = None,
         data: dataT = None,
     ) -> None:
         """Create PMU configuration object.
@@ -79,54 +114,51 @@ class SynchrophasorConfiguration(DictField):
             default: default value. Defaults to None.
             data: data to parse. Defaults to None.
         """
-        self._ph_nmr = UInt16Field(name="PHNMR")
-        self._an_nmr = UInt16Field(name="ANNMR")
-        self._dg_nmr = UInt16Field(name="DGNMR")
+        self._ph_nmr = UInt16Field(name=FieldNameEnum.PhasorCount.value)
+        self._an_nmr = UInt16Field(name=FieldNameEnum.AnalogCount.value)
+        self._dg_nmr = UInt16Field(name=FieldNameEnum.DigitalCount.value)
         super().__init__(
             name=name,
             data=data,
             default=[
-                StringFixedLengthField(name="STN", count=16),
-                UInt16Field(name="IDCODE"),
+                StringFixedLengthField(name=FieldNameEnum.StationName.value, count=16),
+                UInt16Field(name=FieldNameEnum.IDCode.value),
                 Format(),
                 self._ph_nmr,
                 self._an_nmr,
                 self._dg_nmr,
-                ArrayFieldGeneric(
-                    name="PHNAMS",
-                    array_item_class=StringFixedLengthField,
-                    array_item_default="",
+                FixedLengthStringArray(
+                    name=FieldNameEnum.PhasorNames.value,
                     count=self._ph_nmr,
                 ),
-                ArrayFieldGeneric(
-                    name="ANNAMS",
-                    array_item_class=StringFixedLengthField,
-                    array_item_default="",
+                FixedLengthStringArray(
+                    name=FieldNameEnum.AnalogNames.value,
                     count=self._an_nmr,
                 ),
-                DigitalNames(
+                FixedLengthStringArray(
+                    name=FieldNameEnum.DigitalNames.value,
                     count=self._dg_nmr,
                 ),
                 ArrayFieldGeneric(
-                    name="PHUNIT",
+                    name=FieldNameEnum.PhasorUnit.value,
                     array_item_class=Float32Field,
                     array_item_default=0.0,
                     count=self._ph_nmr,
                 ),
                 ArrayFieldGeneric(
-                    name="ANUNIT",
+                    name=FieldNameEnum.AnalogUnit.value,
                     array_item_class=Float32Field,
                     array_item_default=0.0,
                     count=self._an_nmr,
                 ),
                 ArrayFieldGeneric(
-                    name="DIGUNIT",
+                    name=FieldNameEnum.DigitalUnit.value,
                     array_item_class=UInt32Field,
                     array_item_default=0.0,
                     count=self._dg_nmr,
                 ),
-                UInt16Field(name="FNOM"),
-                UInt16Field(name="CFGCNT"),
+                UInt16Field(name=FieldNameEnum.NominalFrequency.value),
+                UInt16Field(name=FieldNameEnum.ConfigurationCount.value),
             ],
         )
 
@@ -137,7 +169,7 @@ class SynchrophasorConfiguration(DictField):
         Returns:
             the station name
         """
-        return cast("StringFixedLengthField", self["STN"]).get_item()
+        return cast("StringFixedLengthField", self[FieldNameEnum.StationName.value]).value_as_string
 
     @property
     def phasor_names(self) -> list[str]:
@@ -146,8 +178,7 @@ class SynchrophasorConfiguration(DictField):
         Returns:
             the phasor names
         """
-        phnams = cast("ArrayFieldGeneric[str]", self["PHNAMS"])
-        return phnams.values
+        return cast("FixedLengthStringArray", self[FieldNameEnum.PhasorNames.value]).value_list
 
     @property
     def analog_names(self) -> list[str]:
@@ -156,8 +187,7 @@ class SynchrophasorConfiguration(DictField):
         Returns:
             the analog names
         """
-        annams = cast("ArrayFieldGeneric[str]", self["ANNAMS"])
-        return annams.values
+        return cast("FixedLengthStringArray", self[FieldNameEnum.AnalogNames.value]).value_list
 
     @property
     def digital_names(self) -> list[str]:
@@ -166,16 +196,15 @@ class SynchrophasorConfiguration(DictField):
         Returns:
             the digital names
         """
-        dignams = cast("DIGNAMS", self["DIGNAMS"])
-        return dignams.values
+        return cast("FixedLengthStringArray", self[FieldNameEnum.DigitalNames.value]).value_list
 
 
-class SynchrophasorConfiguration1(DictField):
+class SynchrophasorConfiguration1Frame(SynchrophasorConfigurationFrame):
     """Configuration Frame Type 1."""
 
     def __init__(
         self,
-        name: str = "CONFIGURATION1",
+        name: str = FrameTypeNameEnum.Configuration1.value,
         data: dataT = None,
     ) -> None:
         """Create Configuration Frame Type 1.
@@ -184,37 +213,39 @@ class SynchrophasorConfiguration1(DictField):
             name: name of field. Defaults to "CONFIGURATION1".
             data: data to be parsed. Defaults to None.
         """
-        self._num_pmu = UInt16Field(name="NUM_PMU")
+        self._num_pmu = UInt16Field(name=FieldNameEnum.PMUCount.value)
         super().__init__(
             name=name,
             default=[
                 Sync(),
-                UInt16Field(name="FRAMESIZE"),
-                UInt16Field(name="IDCODE"),
-                UInt32Field(name="SOC"),
-                UInt32Field(name="FRACSEC"),
-                UInt32Field(name="TIME_BASE"),
+                UInt16Field(name=FieldNameEnum.FrameSize.value),
+                UInt16Field(name=FieldNameEnum.IDCode.value),
+                UInt32Field(name=FieldNameEnum.SecondsOfCentury.value),
+                UInt32Field(name=FieldNameEnum.FractionalSeconds.value),
+                UInt32Field(name=FieldNameEnum.TimeBase.value),
                 self._num_pmu,
-                ArrayFieldGeneric[SynchrophasorConfiguration](
-                    name="PMU_CONFIGURATIONS",
-                    array_item_class=type(SynchrophasorConfiguration),
-                    array_item_default=SynchrophasorConfiguration(),
+                ArrayFieldGeneric[SynchrophasorConfigurationFrame](
+                    name=FieldNameEnum.PMUConfigurations.value,
+                    array_item_class=type(SynchrophasorConfigurationFrame),
+                    array_item_default=SynchrophasorConfigurationFrame(),
                     count=self._num_pmu,
                 ),
-                UInt16Field(name="DATA_RATE"),
+                UInt16Field(name=FieldNameEnum.DataRate.value),
                 Checksum(),
             ],
             data=data,
         )
 
     @property
-    def pmu_configs(self) -> list[SynchrophasorConfiguration]:
+    def pmu_configs(self) -> list[SynchrophasorConfigurationFrame]:
         """Get pmu configuration list.
 
         Returns:
             pmu configuration list
         """
-        return cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
+        return cast(
+            "ArrayFieldGeneric[SynchrophasorConfigurationFrame]", self[FieldNameEnum.PMUConfigurations.value]
+        ).value_list
 
     @property
     def formats(self) -> list[Format]:
@@ -223,10 +254,12 @@ class SynchrophasorConfiguration1(DictField):
         Returns:
             pmu formats
         """
-        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
+        pmu_configs = cast(
+            "ArrayFieldGeneric[SynchrophasorConfigurationFrame]", self[FieldNameEnum.PMUConfiguration.value]
+        ).value_list
         formats: list[Format] = []
         for pmu_config in pmu_configs:
-            fmt = cast("FORMAT", pmu_config["FORMAT"])
+            fmt = cast("Format", pmu_config[FieldNameEnum.Format.value])
             formats.append(fmt)
         return formats
 
@@ -237,10 +270,12 @@ class SynchrophasorConfiguration1(DictField):
         Returns:
             phasor counts
         """
-        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
+        pmu_configs = cast(
+            "ArrayFieldGeneric[SynchrophasorConfigurationFrame]", self[FieldNameEnum.PMUConfigurations.value]
+        ).value_list
         counts: list[int] = []
         for pmu_config in pmu_configs:
-            counts.append(cast("UInt16Field", pmu_config["PHNMR"]).value)
+            counts.append(cast("UInt16Field", pmu_config[FieldNameEnum.PhasorCount.value]).value)
         return counts
 
     @property
@@ -250,10 +285,12 @@ class SynchrophasorConfiguration1(DictField):
         Returns:
             analog counts
         """
-        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
+        pmu_configs = cast(
+            "ArrayFieldGeneric[SynchrophasorConfigurationFrame]", self[FieldNameEnum.PMUConfiguration.value]
+        ).value_list
         counts: list[int] = []
         for pmu_config in pmu_configs:
-            counts.append(cast("UInt16Field", pmu_config["ANNMR"]).value)
+            counts.append(cast("UInt16Field", pmu_config[FieldNameEnum.AnalogCount.value]).value)
         return counts
 
     @property
@@ -263,19 +300,21 @@ class SynchrophasorConfiguration1(DictField):
         Returns:
             digital counts
         """
-        pmu_configs = cast("list[PMU_CONFIGURATION]", self["PMU_CONFIGURATIONS"])
+        pmu_configs = cast(
+            "ArrayFieldGeneric[SynchrophasorConfigurationFrame]", self[FieldNameEnum.PMUConfiguration.value]
+        ).value_list
         counts: list[int] = []
         for pmu_config in pmu_configs:
-            counts.append(cast("UInt16Field", pmu_config["DGNMR"]).value)
+            counts.append(cast("UInt16Field", pmu_config[FieldNameEnum.DigitalCount.value]).value)
         return counts
 
 
-class SynchrophasorConfiguration2(SynchrophasorConfiguration1):
+class SynchrophasorConfiguration2Frame(SynchrophasorConfiguration1Frame):
     """Configuration Frame Type 2."""
 
     def __init__(
         self,
-        name: str = "CONFIGURATION2",
+        name: str = FrameTypeNameEnum.Configuration2.value,
         data: dataT = None,
     ) -> None:
         """Create Configuration Frame Type 2.
@@ -290,7 +329,7 @@ class SynchrophasorConfiguration2(SynchrophasorConfiguration1):
         )
 
 
-class SynchrophasorCommand(DictField):
+class SynchrophasorCommandFrame(SynchrophasorFrame):
     """Command frame."""
 
     def __init__(
@@ -303,21 +342,29 @@ class SynchrophasorCommand(DictField):
             data: data to parse. Defaults to None.
         """
         super().__init__(
-            name="COMMAND",
+            name=FrameTypeNameEnum.Command.value,
             default=[
-                Sync(),
-                UInt16Field(name="FRAMESIZE"),
-                UInt16Field(name="IDCODE"),
-                UInt32Field(name="SOC"),
-                UInt32Field(name="FRACSEC"),
-                UInt16Field(name="CMD"),
+                UInt16Field(name=FieldNameEnum.FrameSize.value),
+                UInt16Field(name=FieldNameEnum.IDCode.value),
+                UInt32Field(name=FieldNameEnum.SecondsOfCentury.value),
+                UInt32Field(name=FieldNameEnum.FractionalSeconds.value),
+                UInt16Field(name=FieldNameEnum.Command.value),
                 Checksum(),
             ],
             data=data,
         )
 
+    @property
+    def frameSize(self) -> int:
+        """Get frame type enumeration.
 
-class SynchrophasorPMUData(DictField):
+        Returns:
+            frame type enumeration
+        """
+        return cast("UInt16Field", self[FieldNameEnum.FrameSize.value]).value
+
+
+class PMUData(DictField):
     """Data field of a Data frame."""
 
     def __init__(
@@ -326,7 +373,7 @@ class SynchrophasorPMUData(DictField):
         analog_count: int,
         digital_count: int,
         pmu_format: Format,
-        name: str = "PMU_DATA",
+        name: str = FieldNameEnum.PMUData.value,
         default: None = None,
         data: dataT = None,
     ) -> None:
@@ -363,23 +410,23 @@ class SynchrophasorPMUData(DictField):
         super().__init__(
             name=name,
             default=[
-                UInt16Field(name="STAT"),
+                UInt16Field(name=FieldNameEnum.StatusFlags.value),
                 ArrayFieldGeneric(
-                    name="PHASORS",
+                    name=FieldNameEnum.PhasorList.value,
                     array_item_class=self._phasor_class,
                     array_item_default=0,
                     count=phasor_count,
                 ),
-                self._freq_class(name="FREQ"),
-                self._freq_class(name="DFREQ"),
+                self._freq_class(name=FieldNameEnum.Frequency.value),
+                self._freq_class(name=FieldNameEnum.FrequencyDelta.value),
                 ArrayFieldGeneric(
-                    name="ANALOGS",
+                    name=FieldNameEnum.AnalogList.value,
                     array_item_class=self._analogs_class,
                     array_item_default=0,
                     count=analog_count,
                 ),
                 ArrayFieldGeneric(
-                    name="DIGITALS",
+                    name=FieldNameEnum.DigitalList.value,
                     array_item_class=UInt16Field,
                     array_item_default=0,
                     count=digital_count,
@@ -389,7 +436,7 @@ class SynchrophasorPMUData(DictField):
         )
 
     @property
-    def phasors(
+    def phasor_list(
         self,
     ) -> list[Phasor]:
         """Get phasor fields.
@@ -397,11 +444,35 @@ class SynchrophasorPMUData(DictField):
         Returns:
             phasor fields
         """
-        array = cast("ArrayFieldGeneric[PHASOR]", self["PHASORS"])
-        return cast("list[PHASOR]", array.value)
+        return cast("ArrayFieldGeneric[Phasor]", self[FieldNameEnum.PhasorList.value]).value_list
+
+    @property
+    def analog_list(
+        self,
+    ) -> list[Float32Field] | list[UInt16Field]:
+        """Get phasor fields.
+
+        Returns:
+            phasor fields
+        """
+        return cast(
+            "Union[ArrayFieldGeneric[Float32Field], ArrayFieldGeneric[UInt16Field]]",
+            self[FieldNameEnum.AnalogList.value],
+        ).value_list
+
+    @property
+    def digital_list(
+        self,
+    ) -> list[UInt16Field]:
+        """Get phasor fields.
+
+        Returns:
+            phasor fields
+        """
+        return cast("ArrayFieldGeneric[UInt16Field]", self[FieldNameEnum.AnalogList.value]).value_list
 
 
-class SynchrophasorPMUDataArray(ArrayFieldGeneric[SynchrophasorPMUData]):
+class PMUDataArray(ArrayFieldGeneric[PMUData]):
     """PMU data array field."""
 
     def __init__(
@@ -410,7 +481,7 @@ class SynchrophasorPMUDataArray(ArrayFieldGeneric[SynchrophasorPMUData]):
         phasor_counts: list[int],
         analog_counts: list[int],
         digital_counts: list[int],
-        config: SynchrophasorConfiguration1 | SynchrophasorConfiguration2,
+        config: SynchrophasorConfiguration1Frame | SynchrophasorConfiguration2Frame,
         data: dataT | None = None,
     ) -> None:
         """Create PMU data array field.
@@ -430,10 +501,8 @@ class SynchrophasorPMUDataArray(ArrayFieldGeneric[SynchrophasorPMUData]):
         super().__init__(
             name,
             count=len(self._config.pmu_configs),
-            array_item_class=type(SynchrophasorPMUData),
-            array_item_default=SynchrophasorPMUData(
-                phasor_count=0, analog_count=0, digital_count=0, pmu_format=Format()
-            ),
+            array_item_class=type(PMUData),
+            array_item_default=PMUData(phasor_count=0, analog_count=0, digital_count=0, pmu_format=Format()),
             data=data,
         )
 
@@ -452,7 +521,7 @@ class SynchrophasorPMUDataArray(ArrayFieldGeneric[SynchrophasorPMUData]):
         else:
             count = self._count
         for i in range(count):
-            f = SynchrophasorPMUData(
+            f = PMUData(
                 name=f"#{i}",
                 default=None,
                 phasor_count=self._phasor_counts[i],
@@ -465,12 +534,12 @@ class SynchrophasorPMUDataArray(ArrayFieldGeneric[SynchrophasorPMUData]):
         return bit_data
 
 
-class SynchrophasorData(DictField):
+class SynchrophasorDataFrame(DictField):
     """Data parser."""
 
     def __init__(
         self,
-        config: SynchrophasorConfiguration1 | SynchrophasorConfiguration2,
+        config: SynchrophasorConfiguration1Frame | SynchrophasorConfiguration2Frame,
         phasor_counts: list[int],
         analog_counts: list[int],
         digital_counts: list[int],
@@ -487,15 +556,15 @@ class SynchrophasorData(DictField):
         """
         self._config = config
         super().__init__(
-            name="DATA",
+            name=FrameTypeNameEnum.Data.value,
             default=[
                 Sync(),
-                UInt16Field(name="FRAMESIZE"),
-                UInt16Field(name="IDCODE"),
-                UInt32Field(name="SOC"),
-                UInt32Field(name="FRACSEC"),
-                SynchrophasorPMUDataArray(
-                    name="PMU_DATAS",
+                UInt16Field(name=FieldNameEnum.FrameSize.value),
+                UInt16Field(name=FieldNameEnum.IDCode.value),
+                UInt32Field(name=FieldNameEnum.SecondsOfCentury.value),
+                UInt32Field(name=FieldNameEnum.FractionalSeconds.value),
+                PMUDataArray(
+                    name=FieldNameEnum.PMUData.value,
                     config=self._config,
                     analog_counts=analog_counts,
                     digital_counts=digital_counts,
@@ -507,14 +576,13 @@ class SynchrophasorData(DictField):
         )
 
     @property
-    def pmus(self) -> list[SynchrophasorPMUData]:
-        """Get pmus.
+    def pmu_list(self) -> list[PMUData]:
+        """Get pmu list.
 
         Returns:
-            pmus
+            pmu list
         """
-        pmu_array = cast("PMUDataArrayField", self["PMU_DATAS"])
-        return cast("list[PMU_DATA]", pmu_array.value)
+        return cast("PMUDataArray", self[FieldNameEnum.PMUData.value]).value_list
 
     @property
     def summary(self) -> dict[str, dict[str, Phasor]]:
@@ -526,10 +594,10 @@ class SynchrophasorData(DictField):
         summary: dict[str, dict[str, Phasor]] = {}
         for pmu_idx, pmu_config in enumerate(self._config.pmu_configs):
             pmu_name = pmu_config.station_name
-            pmu = self.pmus[pmu_idx]
+            pmu = self.pmu_list[pmu_idx]
             summary[pmu_name] = {}
             for phasor_index, phasor_name in enumerate(pmu_config.phasor_names):
-                summary[pmu_name][phasor_name] = pmu.phasors[phasor_index]
+                summary[pmu_name][phasor_name] = pmu.phasor_list[phasor_index]
         return summary
 
     def get_summary_str(
@@ -545,10 +613,12 @@ class SynchrophasorData(DictField):
             summary string
         """
         s: list[str] = []
-        smry = self.summary
-        for pmu_key in smry:
-            for phasor_key in smry[pmu_key]:
-                s.append(f"{pmu_key}.{phasor_key}:{smry[pmu_key][phasor_key].get_summary(coords=coords,names=names)}")
+        summary = self.summary
+        for pmu_key in summary:
+            for phasor_key in summary[pmu_key]:
+                s.append(
+                    f"{pmu_key}.{phasor_key}:{summary[pmu_key][phasor_key].get_summary(coords=coords,names=names)}"
+                )
         return ", ".join(s)
 
     @property

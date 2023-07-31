@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import struct
-from enum import Enum
 from typing import Any
 
 import pytest

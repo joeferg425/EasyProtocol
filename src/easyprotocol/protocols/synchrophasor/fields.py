@@ -2,7 +2,8 @@
 from __future__ import annotations
 
 import math
-from enum import IntEnum
+from datetime import datetime
+from enum import Enum, IntEnum
 from typing import cast
 
 import crc
@@ -10,9 +11,9 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 
 from easyprotocol.base import dataT, input_to_bytes
+from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.dict import DictField
 from easyprotocol.fields import (
-    ArrayFieldGeneric,
     BoolField,
     ChecksumField,
     Float32Field,
@@ -21,6 +22,7 @@ from easyprotocol.fields import (
     UInt16Field,
     UIntField,
 )
+from easyprotocol.fields.array import ArrayFieldGeneric
 from easyprotocol.fields.enum import EnumField
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -28,10 +30,68 @@ from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 class FrameTypeEnum(IntEnum):
     """Frame type enumeration."""
 
-    DATA = 0
-    CONFIGURATION1 = 2
-    CONFIGURATION2 = 3
-    COMMAND = 4
+    Frame = -1
+    Data = 0
+    Configuration1 = 2
+    Configuration2 = 3
+    Command = 4
+
+
+class FrameTypeNameEnum(str, Enum):
+    """Frame type enumeration."""
+
+    Frame = FrameTypeEnum.Frame.name
+    Data = FrameTypeEnum.Data.name
+    Configuration1 = FrameTypeEnum.Configuration1.name
+    Configuration2 = FrameTypeEnum.Configuration2.name
+    Command = FrameTypeEnum.Command.name
+
+
+class FieldNameEnum(str, Enum):
+    """Enumerated field names."""
+
+    Sync = "Sync"
+    Start = "Start"
+    Version = "Version"
+    FrameType = "FrameType"
+    SyncBit = "SyncBit"
+    PMUConfiguration = "PMUConfiguration"
+    PMUConfigurations = "PMUConfigurations"
+    PMUCount = "PMUCount"
+    PhasorCount = "PhasorCount"
+    AnalogCount = "AnalogCount"
+    DigitalCount = "DigitalCount"
+    StationName = "StationName"
+    IDCode = "IDCode"
+    Format = "Format"
+    FormatExtra1 = "FormatExtra1"
+    FormatExtra2 = "FormatExtra2"
+    CoordinateFormat = "CoordinateFormat"
+    PhasorFormat = "PhasorFormat"
+    AnalogFormat = "AnalogFormat"
+    FrequencyFormat = "FrequencyFormat"
+    PhasorNames = "PhasorNames"
+    AnalogNames = "AnalogNames"
+    DigitalNames = "DigitalNames"
+    PhasorUnit = "PhasorUnit"
+    AnalogUnit = "AnalogUnit"
+    DigitalUnit = "DigitalUnit"
+    NominalFrequency = "NominalFrequency"
+    ConfigurationCount = "ConfigurationCount"
+    FrameSize = "FrameSize"
+    SecondsOfCentury = "SecondsOfCentury"
+    FractionalSeconds = "FractionalSeconds"
+    TimeBase = "TimeBase"
+    DataRate = "DataRate"
+    Checksum = "Checksum"
+    Command = "Command"
+    PMUData = "PMUData"
+    StatusFlags = "StatusFlags"
+    PhasorList = "PhasorList"
+    AnalogList = "AnalogList"
+    DigitalList = "DigitalList"
+    Frequency = "Frequency"
+    FrequencyDelta = "FrequencyDelta"
 
 
 class FrameType(EnumField[FrameTypeEnum]):
@@ -49,7 +109,7 @@ class FrameType(EnumField[FrameTypeEnum]):
             data: data to be parsed. Defaults to None.
         """
         super().__init__(
-            name="FRAMETYPE",
+            name=FieldNameEnum.FrameType.value,
             enum_type=FrameTypeEnum,
             default=default,
             data=data,
@@ -62,7 +122,7 @@ class Sync(DictField):
 
     def __init__(
         self,
-        frame_type: FrameTypeEnum = FrameTypeEnum.DATA,
+        frame_type: FrameTypeEnum = FrameTypeEnum.Data,
         data: dataT = None,
     ) -> None:
         """Parse the members of the sync field.
@@ -72,18 +132,57 @@ class Sync(DictField):
             data: data to parse. Defaults to None.
         """
         super().__init__(
-            name="SYNC",
+            name=FieldNameEnum.Sync.value,
             data=data,
             default=[
-                UInt8Field(name="START", default=0xAA),
-                UIntField(name="VERSION", bit_count=4),
+                UInt8Field(name=FieldNameEnum.Start.value, default=0xAA),
+                UIntField(name=FieldNameEnum.Version.value, bit_count=4),
                 FrameType(default=frame_type),
-                BoolField(name="BIT"),
+                BoolField(name=FieldNameEnum.SyncBit.value),
             ],
         )
 
+    @property
+    def start(self) -> int:
+        """Get start value integer.
 
-class Checksum(ChecksumField):
+        Returns:
+            start value
+        """
+        return cast("UInt8Field", self[FieldNameEnum.Start.value]).value
+
+    @property
+    def version(self) -> int:
+        """Get version integer.
+
+        Returns:
+            version value
+        """
+        return cast("UIntField", self[FieldNameEnum.Version.value]).value
+
+    @property
+    def frameType(self) -> FrameTypeEnum:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
+        return cast("FrameType", self[FieldNameEnum.FrameType.value]).value
+
+    @property
+    def syncBit(self) -> bool:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
+        return cast("BoolField", self[FieldNameEnum.SyncBit.value]).value
+
+
+class Checksum(
+    ChecksumField,
+    BaseField,
+):
     """Checksum class."""
 
     def __init__(
@@ -98,7 +197,7 @@ class Checksum(ChecksumField):
             data: data to parse. Defaults to None.
         """
         super().__init__(
-            name="CHK",
+            name=FieldNameEnum.Checksum.value,
             default=default,
             data=data,
             bit_count=16,
@@ -157,38 +256,38 @@ class Format(DictField):
             data: data to parse. Defaults to None.
         """
         super().__init__(
-            name="FORMAT",
+            name=FieldNameEnum.Format.value,
             default=[
                 UIntField(
-                    name="EXTRA1",
+                    name=FieldNameEnum.FormatExtra1.value,
                     bit_count=8,
                 ),
                 EnumField(
-                    name="COORDINATEFORMAT",
+                    name=FieldNameEnum.CoordinateFormat.value,
                     bit_count=1,
                     enum_type=CoordinateFormatEnum,
                     default=CoordinateFormatEnum.POLAR,
                 ),
                 EnumField(
-                    name="PHASORFORMAT",
+                    name=FieldNameEnum.PhasorFormat.value,
                     bit_count=1,
                     enum_type=NumberFormatEnum,
                     default=NumberFormatEnum.FLOAT,
                 ),
                 EnumField(
-                    name="ANALOGFORMAT",
+                    name=FieldNameEnum.AnalogFormat.value,
                     bit_count=1,
                     enum_type=NumberFormatEnum,
                     default=NumberFormatEnum.FLOAT,
                 ),
                 EnumField(
-                    name="FREQFORMAT",
+                    name=FieldNameEnum.FrequencyFormat.value,
                     bit_count=1,
                     enum_type=NumberFormatEnum,
                     default=NumberFormatEnum.FLOAT,
                 ),
                 UIntField(
-                    name="EXTRA2",
+                    name=FieldNameEnum.FormatExtra2.value,
                     bit_count=4,
                 ),
             ],
@@ -202,7 +301,7 @@ class Format(DictField):
         Returns:
             frequency format
         """
-        return cast(NumberFormatEnum, self["FREQFORMAT"].value)
+        return cast(NumberFormatEnum, self[FieldNameEnum.FrequencyFormat.value].value)
 
     @property
     def analogs(self) -> NumberFormatEnum:
@@ -211,7 +310,7 @@ class Format(DictField):
         Returns:
             analog format
         """
-        return cast(NumberFormatEnum, self["ANALOGFORMAT"].value)
+        return cast(NumberFormatEnum, self[FieldNameEnum.AnalogFormat.value].value)
 
     @property
     def phasors(self) -> NumberFormatEnum:
@@ -220,7 +319,7 @@ class Format(DictField):
         Returns:
             phasor format
         """
-        return cast(NumberFormatEnum, self["PHASORFORMAT"].value)
+        return cast(NumberFormatEnum, self[FieldNameEnum.PhasorFormat.value].value)
 
     @property
     def coordinates(self) -> CoordinateFormatEnum:
@@ -229,7 +328,7 @@ class Format(DictField):
         Returns:
             coordinate format
         """
-        return cast(CoordinateFormatEnum, self["COORDINATEFORMAT"].value)
+        return cast(CoordinateFormatEnum, self[FieldNameEnum.CoordinateFormat.value].value)
 
 
 class StringFixedLengthField(StringField):
@@ -310,22 +409,30 @@ class ChannelName(StringFixedLengthField):
         )
 
 
-class DigitalNames(ArrayFieldGeneric[str]):
+class FixedLengthStringArray(
+    ArrayFieldGeneric[str],
+    BaseField,
+):
     """Array of digital names."""
 
     def __init__(
         self,
+        name: str,
         count: UIntFieldGeneric[int],
+        fixed_string_length: int = 16,
         data: dataT | None = None,
     ) -> None:
         """Create array of digital names.
 
         Args:
+            name: name of the field
             count: count of digital words (name count is word count * 16)
             data: data to parse. Defaults to None.
+            fixed_string_length: the length of each parsed string
         """
+        self._fixed_string_length = fixed_string_length
         super().__init__(
-            name="DIGNAMS",
+            name=name,
             count=count,
             array_item_class=StringFixedLengthField,
             array_item_default="",
@@ -343,9 +450,9 @@ class DigitalNames(ArrayFieldGeneric[str]):
         """
         bit_data = input_to_bytes(data=data)
         if isinstance(self._count, int):
-            count = 16 * self._count
+            count = self._fixed_string_length * self._count
         else:
-            count = 16 * self._count.value
+            count = self._fixed_string_length * self._count.value
         for i in range(count):
             f = self._array_item_class(
                 name=f"#{i}",

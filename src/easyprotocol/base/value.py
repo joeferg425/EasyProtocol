@@ -35,11 +35,11 @@ class ValueFieldGeneric(
             endian: the byte endian-ness of this object
         """
         super().__init__(
-            name,
-            data,
-            bit_count,
-            string_format,
-            endian,
+            name=name,
+            data=data,
+            bit_count=bit_count,
+            string_format=string_format,
+            endian=endian,
             default=default,
         )
 

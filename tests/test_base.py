@@ -1,16 +1,10 @@
 # flake8:noqa
 from __future__ import annotations
 
-import struct
-from typing import Any
-
 import pytest
 from bitarray import bitarray
-from parse_data import ParseData
 
-from easyprotocol.base.base import DEFAULT_ENDIANNESS, UNDEFINED, BaseField
-from easyprotocol.fields.array import ArrayFieldGeneric
-from easyprotocol.fields.unsigned_int import BoolField, UInt8Field
+from easyprotocol.base.base import UNDEFINED, BaseField
 
 
 class TestBase:

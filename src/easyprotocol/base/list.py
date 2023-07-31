@@ -23,7 +23,7 @@ class ListFieldGeneric(
     MutableSequence[BaseField],
     Generic[T],
 ):
-    """The base parsing object for handling parsing in a convenient package."""
+    """The base parsing object for lists."""
 
     def __init__(
         self,
@@ -34,7 +34,7 @@ class ListFieldGeneric(
         string_format: str = "{}",
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
-        """Create the base parsing object for handling parsing in a convenient package.
+        """Create the base parsing object for lists.
 
         Args:
             name: name of parsed object
@@ -184,7 +184,7 @@ class ListFieldGeneric(
         Args:
             index: index of the sub-field to retrieve
         """
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __getitem__(
@@ -196,7 +196,7 @@ class ListFieldGeneric(
         Args:
             index: indices of the sub-fields to retrieve
         """
-        ...
+        ...  # pragma: no cover
 
     def __getitem__(
         self,
@@ -246,7 +246,7 @@ class ListFieldGeneric(
             index: index to replace
             value: new field value
         """
-        ...
+        ...  # pragma: no cover
 
     @overload
     def __setitem__(
@@ -260,7 +260,7 @@ class ListFieldGeneric(
             index: indices to replace
             value: new field values
         """
-        ...
+        ...  # pragma: no cover
 
     def __setitem__(
         self,
@@ -349,6 +349,8 @@ class ListField(
     ListFieldGeneric[Any],
     BaseField,
 ):
+    """The slightly less generic base parsing object for lists."""
+
     def __init__(
         self,
         name: str,
@@ -358,6 +360,16 @@ class ListField(
         string_format: str = "{}",
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Create the base parsing object for lists.
+
+        Args:
+            name: name of parsed object
+            default: the default value for this class
+            data: bytes to be parsed
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             default=default,

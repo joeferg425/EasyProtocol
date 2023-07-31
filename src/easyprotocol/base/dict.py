@@ -315,12 +315,7 @@ class DictField(
     DictFieldGeneric[Any],
     BaseField,
 ):
-    """_summary_
-
-    Args:
-        DictFieldGeneric: _description_
-        BaseField: _description_
-    """
+    """Less Generic dictionary field."""
 
     def __init__(
         self,
@@ -331,6 +326,16 @@ class DictField(
         string_format: str | None = None,
         endian: endianT = DEFAULT_ENDIANNESS,
     ) -> None:
+        """Less Generic dictionary field.
+
+        Args:
+            name: name of field
+            default: default fields
+            data: data to parse
+            bit_count: number of bits assigned to this field
+            string_format: python format string (e.g. "{}")
+            endian: the byte endian-ness of this object
+        """
         super().__init__(
             name=name,
             default=default,

@@ -1,18 +1,10 @@
 # flake8:noqa
 from __future__ import annotations
 
-import struct
-from typing import Any
-
-import pytest
-from bitarray import bitarray
-from parse_data import ParseData
-
-from easyprotocol.base.base import DEFAULT_ENDIANNESS
-from easyprotocol.fields.array import ArrayFieldGeneric
-from easyprotocol.fields.unsigned_int import BoolField, UInt8Field
 from easyprotocol.protocols.modbus import (
+    ModbusFrame,
     ModbusFunctionEnum,
+    ModbusTCPFrame,
     ModbusTCPReadCoilsRequest,
     ModbusTCPReadCoilsResponse,
     ModbusTCPReadDiscreteInputsRequest,
@@ -37,6 +29,8 @@ class TestModbusTCP:
         register = 0
         coilCount = 1
         frame = ModbusTCPReadCoilsRequest(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -55,6 +49,8 @@ class TestModbusTCP:
         coilValues = [False, False, False, False, False, False, False, False]
         byteCount = 1
         frame = ModbusTCPReadCoilsResponse(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -73,6 +69,8 @@ class TestModbusTCP:
         register = 100
         writeValue = 0
         frame = ModbusTCPWriteHoldingRegisterRequest(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -91,6 +89,8 @@ class TestModbusTCP:
         register = 100
         writeValue = 0
         frame = ModbusTCPWriteHoldingRegisterResponse(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -109,6 +109,8 @@ class TestModbusTCP:
         register = 100
         wordCount = 100
         frame = ModbusTCPReadHoldingRegisterRequest(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -142,6 +144,8 @@ class TestModbusTCP:
         byteCount = 200
         register_values = [0] * 100
         frame = ModbusTCPReadHoldingRegisterResponse(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -160,6 +164,8 @@ class TestModbusTCP:
         register = 200
         wordCount = 100
         frame = ModbusTCPReadInputRegisterRequest(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -193,6 +199,8 @@ class TestModbusTCP:
         byteCount = 200
         register_values = [0] * 100
         frame = ModbusTCPReadInputRegisterResponse(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length
@@ -212,6 +220,8 @@ class TestModbusTCP:
         register = 0
         coilCount = 8
         frame = ModbusTCPReadDiscreteInputsRequest(data=data)
+        assert isinstance(frame, ModbusFrame)
+        assert isinstance(frame, ModbusTCPFrame)
         assert frame.transactionID.value == transactionID
         assert frame.protocolID.value == protocolID
         assert frame.length.value == length

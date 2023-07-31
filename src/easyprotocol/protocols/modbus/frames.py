@@ -26,7 +26,32 @@ from easyprotocol.protocols.modbus.fields import (
 )
 
 
-class ModbusRTUFrame(DictField):
+class ModbusFrame(DictField):
+    """Modbus header fields plus the checksum."""
+
+    def __init__(
+        self,
+        name: str,
+        data: dataT | None = None,
+        default: Sequence[BaseField] | None = None,
+    ) -> None:
+        """Modbus header fields plus the checksum.
+
+        Args:
+            name: Defaults to "modbusHeader".
+            data: data to parse.
+            default: default child fields.
+        """
+        super().__init__(
+            name=name,
+            data=data,
+            default=default,
+        )
+
+
+class ModbusRTUFrame(
+    ModbusFrame,
+):
     """Modbus header fields plus the checksum."""
 
     def __init__(
@@ -120,7 +145,9 @@ class ModbusRTUFrame(DictField):
             crc.value = value
 
 
-class ModbusTCPFrame(DictField):
+class ModbusTCPFrame(
+    ModbusFrame,
+):
     """Modbus header fields plus the checksum."""
 
     def __init__(

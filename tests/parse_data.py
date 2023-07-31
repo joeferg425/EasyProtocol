@@ -33,6 +33,7 @@ class ParseData:
     byte_data: bytes | bytearray
     parent: BaseField | None
     children: dict[str, BaseField]
+    date_string_format: str = ""
 
 
 def get_uint_value(value: int, bit_count: int, endian: Literal["little", "big"]) -> int:

@@ -4,6 +4,7 @@ from easyprotocol.base.utils import hex as hex  # noqa
 from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
 from easyprotocol.fields.array import ArrayFieldGeneric as ArrayFieldGeneric  # noqa
 from easyprotocol.fields.checksum import ChecksumField as ChecksumField  # noqa
+from easyprotocol.fields.date_time import DateTimeField as DateTimeField  # noqa
 from easyprotocol.fields.enum import Enum8Field as Enum8Field  # noqa
 from easyprotocol.fields.enum import Enum16Field as Enum16Field  # noqa
 from easyprotocol.fields.enum import Enum24Field as Enum24Field  # noqa
@@ -27,6 +28,7 @@ from easyprotocol.fields.float import Float32IEEField as Float32IEEField  # noqa
 from easyprotocol.fields.float import FloatFieldGeneric as FloatFieldGeneric  # noqa
 from easyprotocol.fields.signed_int import Int8Field as Int8Field  # noqa
 from easyprotocol.fields.signed_int import Int16Field as Int16Field  # noqa
+from easyprotocol.fields.signed_int import Int24Field as Int24Field  # noqa
 from easyprotocol.fields.signed_int import Int32Field as Int32Field  # noqa
 from easyprotocol.fields.signed_int import Int64Field as Int64Field  # noqa
 from easyprotocol.fields.signed_int import IntFieldGeneric as IntFieldGeneric  # noqa
@@ -39,6 +41,7 @@ from easyprotocol.fields.string import UInt8CharField as UInt8CharField  # noqa
 from easyprotocol.fields.unsigned_int import BoolField as BoolField  # noqa
 from easyprotocol.fields.unsigned_int import UInt8Field as UInt8Field  # noqa
 from easyprotocol.fields.unsigned_int import UInt16Field as UInt16Field  # noqa
+from easyprotocol.fields.unsigned_int import UInt24Field as UInt24Field  # noqa
 from easyprotocol.fields.unsigned_int import UInt32Field as UInt32Field  # noqa
 from easyprotocol.fields.unsigned_int import UInt64Field as UInt64Field  # noqa
 from easyprotocol.fields.unsigned_int import UIntField as UIntField  # noqa

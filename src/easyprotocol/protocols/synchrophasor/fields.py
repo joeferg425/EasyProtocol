@@ -2,20 +2,19 @@
 from __future__ import annotations
 
 import math
-from datetime import datetime
-from enum import Enum, IntEnum
+from enum import Enum, IntEnum, IntFlag
 from typing import cast
 
-import crc
 from bitarray import bitarray
 from bitarray.util import int2ba
+from crc import Configuration
 
-from easyprotocol.base import dataT, input_to_bytes
-from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
+from easyprotocol.base import DEFAULT_ENDIANNESS, BaseField, dataT, input_to_bytes
 from easyprotocol.base.dict import DictField
 from easyprotocol.fields import (
     BoolField,
     ChecksumField,
+    FlagsField,
     Float32Field,
     StringField,
     UInt8Field,
@@ -92,6 +91,9 @@ class FieldNameEnum(str, Enum):
     DigitalList = "DigitalList"
     Frequency = "Frequency"
     FrequencyDelta = "FrequencyDelta"
+    TimeQuality = "TimeQuality"
+    TimeQualityFlags = "TimeQualityFlags"
+    TimeQualityCode = "TimeQualityCode"
 
 
 class FrameType(EnumField[FrameTypeEnum]):
@@ -122,23 +124,49 @@ class Sync(DictField):
 
     def __init__(
         self,
-        frame_type: FrameTypeEnum = FrameTypeEnum.Data,
+        start: int | None = None,
+        version: int | None = None,
+        frame_type: FrameTypeEnum | None = None,
+        sync_bit: bool | None = None,
         data: dataT = None,
     ) -> None:
         """Parse the members of the sync field.
 
         Args:
+            start: start bits. Defaults to AA.
+            version: defaults to 1.
             frame_type: frame type enum. Defaults to FrameTypeEnum.DATA.
+            sync_bit: defaults to false
             data: data to parse. Defaults to None.
         """
+        if start is None:
+            start = 0xAA
+        if version is None:
+            version = 1
+        if frame_type is None:
+            frame_type = FrameTypeEnum.Data
+        if sync_bit is None:
+            sync_bit = False
         super().__init__(
             name=FieldNameEnum.Sync.value,
             data=data,
             default=[
-                UInt8Field(name=FieldNameEnum.Start.value, default=0xAA),
-                UIntField(name=FieldNameEnum.Version.value, bit_count=4),
-                FrameType(default=frame_type),
-                BoolField(name=FieldNameEnum.SyncBit.value),
+                UInt8Field(
+                    name=FieldNameEnum.Start.value,
+                    default=start,
+                ),
+                UIntField(
+                    name=FieldNameEnum.Version.value,
+                    default=version,
+                    bit_count=4,
+                ),
+                FrameType(
+                    default=frame_type,
+                ),
+                BoolField(
+                    name=FieldNameEnum.SyncBit.value,
+                    default=sync_bit,
+                ),
             ],
         )
 
@@ -179,7 +207,112 @@ class Sync(DictField):
         return cast("BoolField", self[FieldNameEnum.SyncBit.value]).value
 
 
-class Checksum(
+class TimeQualityFlags(IntFlag):
+    """Time quality flags."""
+
+    LeapSecondPending = 0b0001
+    LeapSecondOccurred = 0b0010
+    LeapSecondAdd = 0b0100
+    Reserved = 0b1000
+
+
+class TimeQualityFlagsField(FlagsField[TimeQualityFlags]):
+    """Time quality flags."""
+
+    def __init__(
+        self,
+        default: TimeQualityFlags | None = None,
+        data: dataT = None,
+        string_format: str = "{}",
+    ) -> None:
+        """Time quality flags.
+
+        Args:
+            default:  Defaults to None.
+            data:  Defaults to None.
+            string_format:  Defaults to "{}".
+        """
+        if default is None:
+            default = TimeQualityFlags(0)
+        super().__init__(
+            name=FieldNameEnum.TimeQualityFlags.value,
+            bit_count=4,
+            flags_type=TimeQualityFlags,
+            default=default,
+            data=data,
+            string_format=string_format,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+
+class TimeQualityCodeEnum(IntEnum):
+    """Time quality codes."""
+
+    ClockLocked = 0
+
+
+class TimeQualityCode(EnumField[TimeQualityCodeEnum]):
+    """Time quality codes."""
+
+    def __init__(
+        self,
+        default: TimeQualityCodeEnum | None = None,
+        data: dataT = None,
+        string_format: str = "{}",
+    ) -> None:
+        """Time quality codes.
+
+        Args:
+            default: _description_
+            data: _description_. Defaults to None.
+            string_format: _description_. Defaults to "{}".
+        """
+        if default is None:
+            default = TimeQualityCodeEnum.ClockLocked
+        super().__init__(
+            name=FieldNameEnum.TimeQualityCode.value,
+            bit_count=4,
+            enum_type=TimeQualityCodeEnum,
+            default=default,
+            data=data,
+            endian=DEFAULT_ENDIANNESS,
+            string_format=string_format,
+        )
+
+
+class TimeQuality(
+    DictField,
+    BaseField,
+):
+    """Time Quality fields."""
+
+    def __init__(
+        self,
+        time_quality_flags: TimeQualityFlags | None = None,
+        time_quality_code: TimeQualityCodeEnum | None = None,
+        data: dataT | None = None,
+    ) -> None:
+        """Time quality fields.
+
+        Args:
+            time_quality_flags: time quality flags.
+            time_quality_code: time quality code.
+            data: _description_. Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.TimeQuality.value,
+            default=[
+                TimeQualityFlagsField(default=time_quality_flags),
+                TimeQualityCode(default=time_quality_code),
+            ],
+            data=data,
+            bit_count=-1,
+            string_format=None,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+
+class SynchrophasorChecksum(
     ChecksumField,
     BaseField,
 ):
@@ -201,7 +334,14 @@ class Checksum(
             default=default,
             data=data,
             bit_count=16,
-            crc_configuration=crc.Crc16.CCITT.value,
+            crc_configuration=Configuration(
+                width=16,
+                polynomial=0x1021,
+                init_value=0xFFFF,
+                final_xor_value=0x0000,
+                reverse_input=False,
+                reverse_output=False,
+            ),
         )
 
     def update_field(self, data: dataT | None = None) -> tuple[int, bytes, bitarray]:
@@ -223,7 +363,7 @@ class Checksum(
         crc_int = self.crc_calculator.checksum(byte_data)
         byte_length = math.ceil(self._bit_count / 8)
         crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")
-        crc_int = int.from_bytes(crc_bytes, byteorder=self._endian, signed=False)
+        crc_int = int.from_bytes(crc_bytes, byteorder="little", signed=False)
         crc_bits = int2ba(crc_int, length=self._bit_count)
         self.value = crc_int
         return (crc_int, crc_bytes, crc_bits)
@@ -772,3 +912,36 @@ class PhasorRectangularInt(DictField, Phasor):
             phasor summary
         """
         return self.summary
+
+
+class CommandEnum(IntEnum):
+    """Synchrophasor command enumeration."""
+
+    SendConfiguration2 = 5
+
+
+class Command(EnumField[CommandEnum]):
+    """Synchrophasor command enumeration."""
+
+    def __init__(
+        self,
+        default: CommandEnum | None = None,
+        data: dataT = None,
+    ) -> None:
+        """Synchrophasor command enumeration.
+
+        Args:
+            default:  Defaults to None.
+            data:  Defaults to None.
+        """
+        if default is None:
+            default = CommandEnum.SendConfiguration2
+        super().__init__(
+            name=FieldNameEnum.Command.value,
+            bit_count=16,
+            enum_type=CommandEnum,
+            default=default,
+            data=data,
+            endian=DEFAULT_ENDIANNESS,
+            string_format="{}",
+        )

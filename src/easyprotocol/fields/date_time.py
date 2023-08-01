@@ -7,7 +7,7 @@ from datetime import datetime
 from bitarray import bitarray
 
 from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
-from easyprotocol.base.utils import dataT
+from easyprotocol.base.utils import dataT, input_to_bytes
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 DATE_FIELD_STRING_FORMAT = "{}"
@@ -105,6 +105,40 @@ class DateTimeField(
             the string value of this field
         """
         return self._string_format.format(self.value.strftime(self._date_string_format))
+
+    def parse(self, data: dataT) -> bitarray:
+        """Parse the bits of this field into meaningful data.
+
+        Args:
+            data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
+
+        Raises:
+            IndexError: if there is too little data to parse this field
+        """
+        bits = input_to_bytes(
+            data=data,
+            bit_count=self._bit_count,
+        )
+        _bit_mask = (2**self._bit_count) - 1
+        bit_mask = bitarray(endian="little")
+        bit_mask.frombytes(
+            int.to_bytes(_bit_mask, length=math.ceil(self._bit_count / 8), byteorder="little", signed=False)
+        )
+        if len(bit_mask) < len(bits):
+            bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
+        elif len(bit_mask) > len(bits):
+            bit_mask = bit_mask[: len(bits)]
+        if len(bits) < len(bit_mask) or len(bits) == 0 or len(bits) < self._bit_count:
+            raise IndexError(f"Too little data to parse field ({self.chain}).")
+        my_bits = (bits & bit_mask)[: self._bit_count]
+        self._bits = my_bits[: self._bit_count]
+        if len(bits) >= self._bit_count:
+            return bits[self._bit_count :]
+        else:
+            return bitarray(endian="little")
 
     @property
     def date_string_format(self) -> str:

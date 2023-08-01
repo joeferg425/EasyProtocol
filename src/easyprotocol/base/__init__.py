@@ -1,9 +1,12 @@
 from easyprotocol.base.base import BaseField as BaseField  # noqa
+from easyprotocol.base.base import defaultT as defaultT  # noqa
 from easyprotocol.base.dict import DictField as DictField  # noqa
 from easyprotocol.base.dict import DictFieldGeneric as DictFieldGeneric  # noqa
 from easyprotocol.base.list import ListField as ListField  # noqa
 from easyprotocol.base.list import ListFieldGeneric as ListFieldGeneric  # noqa
+from easyprotocol.base.utils import DEFAULT_ENDIANNESS as DEFAULT_ENDIANNESS  # noqa
 from easyprotocol.base.utils import dataT as dataT  # noqa
+from easyprotocol.base.utils import endianT as endianT  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa
 from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
 from easyprotocol.base.value import ValueFieldGeneric as ValueFieldGeneric  # noqa

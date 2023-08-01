@@ -1,6 +1,7 @@
 """Synchrophasor packet classes."""
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Union, cast
 
 from bitarray import bitarray
@@ -10,13 +11,16 @@ from easyprotocol.base.base import BaseField
 from easyprotocol.base.utils import input_to_bytes
 from easyprotocol.fields import (
     ArrayFieldGeneric,
+    DateTimeField,
     Float32Field,
     UInt16Field,
+    UInt24Field,
     UInt32Field,
 )
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 from easyprotocol.protocols.synchrophasor.fields import (
-    Checksum,
+    Command,
+    CommandEnum,
     CoordinateFormatEnum,
     FieldNameEnum,
     FixedLengthStringArray,
@@ -31,6 +35,12 @@ from easyprotocol.protocols.synchrophasor.fields import (
     PhasorRectangularInt,
     StringFixedLengthField,
     Sync,
+    SynchrophasorChecksum,
+    TimeQuality,
+    TimeQualityCode,
+    TimeQualityCodeEnum,
+    TimeQualityFlags,
+    TimeQualityFlagsField,
 )
 
 
@@ -40,6 +50,10 @@ class SynchrophasorFrame(DictField):
     def __init__(
         self,
         name: str = FrameTypeNameEnum.Frame.value,
+        start: int | None = None,
+        version: int | None = None,
+        frame_type: FrameTypeEnum | None = None,
+        sync_bit: bool | None = None,
         data: dataT = None,
         default: list[BaseField] | None = None,
     ) -> None:
@@ -47,6 +61,10 @@ class SynchrophasorFrame(DictField):
 
         Args:
             name: name of frame
+            start: start bits. Defaults to AA.
+            version: defaults to 1.
+            frame_type: frame type enum. Defaults to FrameTypeEnum.DATA.
+            sync_bit: defaults to false
             data: data to parse. Defaults to None.
             default: default child fields
         """
@@ -55,7 +73,12 @@ class SynchrophasorFrame(DictField):
         super().__init__(
             name=name,
             default=[
-                Sync(),
+                Sync(
+                    start=start,
+                    version=version,
+                    frame_type=frame_type,
+                    sync_bit=sync_bit,
+                ),
             ]
             + default,
             data=data,
@@ -231,7 +254,7 @@ class SynchrophasorConfiguration1Frame(SynchrophasorConfigurationFrame):
                     count=self._num_pmu,
                 ),
                 UInt16Field(name=FieldNameEnum.DataRate.value),
-                Checksum(),
+                SynchrophasorChecksum(),
             ],
             data=data,
         )
@@ -334,25 +357,90 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
 
     def __init__(
         self,
+        start: int | None = None,
+        version: int | None = None,
+        frame_type: FrameTypeEnum | None = None,
+        sync_bit: bool | None = None,
+        frame_size: int | None = None,
+        id_code: int | None = None,
+        fractional_seconds: int | None = None,
+        time_quality_flags: TimeQualityFlags | None = None,
+        time_quality_code: TimeQualityCodeEnum | None = None,
+        time_stamp: datetime | None = None,
+        command: CommandEnum | None = None,
+        checksum_value: int | None = None,
+        update_checksum: bool = False,
         data: dataT = None,
     ) -> None:
         """Create Command frame.
 
         Args:
+            start: start bits. Defaults to AA.
+            version: defaults to 1.
+            frame_type: frame type enum. Defaults to FrameTypeEnum.DATA.
+            sync_bit: defaults to false
+            frame_size: frame size, defaults to 18
+            id_code: defaults to 1
+            time_quality_flags: time quality flags.
+            time_quality_code: time quality code.
+            time_stamp: frame timestamp
+            fractional_seconds: fraction of a second. defaults to 0
+            command: defaults to send config2
+            checksum_value: defaults to 0
+            update_checksum: set true to update checksum. defaults to false
             data: data to parse. Defaults to None.
         """
+        if frame_size is None:
+            frame_size = 18
+        if id_code is None:
+            id_code = 1
+        if time_stamp is None:
+            time_stamp = datetime.utcfromtimestamp(0)
+        if fractional_seconds is None:
+            fractional_seconds = 0
+        if command is None:
+            command = CommandEnum.SendConfiguration2
+        if checksum_value is None:
+            checksum_value = 0
         super().__init__(
             name=FrameTypeNameEnum.Command.value,
+            start=start,
+            version=version,
+            frame_type=frame_type,
+            sync_bit=sync_bit,
             default=[
-                UInt16Field(name=FieldNameEnum.FrameSize.value),
-                UInt16Field(name=FieldNameEnum.IDCode.value),
-                UInt32Field(name=FieldNameEnum.SecondsOfCentury.value),
-                UInt32Field(name=FieldNameEnum.FractionalSeconds.value),
-                UInt16Field(name=FieldNameEnum.Command.value),
-                Checksum(),
+                UInt16Field(
+                    name=FieldNameEnum.FrameSize.value,
+                    default=frame_size,
+                ),
+                UInt16Field(
+                    name=FieldNameEnum.IDCode.value,
+                    default=id_code,
+                ),
+                DateTimeField(
+                    name=FieldNameEnum.SecondsOfCentury.value,
+                    default=time_stamp,
+                ),
+                TimeQuality(
+                    time_quality_code=time_quality_code,
+                    time_quality_flags=time_quality_flags,
+                ),
+                UInt24Field(
+                    name=FieldNameEnum.FractionalSeconds.value,
+                    default=fractional_seconds,
+                ),
+                UInt16Field(
+                    name=FieldNameEnum.Command.value,
+                    default=command,
+                ),
+                SynchrophasorChecksum(
+                    default=checksum_value,
+                ),
             ],
             data=data,
         )
+        if update_checksum:
+            self.checksumField.update_field(self.bits[:-16])
 
     @property
     def frameSize(self) -> int:
@@ -362,6 +450,80 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
             frame type enumeration
         """
         return cast("UInt16Field", self[FieldNameEnum.FrameSize.value]).value
+
+    @property
+    def idCode(self) -> int:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
+        return cast("UInt16Field", self[FieldNameEnum.IDCode.value]).value
+
+    @property
+    def soc(self) -> DateTimeField:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
+        return cast("DateTimeField", self[FieldNameEnum.SecondsOfCentury.value])
+
+    @property
+    def timeQualityFlags(self) -> TimeQualityFlags:
+        """Get time quality flags.
+
+        Returns:
+            time quality flags
+        """
+        tq = cast("TimeQuality", self[FieldNameEnum.TimeQuality.value])
+        return cast("TimeQualityFlagsField", tq[FieldNameEnum.TimeQualityFlags.value]).value
+
+    @property
+    def timeQualityCode(self) -> TimeQualityCodeEnum:
+        """Get time quality code.
+
+        Returns:
+            time quality code
+        """
+        tq = cast("TimeQuality", self[FieldNameEnum.TimeQuality.value])
+        return cast("TimeQualityCode", tq[FieldNameEnum.TimeQualityCode.value]).value
+
+    @property
+    def fractionalSeconds(self) -> int:
+        """Get fractional seconds.
+
+        Returns:
+            fractional seconds
+        """
+        return cast("UInt24Field", self[FieldNameEnum.FractionalSeconds.value]).value
+
+    @property
+    def command(self) -> CommandEnum:
+        """Get command.
+
+        Returns:
+            command
+        """
+        return cast("Command", self[FieldNameEnum.Command.value]).value
+
+    @property
+    def checksum(self) -> int:
+        """Get checksum.
+
+        Returns:
+            checksum
+        """
+        return cast("SynchrophasorChecksum", self[FieldNameEnum.Checksum.value]).value
+
+    @property
+    def checksumField(self) -> SynchrophasorChecksum:
+        """Get checksum.
+
+        Returns:
+            checksum
+        """
+        return cast("SynchrophasorChecksum", self[FieldNameEnum.Checksum.value])
 
 
 class PMUData(DictField):
@@ -570,7 +732,7 @@ class SynchrophasorDataFrame(DictField):
                     digital_counts=digital_counts,
                     phasor_counts=phasor_counts,
                 ),
-                Checksum(),
+                SynchrophasorChecksum(),
             ],
             data=data,
         )

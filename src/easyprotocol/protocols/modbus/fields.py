@@ -8,7 +8,7 @@ import crc
 from bitarray import bitarray
 from bitarray.util import int2ba
 
-from easyprotocol.base import dataT, input_to_bytes
+from easyprotocol.base import dataT, input_to_bitarray
 from easyprotocol.fields import (
     ArrayFieldGeneric,
     BoolField,
@@ -316,7 +316,7 @@ class ModbusCoilArray(ArrayFieldGeneric[bool]):
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, int):
             _count = self._count * 8
         else:
@@ -414,7 +414,7 @@ class ModbusDiscreteInputArray(ArrayFieldGeneric[bool]):
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, int):
             _count = self._count * 8
         else:
@@ -483,7 +483,7 @@ class ModbusRegisterValueArray(ArrayFieldGeneric[int]):
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, int):
             _count = self._count // 2
         else:

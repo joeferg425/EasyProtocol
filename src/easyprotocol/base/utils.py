@@ -10,7 +10,7 @@ endianT = Literal["little", "big"]
 DEFAULT_ENDIANNESS: endianT = "big"
 
 
-def input_to_bytes(
+def input_to_bitarray(
     data: dataT | SupportsBytes,
     bit_count: int | None = None,
 ) -> bitarray:
@@ -29,8 +29,6 @@ def input_to_bytes(
     if isinstance(data, (bytes, bytearray)):
         bits = bitarray(endian="little")
         bits.frombytes(data)
-        if len(bits) < (8 * len(data)):
-            bits = bits + bitarray("0" * ((8 * len(data)) - len(bits)), endian="little")
     elif isinstance(data, bitarray):
         bit_length = len(data)
         bits = bitarray(endian="little")

@@ -15,7 +15,12 @@ from typing import (
 from bitarray import bitarray
 
 from easyprotocol.base.base import BaseField, T, defaultT
-from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
+from easyprotocol.base.utils import (
+    DEFAULT_ENDIANNESS,
+    dataT,
+    endianT,
+    input_to_bitarray,
+)
 
 
 class ListFieldGeneric(
@@ -65,7 +70,7 @@ class ListFieldGeneric(
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data

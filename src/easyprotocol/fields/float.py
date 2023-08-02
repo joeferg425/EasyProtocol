@@ -8,7 +8,7 @@ from typing import Any, Generic, TypeVar, Union, cast
 from bitarray import bitarray
 
 from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.utils import dataT, input_to_bitarray
 from easyprotocol.base.value import ValueFieldGeneric
 
 F = TypeVar("F", bound=Union[float, Any])
@@ -102,7 +102,7 @@ class Float32IEEFieldGeneric(
         Raises:
             IndexError: if there is insufficient data to parse this field
         """
-        bits = input_to_bytes(
+        bits = input_to_bitarray(
             data=data,
             bit_count=self.bit_count,
         )

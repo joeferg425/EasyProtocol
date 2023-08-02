@@ -6,7 +6,12 @@ from typing import Any, Generic, Iterator, Mapping, Sequence, TypeVar
 from bitarray import bitarray
 
 from easyprotocol.base.base import BaseField, defaultT
-from easyprotocol.base.utils import DEFAULT_ENDIANNESS, dataT, endianT, input_to_bytes
+from easyprotocol.base.utils import (
+    DEFAULT_ENDIANNESS,
+    dataT,
+    endianT,
+    input_to_bitarray,
+)
 
 T = TypeVar("T")
 
@@ -58,7 +63,7 @@ class DictFieldGeneric(
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         for field in self._children.values():
             bit_data = field.parse(data=bit_data)
         return bit_data

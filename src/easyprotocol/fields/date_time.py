@@ -7,7 +7,7 @@ from datetime import datetime
 from bitarray import bitarray
 
 from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.utils import dataT, input_to_bitarray
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 DATE_FIELD_STRING_FORMAT = "{}"
@@ -118,7 +118,7 @@ class DateTimeField(
         Raises:
             IndexError: if there is too little data to parse this field
         """
-        bits = input_to_bytes(
+        bits = input_to_bitarray(
             data=data,
             bit_count=self._bit_count,
         )

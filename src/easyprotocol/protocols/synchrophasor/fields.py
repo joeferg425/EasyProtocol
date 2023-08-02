@@ -9,7 +9,7 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Configuration
 
-from easyprotocol.base import DEFAULT_ENDIANNESS, BaseField, dataT, input_to_bytes
+from easyprotocol.base import DEFAULT_ENDIANNESS, BaseField, dataT, input_to_bitarray
 from easyprotocol.base.dict import DictField
 from easyprotocol.fields import (
     BoolField,
@@ -362,7 +362,7 @@ class SynchrophasorChecksum(
             else:
                 byte_data = b""
         else:
-            byte_data = input_to_bytes(data=data, bit_count=self._bit_count).tobytes()
+            byte_data = input_to_bitarray(data=data, bit_count=self._bit_count).tobytes()
         crc_int = self.crc_calculator.checksum(byte_data)
         byte_length = math.ceil(self._bit_count / 8)
         crc_bytes = int.to_bytes(crc_int, length=byte_length, byteorder="little")
@@ -591,7 +591,7 @@ class FixedLengthStringArray(
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, int):
             count = self._fixed_string_length * self._count
         else:

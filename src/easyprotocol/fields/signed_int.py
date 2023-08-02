@@ -7,7 +7,7 @@ from typing import Any, Generic, TypeVar, Union, cast
 from bitarray import bitarray
 
 from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.utils import dataT, input_to_bitarray
 from easyprotocol.base.value import ValueFieldGeneric
 
 INT_STRING_FORMAT = "{}"
@@ -67,7 +67,7 @@ class IntFieldGeneric(
         Raises:
             IndexError: if there is too little data to parse this field
         """
-        bits = input_to_bytes(
+        bits = input_to_bitarray(
             data=data,
             bit_count=self._bit_count,
         )

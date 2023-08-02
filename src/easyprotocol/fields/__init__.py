@@ -1,7 +1,7 @@
 """Define common field types in an easy to modify manner."""
 from easyprotocol.base.base import BaseField as BaseField  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa
-from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
+from easyprotocol.base.utils import input_to_bitarray as input_to_bitarray  # noqa
 from easyprotocol.fields.array import ArrayFieldGeneric as ArrayFieldGeneric  # noqa
 from easyprotocol.fields.checksum import ChecksumField as ChecksumField  # noqa
 from easyprotocol.fields.date_time import DateTimeField as DateTimeField  # noqa

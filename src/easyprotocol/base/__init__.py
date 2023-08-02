@@ -8,5 +8,5 @@ from easyprotocol.base.utils import DEFAULT_ENDIANNESS as DEFAULT_ENDIANNESS  # 
 from easyprotocol.base.utils import dataT as dataT  # noqa
 from easyprotocol.base.utils import endianT as endianT  # noqa
 from easyprotocol.base.utils import hex as hex  # noqa
-from easyprotocol.base.utils import input_to_bytes as input_to_bytes  # noqa
+from easyprotocol.base.utils import input_to_bitarray as input_to_bitarray  # noqa
 from easyprotocol.base.value import ValueFieldGeneric as ValueFieldGeneric  # noqa

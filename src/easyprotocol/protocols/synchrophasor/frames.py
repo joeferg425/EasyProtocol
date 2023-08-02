@@ -8,7 +8,7 @@ from bitarray import bitarray
 
 from easyprotocol.base import DictField, dataT
 from easyprotocol.base.base import BaseField
-from easyprotocol.base.utils import input_to_bytes
+from easyprotocol.base.utils import input_to_bitarray
 from easyprotocol.fields import (
     ArrayFieldGeneric,
     DateTimeField,
@@ -99,6 +99,13 @@ class SynchrophasorFrame(DictField):
         """
         return cast("Sync", self[FieldNameEnum.Sync.value]).start
 
+    @start.setter
+    def start(self, value: UInt8Field | int) -> None:
+        if isinstance(value, UInt8Field):
+            self.start.value = value.value
+        else:
+            self.start.value = value
+
     @property
     def version(self) -> UIntField:
         """Get version integer.
@@ -107,6 +114,13 @@ class SynchrophasorFrame(DictField):
             version value
         """
         return cast("Sync", self[FieldNameEnum.Sync.value]).version
+
+    @version.setter
+    def version(self, value: UIntField | int) -> None:
+        if isinstance(value, UIntField):
+            self.version.value = value.value
+        else:
+            self.version.value = value
 
     @property
     def frameType(self) -> FrameType:
@@ -117,6 +131,13 @@ class SynchrophasorFrame(DictField):
         """
         return cast("Sync", self[FieldNameEnum.Sync.value]).frameType
 
+    @frameType.setter
+    def frameType(self, value: FrameType | FrameTypeEnum) -> None:
+        if isinstance(value, FrameType):
+            self.frameType.value = value.value
+        else:
+            self.frameType.value = value
+
     @property
     def syncBit(self) -> BoolField:
         """Get frame type enumeration.
@@ -125,6 +146,13 @@ class SynchrophasorFrame(DictField):
             frame type enumeration
         """
         return cast("Sync", self[FieldNameEnum.Sync.value]).syncBit
+
+    @syncBit.setter
+    def syncBit(self, value: BoolField | bool) -> None:
+        if isinstance(value, BoolField):
+            self.syncBit.value = value.value
+        else:
+            self.syncBit.value = value
 
 
 class SynchrophasorConfigurationFrame(SynchrophasorFrame):
@@ -466,6 +494,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
         """
         return cast("UInt16Field", self[FieldNameEnum.FrameSize.value])
 
+    @frameSize.setter
+    def frameSize(self, value: UInt16Field | int) -> None:
+        if isinstance(value, UInt16Field):
+            self.frameSize.value = value.value
+        else:
+            self.frameSize.value = value
+
     @property
     def idCode(self) -> UInt16Field:
         """Get frame type enumeration.
@@ -475,6 +510,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
         """
         return cast("UInt16Field", self[FieldNameEnum.IDCode.value])
 
+    @idCode.setter
+    def idCode(self, value: UInt16Field | int) -> None:
+        if isinstance(value, UInt16Field):
+            self.idCode.value = value.value
+        else:
+            self.idCode.value = value
+
     @property
     def soc(self) -> DateTimeField:
         """Get frame type enumeration.
@@ -483,6 +525,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
             frame type enumeration
         """
         return cast("DateTimeField", self[FieldNameEnum.SecondsOfCentury.value])
+
+    @soc.setter
+    def soc(self, value: DateTimeField | datetime) -> None:
+        if isinstance(value, DateTimeField):
+            self.soc.value = value.value
+        else:
+            self.soc.value = value
 
     @property
     def timeQualityFlags(self) -> TimeQualityFlagsField:
@@ -494,6 +543,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
         tq = cast("TimeQuality", self[FieldNameEnum.TimeQuality.value])
         return cast("TimeQualityFlagsField", tq[FieldNameEnum.TimeQualityFlags.value])
 
+    @timeQualityFlags.setter
+    def timeQualityFlags(self, value: TimeQualityFlagsField | TimeQualityFlags) -> None:
+        if isinstance(value, TimeQualityFlagsField):
+            self.timeQualityFlags.value = value.value
+        else:
+            self.timeQualityFlags.value = value
+
     @property
     def timeQualityCode(self) -> TimeQualityCode:
         """Get time quality code.
@@ -504,6 +560,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
         tq = cast("TimeQuality", self[FieldNameEnum.TimeQuality.value])
         return cast("TimeQualityCode", tq[FieldNameEnum.TimeQualityCode.value])
 
+    @timeQualityCode.setter
+    def timeQualityCode(self, value: TimeQualityCode | TimeQualityCodeEnum) -> None:
+        if isinstance(value, TimeQualityCode):
+            self.timeQualityCode.value = value.value
+        else:
+            self.timeQualityCode.value = value
+
     @property
     def fractionalSeconds(self) -> UInt24Field:
         """Get fractional seconds.
@@ -512,6 +575,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
             fractional seconds
         """
         return cast("UInt24Field", self[FieldNameEnum.FractionalSeconds.value])
+
+    @fractionalSeconds.setter
+    def fractionalSeconds(self, value: UInt24Field | int) -> None:
+        if isinstance(value, UInt24Field):
+            self.fractionalSeconds.value = value.value
+        else:
+            self.fractionalSeconds.value = value
 
     @property
     def command(self) -> Command:
@@ -522,6 +592,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
         """
         return cast("Command", self[FieldNameEnum.Command.value])
 
+    @command.setter
+    def command(self, value: Command | CommandEnum) -> None:
+        if isinstance(value, Command):
+            self.command.value = value.value
+        else:
+            self.command.value = value
+
     @property
     def checksum(self) -> SynchrophasorChecksum:
         """Get checksum.
@@ -530,6 +607,13 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
             checksum
         """
         return cast("SynchrophasorChecksum", self[FieldNameEnum.Checksum.value])
+
+    @checksum.setter
+    def checksum(self, value: SynchrophasorChecksum | int) -> None:
+        if isinstance(value, SynchrophasorChecksum):
+            self.checksum.value = value.value
+        else:
+            self.checksum.value = value
 
 
 class PMUData(DictField):
@@ -683,7 +767,7 @@ class PMUDataArray(ArrayFieldGeneric[PMUData]):
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, UIntFieldGeneric):
             count = self._count.value
         else:

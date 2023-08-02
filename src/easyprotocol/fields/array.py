@@ -7,7 +7,7 @@ from bitarray import bitarray
 
 from easyprotocol.base.base import BaseField
 from easyprotocol.base.list import ListFieldGeneric
-from easyprotocol.base.utils import dataT, input_to_bytes
+from easyprotocol.base.utils import dataT, input_to_bitarray
 from easyprotocol.base.value import ValueFieldGeneric
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -72,7 +72,7 @@ class ArrayFieldGeneric(
         Returns:
             any leftover bits after parsing the ones belonging to this field
         """
-        bit_data = input_to_bytes(data=data)
+        bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, UIntFieldGeneric):
             count = self._count.value
         else:

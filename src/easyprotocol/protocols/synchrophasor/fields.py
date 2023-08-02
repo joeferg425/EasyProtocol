@@ -171,40 +171,40 @@ class Sync(DictField):
         )
 
     @property
-    def start(self) -> int:
+    def start(self) -> UInt8Field:
         """Get start value integer.
 
         Returns:
             start value
         """
-        return cast("UInt8Field", self[FieldNameEnum.Start.value]).value
+        return cast("UInt8Field", self[FieldNameEnum.Start.value])
 
     @property
-    def version(self) -> int:
+    def version(self) -> UIntField:
         """Get version integer.
 
         Returns:
             version value
         """
-        return cast("UIntField", self[FieldNameEnum.Version.value]).value
+        return cast("UIntField", self[FieldNameEnum.Version.value])
 
     @property
-    def frameType(self) -> FrameTypeEnum:
+    def frameType(self) -> FrameType:
         """Get frame type enumeration.
 
         Returns:
             frame type enumeration
         """
-        return cast("FrameType", self[FieldNameEnum.FrameType.value]).value
+        return cast("FrameType", self[FieldNameEnum.FrameType.value])
 
     @property
-    def syncBit(self) -> bool:
+    def syncBit(self) -> BoolField:
         """Get frame type enumeration.
 
         Returns:
             frame type enumeration
         """
-        return cast("BoolField", self[FieldNameEnum.SyncBit.value]).value
+        return cast("BoolField", self[FieldNameEnum.SyncBit.value])
 
 
 class TimeQualityFlags(IntFlag):
@@ -249,6 +249,9 @@ class TimeQualityCodeEnum(IntEnum):
     """Time quality codes."""
 
     ClockLocked = 0
+    One = 1
+    Two = 2
+    Four = 4
 
 
 class TimeQualityCode(EnumField[TimeQualityCodeEnum]):
@@ -917,6 +920,8 @@ class PhasorRectangularInt(DictField, Phasor):
 class CommandEnum(IntEnum):
     """Synchrophasor command enumeration."""
 
+    DataTransmissionOff = 1
+    DataTransmissionOn = 2
     SendConfiguration2 = 5
 
 

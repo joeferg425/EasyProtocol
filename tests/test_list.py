@@ -4,6 +4,7 @@ from __future__ import annotations
 import struct
 from typing import Any, Sequence
 
+import pytest
 from bitarray import bitarray
 from parse_data import ParseData
 
@@ -475,29 +476,51 @@ class TestParseFieldList:
         )
 
     def test_ParseFieldList_set_value(self) -> None:
-        f2_value = 2
+        f1_value = 2
+        f2_value = 7
+        f3_value = 15
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
         f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f3_data = int.to_bytes(f3_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
         f2_bits = bitarray()
         f2_bits.frombytes(f2_data)
+        f3_bits = bitarray()
+        f3_bits.frombytes(f3_data)
         f1_name = "f1"
-        f2 = UInt8Field(name=f1_name, default=f2_value)
+        f2_name = "f7"
+        f3_name = "X"
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        f2 = UInt8Field(name=f2_name, default=f2_value)
+        f3 = UInt8Field(name=f3_name, default=f3_value)
+        bits_data0 = bitarray()
+        byte_data0 = b""
         bits_data1 = bitarray()
-        byte_data1 = b""
+        bits_data1.frombytes(f1_data)
+        byte_data1 = f1_data
         bits_data2 = bitarray()
         bits_data2.frombytes(f2_data)
         byte_data2 = f2_data
-        values1: Sequence[Any] = []
+        bits_data3 = bitarray()
+        bits_data3.frombytes(f3_data)
+        byte_data3 = f3_data
+        values0: Sequence[Any] = []
+        values1: Sequence[Any] = [f1]
         values2: Sequence[Any] = [f2]
-        children1: dict[str, BaseField] = dict()
+        values3: Sequence[Any] = [f3]
+        children0: dict[str, BaseField] = dict()
+        children1: dict[str, BaseField] = dict({f1.name: f1})
         children2: dict[str, BaseField] = dict({f2.name: f2})
+        children3: dict[str, BaseField] = dict({f3.name: f3})
         tst = ParseData(
             name="test",
-            value=values1,
+            value=values0,
             string_format="{}",
-            byte_data=byte_data1,
-            bits_data=bits_data1,
+            byte_data=byte_data0,
+            bits_data=bits_data0,
             parent=None,
-            children=children1,
+            children=children0,
             endian=DEFAULT_ENDIANNESS,
         )
 
@@ -509,11 +532,31 @@ class TestParseFieldList:
             tst=tst,
         )
 
+        obj.value = [f1]
+        tst.value = values1
+        tst.bits_data = bits_data1
+        tst.byte_data = byte_data1
+        tst.children = children1
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
         obj.value = [f2]
         tst.value = values2
         tst.bits_data = bits_data2
         tst.byte_data = byte_data2
         tst.children = children2
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = {f3.name: f3}
+        tst.value = values3
+        tst.bits_data = bits_data3
+        tst.byte_data = byte_data3
+        tst.children = children3
         ParseFieldList_tests(
             obj=obj,
             tst=tst,
@@ -537,6 +580,54 @@ class TestParseFieldList:
     def test_ParseFieldList_set_item(self) -> None:
         name = "test"
         f1_name = "f1"
+        f1_value = 1
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        f2_name = "f2"
+        f2_value = 2
+        f2 = UInt8Field(name=f2_name, default=f2_value)
+        f3_name = "f3"
+        f3_value = 3
+        f3 = UInt8Field(name=f3_name, default=f3_value)
+        f4_name = "f4"
+        f4_value = 4
+        f4 = UInt8Field(name=f4_name, default=f4_value)
+        f5_name = "f5"
+        f5_value = 5
+        f5 = UInt8Field(name=f5_name, default=f5_value)
+        f6_name = "f6"
+        f6_value = 6
+        f6 = UInt8Field(name=f6_name, default=f6_value)
+        obj = ListField(name=name, default=[f1, f2, f3])
+
+        assert f1.parent == obj
+        assert f2.parent == obj
+        assert f3.parent == obj
+        assert f4.parent is None
+        assert len(obj) == 3
+        assert obj[2] == f3
+        assert obj[2].value == f3.value
+
+        obj[2] = f4
+        assert f4.parent == obj
+        assert len(obj) == 3
+        assert obj[2] == f4
+        assert obj[2].value == f4.value
+
+        obj[0:2] = [f5, f6]
+        assert f1.parent == None
+        assert f2.parent == None
+        assert f5.parent == obj
+        assert f6.parent == obj
+        assert len(obj) == 3
+        assert obj[2] == f4
+        assert obj[2].value == f4.value
+
+        with pytest.raises(TypeError):
+            obj[7.0] = "nothing"  # pyright:ignore[reportGeneralTypeIssues]
+
+    def test_ParseFieldList_get_item(self) -> None:
+        name = "test"
+        f1_name = "f1"
         f1 = UInt8Field(name=f1_name, default=1)
         f2_name = "f2"
         f2 = UInt8Field(name=f2_name, default=2)
@@ -544,7 +635,6 @@ class TestParseFieldList:
         f3 = UInt8Field(name=f3_name, default=3)
         f3_also = UInt8Field(name=f3_name, default=17)
         obj = ListField(name=name, default=[f1, f2, f3])
-        i: int = 2
 
         assert f1.parent == obj
         assert f2.parent == obj
@@ -553,11 +643,31 @@ class TestParseFieldList:
         assert len(obj) == 3
         assert obj[2] == f3
         assert obj[2].value == f3.value
-        obj[i] = f3_also
-        assert f3_also.parent == obj
+        assert obj[1:] == [f2, f3]
+
+    def test_ParseFieldList_del(self) -> None:
+        name = "test"
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name, default=1)
+        f2_name = "f2"
+        f2 = UInt8Field(name=f2_name, default=2)
+        f3_name = "f3"
+        f3 = UInt8Field(name=f3_name, default=3)
+        obj = ListField(name=name, default=[f1, f2, f3])
+
+        assert f1.parent == obj
+        assert f2.parent == obj
+        assert f3.parent == obj
         assert len(obj) == 3
-        assert obj[2] == f3_also
-        assert obj[2].value == f3_also.value
+        assert obj[2] == f3
+        assert obj[2].value == f3.value
+        del obj[1:]
+        assert f1.parent == obj
+        assert f2.parent == None
+        assert f3.parent == None
+        assert len(obj) == 1
+        assert obj[0] == f1
+        assert obj[0].value == f1.value
 
     def test_ParseFieldList_insert(self) -> None:
         name = "test"
@@ -586,3 +696,46 @@ class TestParseFieldList:
         assert obj[1].value == f2.value
         assert obj[2] == f3
         assert obj[2].value == f3.value
+
+    def test_ParseFieldList_get_concatenated(self) -> None:
+        name = "test"
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name, default=1)
+        f2_name = "f2"
+        f2 = UInt8Field(name=f2_name, default=2)
+        f3_name = "f3"
+        f3 = UInt8Field(name=f3_name, default=3)
+        obj = ListField(name=name, default=[f1, f2, f3])
+
+        with pytest.raises(NotImplementedError):
+            obj.get_value_concatenated()
+
+    def test_ParseFieldList_get_value_list(self) -> None:
+        name = "test"
+        f1_name = "f1"
+        f1_value = 1
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        f2_name = "f2"
+        f2_value = 2
+        f2 = UInt8Field(name=f2_name, default=f2_value)
+        f3_name = "f3"
+        f3_value = 3
+        f3 = UInt8Field(name=f3_name, default=f3_value)
+        obj = ListField(name=name, default=[f1, f2, f3])
+
+        assert obj.value_list == [f1_value, f2_value, f3_value]
+
+    def test_ParseFieldList_get_value_dict(self) -> None:
+        name = "test"
+        f1_name = "f1"
+        f1_value = 1
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        f2_name = "f2"
+        f2_value = 2
+        f2 = UInt8Field(name=f2_name, default=f2_value)
+        f3_name = "f3"
+        f3_value = 3
+        f3 = UInt8Field(name=f3_name, default=f3_value)
+        obj = ListField(name=name, default=[f1, f2, f3])
+
+        assert obj.value_dict == {f1_name: f1_value, f2_name: f2_value, f3_name: f3_value}

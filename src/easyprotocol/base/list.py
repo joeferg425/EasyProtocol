@@ -272,26 +272,26 @@ class ListFieldGeneric(
         Args:
             index: one ore more indices
             value: one or more values
+
+        Raises:
+            TypeError: if argument types are not supported
         """
-        indexed_keys = list(self._children.keys())[index]
-        c: dict[str, BaseField] = dict()
-        for existing_key in self._children:
-            if isinstance(indexed_keys, str) and isinstance(value, BaseField):
-                if existing_key != indexed_keys:
-                    c[existing_key] = self._children[existing_key]
-                else:
-                    c[indexed_keys] = value
-                    value.set_parent(self)
-            else:
-                if isinstance(value, list):
-                    for i, sub_key in enumerate(indexed_keys):
-                        sub_value = value[i]
-                        if existing_key != sub_key:
-                            c[existing_key] = self._children[existing_key]
-                        else:
-                            c[sub_value._name] = sub_value
-                            sub_value.set_parent(self)
-        self._children = c
+        values = [v for v in self.children.values()]
+        if isinstance(index, slice) and isinstance(value, Sequence):
+            values[index] = value
+        elif isinstance(index, SupportsIndex) and isinstance(value, BaseField):
+            values[index] = value
+        else:
+            raise TypeError(f"Cannot assign value with args: index{index}, value:{value}")
+
+        for item in self.children.values():
+            if item not in values:
+                item.set_parent(None)
+
+        self.children.clear()
+        for item in values:
+            self.children[item.name] = item
+            item.set_parent(self)
 
     def __len__(self) -> int:
         """Get the count of this field's sub-fields.

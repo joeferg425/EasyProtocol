@@ -17,7 +17,12 @@ from easyprotocol.fields import (
     UInt24Field,
     UInt32Field,
 )
-from easyprotocol.fields.unsigned_int import UIntFieldGeneric
+from easyprotocol.fields.unsigned_int import (
+    BoolField,
+    UInt8Field,
+    UIntField,
+    UIntFieldGeneric,
+)
 from easyprotocol.protocols.synchrophasor.fields import (
     Command,
     CommandEnum,
@@ -25,6 +30,7 @@ from easyprotocol.protocols.synchrophasor.fields import (
     FieldNameEnum,
     FixedLengthStringArray,
     Format,
+    FrameType,
     FrameTypeEnum,
     FrameTypeNameEnum,
     NumberFormatEnum,
@@ -85,7 +91,7 @@ class SynchrophasorFrame(DictField):
         )
 
     @property
-    def start(self) -> int:
+    def start(self) -> UInt8Field:
         """Get start value integer.
 
         Returns:
@@ -94,7 +100,7 @@ class SynchrophasorFrame(DictField):
         return cast("Sync", self[FieldNameEnum.Sync.value]).start
 
     @property
-    def version(self) -> int:
+    def version(self) -> UIntField:
         """Get version integer.
 
         Returns:
@@ -103,7 +109,7 @@ class SynchrophasorFrame(DictField):
         return cast("Sync", self[FieldNameEnum.Sync.value]).version
 
     @property
-    def frameType(self) -> FrameTypeEnum:
+    def frameType(self) -> FrameType:
         """Get frame type enumeration.
 
         Returns:
@@ -112,7 +118,7 @@ class SynchrophasorFrame(DictField):
         return cast("Sync", self[FieldNameEnum.Sync.value]).frameType
 
     @property
-    def syncBit(self) -> bool:
+    def syncBit(self) -> BoolField:
         """Get frame type enumeration.
 
         Returns:
@@ -440,25 +446,34 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
             data=data,
         )
         if update_checksum:
-            self.checksumField.update_field(self.bits[:-16])
+            self.update_checksum()
+
+    def update_checksum(self) -> SynchrophasorChecksum:
+        """Update the checksum using the current field values.
+
+        Returns:
+            the updated checksum field
+        """
+        self.checksum.update_field(self.bits[:-16])
+        return self.checksum
 
     @property
-    def frameSize(self) -> int:
+    def frameSize(self) -> UInt16Field:
         """Get frame type enumeration.
 
         Returns:
             frame type enumeration
         """
-        return cast("UInt16Field", self[FieldNameEnum.FrameSize.value]).value
+        return cast("UInt16Field", self[FieldNameEnum.FrameSize.value])
 
     @property
-    def idCode(self) -> int:
+    def idCode(self) -> UInt16Field:
         """Get frame type enumeration.
 
         Returns:
             frame type enumeration
         """
-        return cast("UInt16Field", self[FieldNameEnum.IDCode.value]).value
+        return cast("UInt16Field", self[FieldNameEnum.IDCode.value])
 
     @property
     def soc(self) -> DateTimeField:
@@ -470,54 +485,45 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
         return cast("DateTimeField", self[FieldNameEnum.SecondsOfCentury.value])
 
     @property
-    def timeQualityFlags(self) -> TimeQualityFlags:
+    def timeQualityFlags(self) -> TimeQualityFlagsField:
         """Get time quality flags.
 
         Returns:
             time quality flags
         """
         tq = cast("TimeQuality", self[FieldNameEnum.TimeQuality.value])
-        return cast("TimeQualityFlagsField", tq[FieldNameEnum.TimeQualityFlags.value]).value
+        return cast("TimeQualityFlagsField", tq[FieldNameEnum.TimeQualityFlags.value])
 
     @property
-    def timeQualityCode(self) -> TimeQualityCodeEnum:
+    def timeQualityCode(self) -> TimeQualityCode:
         """Get time quality code.
 
         Returns:
             time quality code
         """
         tq = cast("TimeQuality", self[FieldNameEnum.TimeQuality.value])
-        return cast("TimeQualityCode", tq[FieldNameEnum.TimeQualityCode.value]).value
+        return cast("TimeQualityCode", tq[FieldNameEnum.TimeQualityCode.value])
 
     @property
-    def fractionalSeconds(self) -> int:
+    def fractionalSeconds(self) -> UInt24Field:
         """Get fractional seconds.
 
         Returns:
             fractional seconds
         """
-        return cast("UInt24Field", self[FieldNameEnum.FractionalSeconds.value]).value
+        return cast("UInt24Field", self[FieldNameEnum.FractionalSeconds.value])
 
     @property
-    def command(self) -> CommandEnum:
+    def command(self) -> Command:
         """Get command.
 
         Returns:
             command
         """
-        return cast("Command", self[FieldNameEnum.Command.value]).value
+        return cast("Command", self[FieldNameEnum.Command.value])
 
     @property
-    def checksum(self) -> int:
-        """Get checksum.
-
-        Returns:
-            checksum
-        """
-        return cast("SynchrophasorChecksum", self[FieldNameEnum.Checksum.value]).value
-
-    @property
-    def checksumField(self) -> SynchrophasorChecksum:
+    def checksum(self) -> SynchrophasorChecksum:
         """Get checksum.
 
         Returns:

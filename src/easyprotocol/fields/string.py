@@ -3,13 +3,12 @@ from __future__ import annotations
 
 import math
 import struct
-from typing import Sequence, cast
 
 from bitarray import bitarray
 
 from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField
-from easyprotocol.base.utils import dataT
-from easyprotocol.fields.array import ArrayFieldGeneric
+from easyprotocol.base.utils import dataT, input_to_bitarray
+from easyprotocol.base.value import ValueFieldGeneric
 from easyprotocol.fields.unsigned_int import UIntField, UIntFieldGeneric
 
 DEFAULT_CHAR_FORMAT: str = "{}"
@@ -95,7 +94,7 @@ class UInt8CharField(
 
 
 class StringField(
-    ArrayFieldGeneric[str],
+    ValueFieldGeneric[str],
     BaseField,
 ):
     """String parsing field."""
@@ -103,34 +102,94 @@ class StringField(
     def __init__(
         self,
         name: str,
-        count: UIntField | int = 0,
+        byte_count: UIntField | int = 0,
         data: dataT | None = None,
         string_format: str = "{}",
         string_encoding: str = "latin1",
         default: str = "",
-        char_default: str = "\x00",
     ) -> None:
         """Create string parsing field.
 
         Args:
             name: name of parsed object
             default: the default value for this class
-            char_default: default character for instantiating an instance of this class with count > 1
-            count: the number of bytes in this field
+            byte_count: the number of bytes in this field
             data: bytes to be parsed
             string_format: python format string (e.g. "{}")
             string_encoding: encoding for bytes to string conversion (e.g. 'latin1' or 'utf-8'),
         """
         self._string_encoding: str = string_encoding
+        self._byte_count = byte_count
         super().__init__(
             name=name,
-            count=count,
-            array_item_class=CharField,
-            array_item_default=char_default,
             default=default,
             data=data,
             string_format=string_format,
         )
+
+    def parse(self, data: dataT) -> bitarray:
+        """Parse the bits of this field into meaningful data.
+
+        Args:
+            data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
+
+        Raises:
+            IndexError: if there is too little data to parse this field
+        """
+        if isinstance(self._byte_count, UIntFieldGeneric):
+            self._bit_count = self._byte_count.value * 8
+        else:
+            self._bit_count = self._byte_count * 8
+        bits = input_to_bitarray(
+            data=data,
+            bit_count=self._bit_count,
+        )
+        _bit_mask = (2**self._bit_count) - 1
+        bit_mask = bitarray(endian="little")
+        bit_mask.frombytes(
+            int.to_bytes(_bit_mask, length=math.ceil(self._bit_count / 8), byteorder="little", signed=False)
+        )
+        if len(bit_mask) < len(bits):
+            bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
+        elif len(bit_mask) > len(bits):
+            bit_mask = bit_mask[: len(bits)]
+        if len(bits) < len(bit_mask) or len(bits) == 0 or len(bits) < self._bit_count:
+            raise IndexError(f"Too little data to parse field ({self.chain}).")
+        my_bits = (bits & bit_mask)[: self._bit_count]
+        self._bits = my_bits[: self._bit_count]
+        if len(bits) >= self._bit_count:
+            return bits[self._bit_count :]
+        else:
+            return bitarray(endian="little")
+
+    def get_value(self) -> str:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        _bits = self.bits_lsb
+        m = len(_bits) % 8
+        if m != 0:
+            bits = _bits + bitarray([False] * (8 - m))
+        else:
+            bits = _bits
+        b = bits.tobytes()
+        return b.decode(self._string_encoding)
+
+    def set_value(self, value: str) -> None:
+        """Set the value of this field.
+
+        Args:
+            value: the new value to assign to this field
+        """
+        my_bytes = value.encode()
+        bits = bitarray(endian="little")
+        bits.frombytes(my_bytes)
+        self._bits = bits[: self._bit_count]
 
     def get_value_concatenated(self) -> str:
         """Get list values as a single concatenated value (if supported).
@@ -138,7 +197,7 @@ class StringField(
         Returns:
             list values as a single concatenated value (if supported)
         """
-        return "".join([v.value for v in cast("Sequence[CharField]", self.value)])
+        return self.value
 
     def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
@@ -146,8 +205,16 @@ class StringField(
         Returns:
             the value of the field with custom formatting
         """
-        s = self.get_value_concatenated()
+        s = self.get_value()
         return self.string_format.format(s)
+
+    def __str__(self) -> str:
+        """Get a nicely formatted string describing this field.
+
+        Returns:
+            a nicely formatted string describing this field
+        """
+        return f'{self._name}: "{self.value_as_string}"'
 
 
 class ByteField(
@@ -238,7 +305,7 @@ class UInt8ByteField(
 
 
 class BytesField(
-    ArrayFieldGeneric[bytes],
+    ValueFieldGeneric[bytes],
     BaseField,
 ):
     """Variable length bytes field that returns bytes."""
@@ -246,9 +313,8 @@ class BytesField(
     def __init__(
         self,
         name: str,
-        count: UIntField | int,
+        byte_count: UIntField | int,
         default: bytes = b"",
-        byte_default: bytes = b"\x00",
         data: dataT | None = None,
         string_format: str = '"{}"(bytes)',
     ) -> None:
@@ -257,20 +323,79 @@ class BytesField(
         Args:
             name: name of parsed object
             default: the default value for this class
-            byte_default: the default value of each byte when creating BytesField with count > 0
-            count: the number of bytes in this field
+            byte_count: the number of bytes in this field
             data: bytes to be parsed
             string_format: python format string (e.g. "{}")
         """
+        self._byte_count = byte_count
         super().__init__(
             name=name,
-            count=count,
-            array_item_class=ByteField,
-            array_item_default=byte_default,
-            default=[bytes([b]) for b in default],
+            default=default,
             data=data,
             string_format=string_format,
         )
+
+    def parse(self, data: dataT) -> bitarray:
+        """Parse the bits of this field into meaningful data.
+
+        Args:
+            data: bytes to be parsed
+
+        Returns:
+            any leftover bits after parsing the ones belonging to this field
+
+        Raises:
+            IndexError: if there is too little data to parse this field
+        """
+        if isinstance(self._byte_count, UIntFieldGeneric):
+            self._bit_count = self._byte_count.value * 8
+        else:
+            self._bit_count = self._byte_count * 8
+        bits = input_to_bitarray(
+            data=data,
+            bit_count=self._bit_count,
+        )
+        _bit_mask = (2**self._bit_count) - 1
+        bit_mask = bitarray(endian="little")
+        bit_mask.frombytes(
+            int.to_bytes(_bit_mask, length=math.ceil(self._bit_count / 8), byteorder="little", signed=False)
+        )
+        if len(bit_mask) < len(bits):
+            bit_mask = bit_mask + bitarray("0" * (len(bits) - len(bit_mask)), endian="little")
+        elif len(bit_mask) > len(bits):
+            bit_mask = bit_mask[: len(bits)]
+        if len(bits) < len(bit_mask) or len(bits) == 0 or len(bits) < self._bit_count:
+            raise IndexError(f"Too little data to parse field ({self.chain}).")
+        my_bits = (bits & bit_mask)[: self._bit_count]
+        self._bits = my_bits[: self._bit_count]
+        if len(bits) >= self._bit_count:
+            return bits[self._bit_count :]
+        else:
+            return bitarray(endian="little")
+
+    def get_value(self) -> bytes:
+        """Get the parsed value of the field.
+
+        Returns:
+            the value of the field
+        """
+        _bits = self.bits_lsb
+        m = len(_bits) % 8
+        if m != 0:
+            bits = _bits + bitarray([False] * (8 - m))
+        else:
+            bits = _bits
+        return bits.tobytes()
+
+    def set_value(self, value: bytes) -> None:
+        """Set the value of this field.
+
+        Args:
+            value: the new value to assign to this field
+        """
+        bits = bitarray(endian="little")
+        bits.frombytes(value)
+        self._bits = bits[: self._bit_count]
 
     def get_value_concatenated(self) -> bytes:
         """Get list values as a single concatenated value (if supported).
@@ -278,7 +403,7 @@ class BytesField(
         Returns:
             list values as a single concatenated value (if supported)
         """
-        return b"".join([v.value for v in cast("Sequence[ByteField]", self.value)])
+        return self.value
 
     def get_value_as_string(self) -> str:
         """Get a formatted value for the field (for any custom formatting).
@@ -286,5 +411,5 @@ class BytesField(
         Returns:
             the value of the field with custom formatting
         """
-        s = self.get_value_concatenated().decode("latin1")
+        s = self.get_value().decode("latin1")
         return self.string_format.format(s)

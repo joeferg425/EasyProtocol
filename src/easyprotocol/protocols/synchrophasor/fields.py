@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import math
 from enum import Enum, IntEnum, IntFlag
-from typing import cast
+from typing import Any, Union, cast
 
 from bitarray import bitarray
 from bitarray.util import int2ba
@@ -12,6 +12,7 @@ from crc import Configuration
 from easyprotocol.base import DEFAULT_ENDIANNESS, BaseField, dataT, input_to_bitarray
 from easyprotocol.base.dict import DictField
 from easyprotocol.fields import (
+    ArrayFieldGeneric,
     BoolField,
     ChecksumField,
     FlagsField,
@@ -21,7 +22,6 @@ from easyprotocol.fields import (
     UInt16Field,
     UIntField,
 )
-from easyprotocol.fields.array import ArrayFieldGeneric
 from easyprotocol.fields.enum import EnumField
 from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
@@ -583,14 +583,12 @@ class Format(DictField):
             self.coordinates.value = value
 
 
-class StringFixedLengthField(StringField):
+class SynchrophasorString(StringField):
     """Fixed length 16-byte string field."""
 
     def __init__(
         self,
         name: str,
-        count: int = 16,
-        default_char: str = " ",
         default: str = "",
         data: dataT | None = None,
     ) -> None:
@@ -598,70 +596,51 @@ class StringFixedLengthField(StringField):
 
         Args:
             name: name of field
-            count: byte count. Defaults to 16.
-            default_char: default character value. Defaults to " ".
             default: default field value. Defaults to "".
             data: data to parse. Defaults to None.
         """
-        if len(default) < count:
-            default += default_char * (count - len(default))
-        if len(default) > count:
-            default = default[:count]
+        length = 16
+        if len(default) < length:
+            default += " " * (length - len(default))
+        if len(default) > length:
+            default = default[:length]
         super().__init__(
             name=name,
-            count=count,
+            byte_count=length,
             default=default,
             data=data,
         )
 
+    def get_value(self) -> str:
+        """Get the parsed value of the field.
 
-class Station(StringFixedLengthField):
-    """Station name field."""
+        Returns:
+            the value of the field
+        """
+        _bits = self.bits_lsb
+        m = len(_bits) % 8
+        if m != 0:
+            bits = _bits + bitarray([False] * (8 - m))
+        else:
+            bits = _bits
+        b = bits.tobytes()
+        return b.decode(self._string_encoding).strip()
 
-    def __init__(
-        self,
-        default: str = "",
-        data: dataT | None = None,
-    ) -> None:
-        """Create station name field.
+    def set_value(self, value: str) -> None:
+        """Set the value of this field.
 
         Args:
-            default: default value. Defaults to "".
-            data: data to parse. Defaults to None.
+            value: the new value to assign to this field
         """
-        super().__init__(
-            name="STN",
-            count=16,
-            default=default,
-            data=data,
-        )
+        if len(value) < 16:
+            value = value.ljust(16)
+        my_bytes = value.encode()
+        bits = bitarray(endian="little")
+        bits.frombytes(my_bytes)
+        self._bits = bits[: self._bit_count]
 
 
-class ChannelName(StringFixedLengthField):
-    """Channel name string."""
-
-    def __init__(
-        self,
-        name: str = "CHNAM",
-        default: str = "",
-        data: dataT | None = None,
-    ) -> None:
-        """Create channel name string.
-
-        Args:
-            name: name of field. Defaults to "CHNAM".
-            default: default value. Defaults to "".
-            data: data to parse. Defaults to None.
-        """
-        super().__init__(
-            name=name,
-            default=default,
-            data=data,
-            count=16,
-        )
-
-
-class FixedLengthStringArray(
+class SynchrophasorStringArray(
     ArrayFieldGeneric[str],
     BaseField,
 ):
@@ -686,7 +665,7 @@ class FixedLengthStringArray(
         super().__init__(
             name=name,
             count=count,
-            array_item_class=StringFixedLengthField,
+            array_item_class=SynchrophasorString,
             array_item_default="",
             data=data,
         )
@@ -1059,3 +1038,472 @@ class Command(EnumField[CommandEnum]):
             endian=DEFAULT_ENDIANNESS,
             string_format="{}",
         )
+
+
+class PhasorUnits(ArrayFieldGeneric[float]):
+    """Phasor Units."""
+
+    def __init__(
+        self,
+        count: UIntFieldGeneric[int] | int,
+        data: dataT = None,
+    ) -> None:
+        """Create phasor Units.
+
+        Args:
+            count: number of items in array
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.PhasorUnit.value,
+            count=count,
+            array_item_class=Float32Field,
+            array_item_default=0.0,
+            default=None,
+            data=data,
+        )
+
+
+class AnalogUnits(ArrayFieldGeneric[float]):
+    """Analog Units."""
+
+    def __init__(
+        self,
+        count: UIntFieldGeneric[int] | int,
+        data: dataT = None,
+    ) -> None:
+        """Create analog Units.
+
+        Args:
+            count: number of items in array
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.AnalogUnit.value,
+            count=count,
+            array_item_class=Float32Field,
+            array_item_default=0.0,
+            default=None,
+            data=data,
+        )
+
+
+class DigitalUnits(ArrayFieldGeneric[float]):
+    """Digital Units."""
+
+    def __init__(
+        self,
+        count: UIntFieldGeneric[int] | int,
+        data: dataT = None,
+    ) -> None:
+        """Create digital Units.
+
+        Args:
+            count: number of items in array
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.DigitalUnit.value,
+            count=count,
+            array_item_class=Float32Field,
+            array_item_default=0.0,
+            default=None,
+            data=data,
+        )
+
+
+class NominalFrequencyEnum(IntEnum):
+    """Nominal frequency enum."""
+
+    SixtyHertz = 0
+    FiftyHertz = 1
+
+
+class NominalFrequency(EnumField[NominalFrequencyEnum]):
+    """Nominal frequency."""
+
+    def __init__(
+        self,
+        data: dataT = None,
+    ) -> None:
+        """Create nominal frequency.
+
+        Args:
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.NominalFrequency.value,
+            bit_count=16,
+            enum_type=NominalFrequencyEnum,
+            default=NominalFrequencyEnum.SixtyHertz,
+            data=data,
+        )
+
+
+class SynchrophasorConfiguration(DictField):
+    """PMU configuration object."""
+
+    def __init__(
+        self,
+        name: str = FieldNameEnum.PMUConfiguration.value,
+        phasor_count: int = 0,
+        analog_count: int = 0,
+        digital_count: int = 0,
+        default: Any = None,
+        data: dataT = None,
+    ) -> None:
+        """Create PMU configuration object.
+
+        Args:
+            name: name of field. Defaults to "PMU_CONFIGURATION".
+            phasor_count: number of phasors
+            analog_count: number of analogs
+            digital_count: number of digitals
+            default: required, but unused
+            data: data to parse. Defaults to None.
+        """
+        self._ph_nmr = UInt16Field(
+            name=FieldNameEnum.PhasorCount.value,
+            default=phasor_count,
+        )
+        self._an_nmr = UInt16Field(
+            name=FieldNameEnum.AnalogCount.value,
+            default=analog_count,
+        )
+        self._dg_nmr = UInt16Field(
+            name=FieldNameEnum.DigitalCount.value,
+            default=digital_count,
+        )
+        super().__init__(
+            name=name,
+            data=data,
+            default=[
+                SynchrophasorString(name=FieldNameEnum.StationName.value),
+                UInt16Field(name=FieldNameEnum.IDCode.value),
+                Format(),
+                self._ph_nmr,
+                self._an_nmr,
+                self._dg_nmr,
+                SynchrophasorStringArray(
+                    name=FieldNameEnum.PhasorNames.value,
+                    count=self._ph_nmr,
+                ),
+                SynchrophasorStringArray(
+                    name=FieldNameEnum.AnalogNames.value,
+                    count=self._an_nmr,
+                ),
+                SynchrophasorStringArray(
+                    name=FieldNameEnum.DigitalNames.value,
+                    count=self._dg_nmr,
+                ),
+                PhasorUnits(
+                    count=self._ph_nmr,
+                ),
+                AnalogUnits(
+                    count=self._an_nmr,
+                ),
+                DigitalUnits(
+                    count=self._dg_nmr,
+                ),
+                NominalFrequency(),
+                UInt16Field(name=FieldNameEnum.ConfigurationCount.value),
+            ],
+        )
+
+    @property
+    def stationName(self) -> SynchrophasorString:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("SynchrophasorString", self[FieldNameEnum.StationName.value])
+
+    @stationName.setter
+    def stationName(self, value: str | SynchrophasorString) -> None:
+        if isinstance(value, SynchrophasorString):
+            self.stationName = value
+        else:
+            self.stationName.value = value
+
+    @property
+    def phasorCount(self) -> UInt16Field:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("UInt16Field", self[FieldNameEnum.PhasorCount.value])
+
+    @phasorCount.setter
+    def phasorCount(self, value: int | UInt16Field) -> None:
+        if isinstance(value, UInt16Field):
+            self.phasorCount = value
+        else:
+            self.phasorCount.value = value
+
+    @property
+    def analogCount(self) -> UInt16Field:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("UInt16Field", self[FieldNameEnum.AnalogCount.value])
+
+    @analogCount.setter
+    def analogCount(self, value: int | UInt16Field) -> None:
+        if isinstance(value, UInt16Field):
+            self.analogCount = value
+        else:
+            self.analogCount.value = value
+
+    @property
+    def digitalCount(self) -> UInt16Field:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("UInt16Field", self[FieldNameEnum.DigitalCount.value])
+
+    @digitalCount.setter
+    def digitalCount(self, value: int | UInt16Field) -> None:
+        if isinstance(value, UInt16Field):
+            self.digitalCount = value
+        else:
+            self.digitalCount.value = value
+
+    @property
+    def idCode(self) -> UInt16Field:
+        """Get frame type enumeration.
+
+        Returns:
+            frame type enumeration
+        """
+        return cast("UInt16Field", self[FieldNameEnum.IDCode.value])
+
+    @idCode.setter
+    def idCode(self, value: UInt16Field | int) -> None:
+        if isinstance(value, UInt16Field):
+            self.idCode.value = value.value
+        else:
+            self.idCode.value = value
+
+    @property
+    def formats(self) -> Format:
+        """Get the phasor names.
+
+        Returns:
+            the phasor names
+        """
+        return cast("Format", self[FieldNameEnum.Format.value])
+
+    @property
+    def phasorNames(self) -> list[str]:
+        """Get the phasor names.
+
+        Returns:
+            the phasor names
+        """
+        name_list = cast(
+            "list[SynchrophasorString]",
+            cast("SynchrophasorStringArray", self[FieldNameEnum.PhasorNames.value]).value,
+        )
+        return [v.value_as_string for v in name_list]
+
+    @property
+    def analogNames(self) -> list[str]:
+        """Get the analog names.
+
+        Returns:
+            the analog names
+        """
+        name_list = cast(
+            "list[SynchrophasorString]",
+            cast("SynchrophasorStringArray", self[FieldNameEnum.AnalogNames.value]).value_list,
+        )
+        return [v.value_as_string for v in name_list]
+
+    @property
+    def digitalNames(self) -> list[str]:
+        """Get the digital names.
+
+        Returns:
+            the digital names
+        """
+        name_list = cast(
+            "list[SynchrophasorString]",
+            cast("SynchrophasorStringArray", self[FieldNameEnum.DigitalNames.value]).value_list,
+        )
+        return [v.value_as_string for v in name_list]
+
+    @property
+    def phasorUnits(self) -> list[float]:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        units = cast("PhasorUnits", self[FieldNameEnum.PhasorUnit.value])
+        return [u.value for u in units]
+
+    @property
+    def analogUnits(self) -> list[float]:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        units = cast("AnalogUnits", self[FieldNameEnum.AnalogUnit.value])
+        return [u.value for u in units]
+
+    @property
+    def digitalUnits(self) -> list[float]:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        units = cast("AnalogUnits", self[FieldNameEnum.DigitalUnit.value])
+        return [u.value for u in units]
+
+    @property
+    def nominalFrequency(self) -> NominalFrequency:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("NominalFrequency", self[FieldNameEnum.NominalFrequency.value])
+
+    @nominalFrequency.setter
+    def nominalFrequency(self, value: NominalFrequency | NominalFrequencyEnum) -> None:
+        if isinstance(value, NominalFrequency):
+            self.nominalFrequency = value
+        else:
+            self.nominalFrequency.value = value
+
+    @property
+    def configurationCount(self) -> UInt16Field:
+        """Get the station name.
+
+        Returns:
+            the station name
+        """
+        return cast("UInt16Field", self[FieldNameEnum.ConfigurationCount.value])
+
+    @configurationCount.setter
+    def configurationCount(self, value: int | UInt16Field) -> None:
+        if isinstance(value, UInt16Field):
+            self.configurationCount = value
+        else:
+            self.configurationCount.value = value
+
+
+class PMUData(DictField):
+    """Data field of a Data frame."""
+
+    def __init__(
+        self,
+        phasor_count: int,
+        analog_count: int,
+        digital_count: int,
+        pmu_format: Format,
+        name: str = FieldNameEnum.PMUData.value,
+        default: None = None,
+        data: dataT = None,
+    ) -> None:
+        """Create Data field of a Data frame.
+
+        Args:
+            phasor_count: number of phasors in pmu
+            analog_count: number of analog values in pmu
+            digital_count: number of digital words in pmu
+            pmu_format: pmu format from configuration frame
+            name: name of frame. Defaults to "PMU_DATA".
+            default: default value (not used). Defaults to None.
+            data: data to parse. Defaults to None.
+        """
+        self._format = pmu_format
+        if self._format.phasors is NumberFormatEnum.FLOAT:
+            if self._format.coordinates is CoordinateFormatEnum.POLAR:
+                self._phasor_class = type(PhasorRectangularFloat)
+            else:
+                self._phasor_class = type(PhasorPolarFloat)
+        else:
+            if self._format.coordinates is CoordinateFormatEnum.POLAR:
+                self._phasor_class = type(PhasorRectangularInt)
+            else:
+                self._phasor_class = type(PhasorPolarInt)
+        if self._format.frequencies is NumberFormatEnum.FLOAT:
+            self._freq_class = Float32Field
+        else:
+            self._freq_class = UInt16Field
+        if self._format.analogs is NumberFormatEnum.FLOAT:
+            self._analogs_class = Float32Field
+        else:
+            self._analogs_class = UInt16Field
+        super().__init__(
+            name=name,
+            default=[
+                UInt16Field(name=FieldNameEnum.StatusFlags.value),
+                ArrayFieldGeneric(
+                    name=FieldNameEnum.PhasorList.value,
+                    array_item_class=self._phasor_class,
+                    array_item_default=0,
+                    count=phasor_count,
+                ),
+                self._freq_class(name=FieldNameEnum.Frequency.value),
+                self._freq_class(name=FieldNameEnum.FrequencyDelta.value),
+                ArrayFieldGeneric(
+                    name=FieldNameEnum.AnalogList.value,
+                    array_item_class=self._analogs_class,
+                    array_item_default=0,
+                    count=analog_count,
+                ),
+                ArrayFieldGeneric(
+                    name=FieldNameEnum.DigitalList.value,
+                    array_item_class=UInt16Field,
+                    array_item_default=0,
+                    count=digital_count,
+                ),
+            ],
+            data=data,
+        )
+
+    @property
+    def phasor_list(
+        self,
+    ) -> list[Phasor]:
+        """Get phasor fields.
+
+        Returns:
+            phasor fields
+        """
+        return cast("ArrayFieldGeneric[Phasor]", self[FieldNameEnum.PhasorList.value]).value_list
+
+    @property
+    def analog_list(
+        self,
+    ) -> list[Float32Field] | list[UInt16Field]:
+        """Get phasor fields.
+
+        Returns:
+            phasor fields
+        """
+        return cast(
+            "Union[ArrayFieldGeneric[Float32Field], ArrayFieldGeneric[UInt16Field]]",
+            self[FieldNameEnum.AnalogList.value],
+        ).value_list
+
+    @property
+    def digital_list(
+        self,
+    ) -> list[UInt16Field]:
+        """Get phasor fields.
+
+        Returns:
+            phasor fields
+        """
+        return cast("ArrayFieldGeneric[UInt16Field]", self[FieldNameEnum.AnalogList.value]).value_list

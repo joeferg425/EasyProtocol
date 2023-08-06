@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any, Union, cast
+from typing import cast
 
 from bitarray import bitarray
 
@@ -12,7 +12,6 @@ from easyprotocol.base.utils import input_to_bitarray
 from easyprotocol.fields import (
     ArrayFieldGeneric,
     DateTimeField,
-    Float32Field,
     UInt16Field,
     UInt24Field,
     UInt32Field,
@@ -28,20 +27,15 @@ from easyprotocol.protocols.synchrophasor.fields import (
     CommandEnum,
     CoordinateFormatEnum,
     FieldNameEnum,
-    FixedLengthStringArray,
     Format,
     FrameType,
     FrameTypeEnum,
     FrameTypeNameEnum,
-    NumberFormatEnum,
     Phasor,
-    PhasorPolarFloat,
-    PhasorPolarInt,
-    PhasorRectangularFloat,
-    PhasorRectangularInt,
-    StringFixedLengthField,
+    PMUData,
     Sync,
     SynchrophasorChecksum,
+    SynchrophasorConfiguration,
     TimeQuality,
     TimeQualityCode,
     TimeQualityCodeEnum,
@@ -153,139 +147,6 @@ class SynchrophasorFrame(DictField):
             self.syncBit.value = value.value
         else:
             self.syncBit.value = value
-
-
-class SynchrophasorConfiguration(DictField):
-    """PMU configuration object."""
-
-    def __init__(
-        self,
-        name: str = FieldNameEnum.PMUConfiguration.value,
-        default: Any = None,
-        data: dataT = None,
-    ) -> None:
-        """Create PMU configuration object.
-
-        Args:
-            name: name of field. Defaults to "PMU_CONFIGURATION".
-            default: required, but unused
-            data: data to parse. Defaults to None.
-        """
-        self._ph_nmr = UInt16Field(name=FieldNameEnum.PhasorCount.value)
-        self._an_nmr = UInt16Field(name=FieldNameEnum.AnalogCount.value)
-        self._dg_nmr = UInt16Field(name=FieldNameEnum.DigitalCount.value)
-        super().__init__(
-            name=name,
-            data=data,
-            default=[
-                StringFixedLengthField(name=FieldNameEnum.StationName.value, count=16),
-                UInt16Field(name=FieldNameEnum.IDCode.value),
-                Format(),
-                self._ph_nmr,
-                self._an_nmr,
-                self._dg_nmr,
-                FixedLengthStringArray(
-                    name=FieldNameEnum.PhasorNames.value,
-                    count=self._ph_nmr,
-                ),
-                FixedLengthStringArray(
-                    name=FieldNameEnum.AnalogNames.value,
-                    count=self._an_nmr,
-                ),
-                FixedLengthStringArray(
-                    name=FieldNameEnum.DigitalNames.value,
-                    count=self._dg_nmr,
-                ),
-                ArrayFieldGeneric(
-                    name=FieldNameEnum.PhasorUnit.value,
-                    array_item_class=Float32Field,
-                    array_item_default=0.0,
-                    count=self._ph_nmr,
-                ),
-                ArrayFieldGeneric(
-                    name=FieldNameEnum.AnalogUnit.value,
-                    array_item_class=Float32Field,
-                    array_item_default=0.0,
-                    count=self._an_nmr,
-                ),
-                ArrayFieldGeneric(
-                    name=FieldNameEnum.DigitalUnit.value,
-                    array_item_class=UInt32Field,
-                    array_item_default=0.0,
-                    count=self._dg_nmr,
-                ),
-                UInt16Field(name=FieldNameEnum.NominalFrequency.value),
-                UInt16Field(name=FieldNameEnum.ConfigurationCount.value),
-            ],
-        )
-
-    @property
-    def stationName(self) -> StringFixedLengthField:
-        """Get the station name.
-
-        Returns:
-            the station name
-        """
-        return cast("StringFixedLengthField", self[FieldNameEnum.StationName.value])
-
-    @stationName.setter
-    def stationName(self, value: str | StringFixedLengthField) -> None:
-        if isinstance(value, StringFixedLengthField):
-            self.stationName = value
-        else:
-            self.stationName.value = value
-
-    @property
-    def idCode(self) -> UInt16Field:
-        """Get frame type enumeration.
-
-        Returns:
-            frame type enumeration
-        """
-        return cast("UInt16Field", self[FieldNameEnum.IDCode.value])
-
-    @idCode.setter
-    def idCode(self, value: UInt16Field | int) -> None:
-        if isinstance(value, UInt16Field):
-            self.idCode.value = value.value
-        else:
-            self.idCode.value = value
-
-    @property
-    def formats(self) -> Format:
-        """Get the phasor names.
-
-        Returns:
-            the phasor names
-        """
-        return cast("Format", self[FieldNameEnum.Format.value])
-
-    @property
-    def phasor_names(self) -> list[str]:
-        """Get the phasor names.
-
-        Returns:
-            the phasor names
-        """
-        return cast("FixedLengthStringArray", self[FieldNameEnum.PhasorNames.value]).value_list
-
-    @property
-    def analog_names(self) -> list[str]:
-        """Get the analog names.
-
-        Returns:
-            the analog names
-        """
-        return cast("FixedLengthStringArray", self[FieldNameEnum.AnalogNames.value]).value_list
-
-    @property
-    def digital_names(self) -> list[str]:
-        """Get the digital names.
-
-        Returns:
-            the digital names
-        """
-        return cast("FixedLengthStringArray", self[FieldNameEnum.DigitalNames.value]).value_list
 
 
 class SynchrophasorConfiguration1Frame(SynchrophasorFrame):
@@ -826,114 +687,6 @@ class SynchrophasorCommandFrame(SynchrophasorFrame):
             self.checksum.value = value
 
 
-class PMUData(DictField):
-    """Data field of a Data frame."""
-
-    def __init__(
-        self,
-        phasor_count: int,
-        analog_count: int,
-        digital_count: int,
-        pmu_format: Format,
-        name: str = FieldNameEnum.PMUData.value,
-        default: None = None,
-        data: dataT = None,
-    ) -> None:
-        """Create Data field of a Data frame.
-
-        Args:
-            phasor_count: number of phasors in pmu
-            analog_count: number of analog values in pmu
-            digital_count: number of digital words in pmu
-            pmu_format: pmu format from configuration frame
-            name: name of frame. Defaults to "PMU_DATA".
-            default: default value (not used). Defaults to None.
-            data: data to parse. Defaults to None.
-        """
-        self._format = pmu_format
-        if self._format.phasors is NumberFormatEnum.FLOAT:
-            if self._format.coordinates is CoordinateFormatEnum.POLAR:
-                self._phasor_class = type(PhasorRectangularFloat)
-            else:
-                self._phasor_class = type(PhasorPolarFloat)
-        else:
-            if self._format.coordinates is CoordinateFormatEnum.POLAR:
-                self._phasor_class = type(PhasorRectangularInt)
-            else:
-                self._phasor_class = type(PhasorPolarInt)
-        if self._format.frequencies is NumberFormatEnum.FLOAT:
-            self._freq_class = Float32Field
-        else:
-            self._freq_class = UInt16Field
-        if self._format.analogs is NumberFormatEnum.FLOAT:
-            self._analogs_class = Float32Field
-        else:
-            self._analogs_class = UInt16Field
-        super().__init__(
-            name=name,
-            default=[
-                UInt16Field(name=FieldNameEnum.StatusFlags.value),
-                ArrayFieldGeneric(
-                    name=FieldNameEnum.PhasorList.value,
-                    array_item_class=self._phasor_class,
-                    array_item_default=0,
-                    count=phasor_count,
-                ),
-                self._freq_class(name=FieldNameEnum.Frequency.value),
-                self._freq_class(name=FieldNameEnum.FrequencyDelta.value),
-                ArrayFieldGeneric(
-                    name=FieldNameEnum.AnalogList.value,
-                    array_item_class=self._analogs_class,
-                    array_item_default=0,
-                    count=analog_count,
-                ),
-                ArrayFieldGeneric(
-                    name=FieldNameEnum.DigitalList.value,
-                    array_item_class=UInt16Field,
-                    array_item_default=0,
-                    count=digital_count,
-                ),
-            ],
-            data=data,
-        )
-
-    @property
-    def phasor_list(
-        self,
-    ) -> list[Phasor]:
-        """Get phasor fields.
-
-        Returns:
-            phasor fields
-        """
-        return cast("ArrayFieldGeneric[Phasor]", self[FieldNameEnum.PhasorList.value]).value_list
-
-    @property
-    def analog_list(
-        self,
-    ) -> list[Float32Field] | list[UInt16Field]:
-        """Get phasor fields.
-
-        Returns:
-            phasor fields
-        """
-        return cast(
-            "Union[ArrayFieldGeneric[Float32Field], ArrayFieldGeneric[UInt16Field]]",
-            self[FieldNameEnum.AnalogList.value],
-        ).value_list
-
-    @property
-    def digital_list(
-        self,
-    ) -> list[UInt16Field]:
-        """Get phasor fields.
-
-        Returns:
-            phasor fields
-        """
-        return cast("ArrayFieldGeneric[UInt16Field]", self[FieldNameEnum.AnalogList.value]).value_list
-
-
 class PMUDataArray(ArrayFieldGeneric[PMUData]):
     """PMU data array field."""
 
@@ -1055,10 +808,10 @@ class SynchrophasorDataFrame(DictField):
         """
         summary: dict[str, dict[str, Phasor]] = {}
         for pmu_idx, pmu_config in enumerate(self._config.pmuConfigs):
-            pmu_name = pmu_config.stationName
+            pmu_name = pmu_config.stationName.value_as_string
             pmu = self.pmu_list[pmu_idx]
             summary[pmu_name] = {}
-            for phasor_index, phasor_name in enumerate(pmu_config.phasor_names):
+            for phasor_index, phasor_name in enumerate(pmu_config.phasorNames):
                 summary[pmu_name][phasor_name] = pmu.phasor_list[phasor_index]
         return summary
 

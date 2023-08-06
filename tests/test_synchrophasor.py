@@ -9,6 +9,7 @@ from easyprotocol.protocols.synchrophasor import (
     CommandEnum,
     CoordinateFormatEnum,
     FrameTypeEnum,
+    NominalFrequencyEnum,
     NumberFormatEnum,
     SynchrophasorCommandFrame,
     SynchrophasorConfiguration2Frame,
@@ -176,11 +177,21 @@ class TestSynchrophasor:
         time_quality_code = TimeQualityCodeEnum.ClockLocked
         fractional_seconds = 1677722
         pmu_count = 1
-        station_name = "Blue PMU        "
+        station_name = "Blue PMU"
         frequency_format = NumberFormatEnum.INT
         phasor_format = NumberFormatEnum.FLOAT
         analog_format = NumberFormatEnum.FLOAT
         coordinate_format = CoordinateFormatEnum.POLAR
+        phasor_count = 4
+        analog_count = 0
+        digital_count = 0
+        phasor_name1 = "V1LPM"
+        phasor_name2 = "VALPM"
+        phasor_name3 = "VBLPM"
+        phasor_name4 = "VCLPM"
+        nominal_frequency = NominalFrequencyEnum.FiftyHertz
+        config_count = 89
+        data_rate = 50
         checksum = 0xC1E2
         assert frame.start.value == start
         assert frame.version.value == version
@@ -202,4 +213,21 @@ class TestSynchrophasor:
         assert pmu_config.formats.phasors.value == phasor_format
         assert pmu_config.formats.analogs.value == analog_format
         assert pmu_config.formats.coordinates.value == coordinate_format
+        assert pmu_config.phasorCount.value == phasor_count
+        assert pmu_config.analogCount.value == analog_count
+        assert pmu_config.digitalCount.value == digital_count
+        phname1 = pmu_config.phasorNames[0]
+        phname2 = pmu_config.phasorNames[1]
+        phname3 = pmu_config.phasorNames[2]
+        phname4 = pmu_config.phasorNames[3]
+        assert phname1 == phasor_name1
+        assert phname2 == phasor_name2
+        assert phname3 == phasor_name3
+        assert phname4 == phasor_name4
+        assert pmu_config.phasorUnits
+        assert not pmu_config.analogUnits
+        assert not pmu_config.digitalUnits
+        assert pmu_config.nominalFrequency.value == nominal_frequency
+        assert pmu_config.configurationCount.value == config_count
+        assert frame.dataRate.value == data_rate
         assert frame.checksum.value == checksum

@@ -26,7 +26,7 @@ def check_str_byte_value(
 ) -> None:
     if isinstance(obj, (StringField, BytesField)):
         assert (
-            obj.value_concatenated == tst.value
+            obj.value == tst.value
         ), f"{obj}: obj.value is not the expected value ({obj.value:.3e} != expected value: {tst.value:.3e})"
     else:
         assert (
@@ -230,7 +230,7 @@ class TestString:
         )
         obj = StringField(
             name=tst.name,
-            count=count,
+            byte_count=count,
         )
 
         check_str(
@@ -256,7 +256,7 @@ class TestString:
         )
         obj = StringField(
             name=tst.name,
-            count=count,
+            byte_count=count,
             data=byte_data,
         )
 
@@ -361,7 +361,7 @@ class TestBytes:
         )
         obj = BytesField(
             name=tst.name,
-            count=count,
+            byte_count=count,
         )
 
         check_bytes(
@@ -387,7 +387,7 @@ class TestBytes:
         )
         obj = BytesField(
             name=tst.name,
-            count=count,
+            byte_count=count,
             data=byte_data,
         )
 

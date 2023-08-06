@@ -9,6 +9,9 @@ from easyprotocol.protocols.synchrophasor.fields import (  # noqa
     FrameTypeEnum as FrameTypeEnum,
 )
 from easyprotocol.protocols.synchrophasor.fields import (  # noqa
+    NominalFrequencyEnum as NominalFrequencyEnum,
+)
+from easyprotocol.protocols.synchrophasor.fields import (  # noqa
     NumberFormatEnum as NumberFormatEnum,
 )
 from easyprotocol.protocols.synchrophasor.fields import (  # noqa

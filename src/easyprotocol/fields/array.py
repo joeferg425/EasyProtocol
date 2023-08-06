@@ -106,52 +106,6 @@ class ArrayFieldGeneric(
                 )
             self._children[f.name] = f
 
-    def set_value(
-        self,
-        value: T | Sequence[BaseField] | Sequence[T] | dict[str, BaseField] | dict[str, T],
-    ) -> None:
-        """Set the fields that are part of this field.
-
-        Args:
-            value: the new list of fields or dictionary of fields to assign to this field
-        """
-        if isinstance(value, Sequence):
-            for index in range(len(value)):  # pyright:ignore[reportUnknownArgumentType]
-                item = value[index]  # pyright:ignore[reportUnknownVariableType]
-                if isinstance(item, BaseField):
-                    if index < len(self.children):
-                        self[index] = item
-                        item.set_parent(self)
-                    else:
-                        item = self._array_item_class(
-                            name=f"#{index}",
-                            default=item,
-                        )
-                        item.set_parent(self)
-                        self._children[item.name] = item
-                else:
-                    self[index].value = item
-        else:
-            keys = list(
-                value.keys(),  # noqa # pyright:ignore[reportGeneralTypeIssues,reportUnknownMemberType,reportUnknownArgumentType]
-            )
-            for index in range(len(keys)):
-                key = keys[index]
-                item = value[key]  # pyright:ignore[reportGeneralTypeIssues,reportUnknownVariableType]
-                if isinstance(item, BaseField):
-                    if index < len(self.children):
-                        self[index] = item
-                        item.set_parent(self)
-                    else:
-                        item = self._array_item_class(
-                            name=f"#{index}",
-                            default=item,
-                        )
-                        item.set_parent(self)
-                        self._children[item.name] = item
-                else:
-                    self[index].value = item
-
     @property
     def value_list(self) -> list[T]:
         """Get a list of values from child fields.

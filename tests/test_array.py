@@ -17,10 +17,6 @@ def check_array_strings(
     obj: ArrayFieldGeneric[Any],
     tst: ParseData,
 ) -> None:
-    # assert tst.format.format(tst.value) == obj.value_as_string, (
-    #     f"{obj}: obj.value_as_string is not the expected value "
-    #     + f"({tst.format.format(tst.value)} != expected value: {obj.value_as_string})"
-    # )
     assert len(obj.value_as_string) > 0, (
         f"{obj}: obj.value_as_string is not the expected value " + f"(? != expected value: {obj.value_as_string})"
     )
@@ -109,7 +105,6 @@ class TestArray:
             array_item_class=UInt8Field,
             array_item_default=0,
         )
-
         check_array(
             obj=obj,
             tst=tst,
@@ -136,16 +131,13 @@ class TestArray:
             array_item_class=UInt8Field,
             array_item_default=0,
         )
-
         check_array(
             obj=obj,
             tst=tst,
         )
 
-    def test_array_create_one(self) -> None:
+    def test_array_create_one_int(self) -> None:
         name = "parent"
-        # f1_name = "count"
-        # f1 = UInt8Field(name=f1_name)
         name = "array"
         obj = ArrayFieldGeneric(
             name=name,
@@ -154,14 +146,42 @@ class TestArray:
             array_item_default=0,
         )
         data = b"\x00"
-        # obj = ParseList(
-        #     name=name,
-        #     children=[f1, obj],
-        # )
         obj.parse(data=data)
-
-        # assert f1.value == 1
         assert obj.value_list == [0]
+
+    def test_array_create_one_field(self) -> None:
+        name = "parent"
+        name = "array"
+        count = UInt8Field(
+            name="f",
+            default=2,
+        )
+        obj = ArrayFieldGeneric(
+            name=name,
+            count=count,
+            array_item_class=UInt8Field,
+            array_item_default=0,
+        )
+        data = b"\x00\x00"
+        obj.parse(data=data)
+        assert obj.value_list == [0, 0]
+
+    def test_array_create_two_defaults(self) -> None:
+        name = "parent"
+        name = "array"
+        f1 = UInt8Field(
+            name="f",
+            default=1,
+        )
+        obj = ArrayFieldGeneric(
+            name=name,
+            count=2,
+            array_item_class=UInt8Field,
+            array_item_default=f1,
+        )
+        data = b"\x00\x00"
+        obj.parse(data=data)
+        assert obj.value_list == [0, 0]
 
     def test_array_create_three(self) -> None:
         name = "parent"
@@ -279,6 +299,147 @@ class TestArray:
 
         tst.parent = UInt8Field(name="parent")
         obj.parent = tst.parent
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_array_set_value_list_int(self) -> None:
+        value0: list[Any] = [0, 0]
+        byte_data0 = bytes(value0)
+        bits_data0 = bitarray()
+        bits_data0.frombytes(byte_data0)
+        value1: list[Any] = [72, 13]
+        byte_data1 = bytes(value1)
+        bits_data1 = bitarray()
+        bits_data1.frombytes(byte_data1)
+        count = 2
+        tst = ParseData(
+            name="test",
+            value=value0,
+            string_format="{}",
+            byte_data=byte_data0,
+            bits_data=bits_data0,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=dict(),
+        )
+        obj = ArrayFieldGeneric(
+            name=tst.name,
+            count=count,
+            array_item_class=UInt8Field,
+            array_item_default=0,
+        )
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+        tst.parent = UInt8Field(name="parent")
+        obj.parent = tst.parent
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = value1
+        tst.bits_data = bits_data1
+        tst.byte_data = byte_data1
+        tst.value = value1
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_array_set_value_list_base_field(self) -> None:
+        value0: list[Any] = [0, 0]
+        byte_data0 = bytes(value0)
+        bits_data0 = bitarray()
+        bits_data0.frombytes(byte_data0)
+        value1: list[UInt8Field] = [UInt8Field(name="f1", default=12)]
+        byte_data1 = bytes([v.value for v in value1])
+        bits_data1 = bitarray()
+        bits_data1.frombytes(byte_data1)
+        count = 2
+        tst = ParseData(
+            name="test",
+            value=value0,
+            string_format="{}",
+            byte_data=byte_data0,
+            bits_data=bits_data0,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=dict(),
+        )
+        obj = ArrayFieldGeneric(
+            name=tst.name,
+            count=count,
+            array_item_class=UInt8Field,
+            array_item_default=0,
+        )
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+        tst.parent = UInt8Field(name="parent")
+        obj.parent = tst.parent
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = value1
+        tst.bits_data = bits_data1
+        tst.byte_data = byte_data1
+        tst.value = [v.value for v in value1]
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_array_set_value_dict_int(self) -> None:
+        value0: list[Any] = [0, 0]
+        byte_data0 = bytes(value0)
+        bits_data0 = bitarray()
+        bits_data0.frombytes(byte_data0)
+        value1: dict[str, int] = {"0": 1, "1": 2}
+        byte_data1 = bytes(value1.values())
+        bits_data1 = bitarray()
+        bits_data1.frombytes(byte_data1)
+        count = 2
+        tst = ParseData(
+            name="test",
+            value=value0,
+            string_format="{}",
+            byte_data=byte_data0,
+            bits_data=bits_data0,
+            parent=None,
+            endian=DEFAULT_ENDIANNESS,
+            children=dict(),
+        )
+        obj = ArrayFieldGeneric(
+            name=tst.name,
+            count=count,
+            array_item_class=UInt8Field,
+            array_item_default=0,
+        )
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+        tst.parent = UInt8Field(name="parent")
+        obj.parent = tst.parent
+        check_array(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = list(value1.values())
+        tst.bits_data = bits_data1
+        tst.byte_data = byte_data1
+        tst.value = list(value1.values())
         check_array(
             obj=obj,
             tst=tst,

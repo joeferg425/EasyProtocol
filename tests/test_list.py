@@ -23,7 +23,7 @@ def check_ParseFieldList_value(
         f"{obj}: len(obj.value) is not the expected value " + f"({len(obj.value)} != expected value: {len(tst.value)})"
     )
     for i in range(len(tst.value)):
-        assert obj.value[i] == tst.value[i], (
+        assert obj.value[i].value == tst.value[i].value, (
             f"{obj}: obj.value[{i}] is not the expected value " + f"({obj.value[i]} != expected value: {tst.value[i]})"
         )
 
@@ -64,7 +64,7 @@ def check_ParseFieldList_children(
         + f"({obj.children.keys()} != expected value: {tst.children.keys()})"
     )
     for key in tst.children.keys():
-        assert obj.children[key] == tst.children[key], (
+        assert obj.children[key].value == tst.children[key].value, (
             f"{obj}: obj.children[key] is not the expected value "
             + f"({obj.children[key]} != expected value: {tst.children[key]})"
         )
@@ -72,7 +72,6 @@ def check_ParseFieldList_children(
             f"{obj}: obj.children[key].parent is not the expected value "
             + f"({obj.children[key].parent} != expected value: {obj})"
         )
-
     for v in tst.children.values():
         assert v.value_as_string in obj.value_as_string
         assert v.value_as_string in str(obj)
@@ -475,7 +474,7 @@ class TestParseFieldList:
             tst=tst,
         )
 
-    def test_ParseFieldList_set_value(self) -> None:
+    def test_ParseFieldList_set_value_list_base_field(self) -> None:
         f1_value = 2
         f2_value = 7
         f3_value = 15
@@ -561,6 +560,192 @@ class TestParseFieldList:
             obj=obj,
             tst=tst,
         )
+
+    def test_ParseFieldList_set_value_list_int(self) -> None:
+        f1_value = 2
+        f2_value = 7
+        f3_value = 15
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f3_data = int.to_bytes(f3_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
+        f2_bits = bitarray()
+        f2_bits.frombytes(f2_data)
+        f3_bits = bitarray()
+        f3_bits.frombytes(f3_data)
+        f1_name = "f1"
+        f2_name = f1_name
+        f3_name = "X"
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        f2 = UInt8Field(name=f2_name, default=f2_value)
+        f3 = UInt8Field(name=f3_name, default=f3_value)
+        bits_data1 = bitarray()
+        bits_data1.frombytes(f1_data)
+        byte_data1 = f1_data
+        bits_data2 = bitarray()
+        bits_data2.frombytes(f2_data)
+        byte_data2 = f2_data
+        bits_data3 = bitarray()
+        bits_data3.frombytes(f3_data)
+        byte_data3 = f3_data
+        values1: Sequence[Any] = [f1]
+        values2: Sequence[Any] = [f2]
+        values3: Sequence[Any] = [f3]
+        children1: dict[str, BaseField] = dict({f1_name: f1})
+        children2: dict[str, BaseField] = dict({f1_name: f2})
+        children3: dict[str, BaseField] = dict({f1_name: f3})
+        tst = ParseData(
+            name="test",
+            value=values1,
+            string_format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=children1,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+        obj = ListField(
+            name=tst.name,
+            default=children1,
+        )
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = [f2.value]
+        tst.value = values2
+        tst.bits_data = bits_data2
+        tst.byte_data = byte_data2
+        tst.children = children2
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = [f3_value]
+        tst.value = values3
+        tst.bits_data = bits_data3
+        tst.byte_data = byte_data3
+        tst.children = children3
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_ParseFieldList_set_value_list_type_error(self) -> None:
+        f1_value = 2
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        bits_data1 = bitarray()
+        bits_data1.frombytes(f1_data)
+        children1: dict[str, BaseField] = dict({f1_name: f1})
+        obj = ListField(
+            name="test",
+            default=children1,
+        )
+        with pytest.raises(ValueError):
+            obj.value = ["doesn't work"]
+        with pytest.raises(TypeError):
+            obj.value = [0, 1, "doesn't work"]
+
+    def test_ParseFieldList_set_value_dict_int(self) -> None:
+        f1_value = 2
+        f2_value = 7
+        f3_value = 15
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f2_data = int.to_bytes(f2_value, length=1, byteorder="big", signed=False)
+        f3_data = int.to_bytes(f3_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
+        f2_bits = bitarray()
+        f2_bits.frombytes(f2_data)
+        f3_bits = bitarray()
+        f3_bits.frombytes(f3_data)
+        f1_name = "f1"
+        f2_name = f1_name
+        f3_name = "X"
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        f2 = UInt8Field(name=f2_name, default=f2_value)
+        f3 = UInt8Field(name=f3_name, default=f3_value)
+        bits_data1 = bitarray()
+        bits_data1.frombytes(f1_data)
+        byte_data1 = f1_data
+        bits_data2 = bitarray()
+        bits_data2.frombytes(f2_data)
+        byte_data2 = f2_data
+        bits_data3 = bitarray()
+        bits_data3.frombytes(f3_data)
+        byte_data3 = f3_data
+        values1: Sequence[Any] = [f1]
+        values2: Sequence[Any] = [f2]
+        values3: Sequence[Any] = [f3]
+        children1: dict[str, BaseField] = dict({f1_name: f1})
+        children2: dict[str, BaseField] = dict({f1_name: f2})
+        children3: dict[str, BaseField] = dict({f1_name: f3})
+        tst = ParseData(
+            name="test",
+            value=values1,
+            string_format="{}",
+            byte_data=byte_data1,
+            bits_data=bits_data1,
+            parent=None,
+            children=children1,
+            endian=DEFAULT_ENDIANNESS,
+        )
+
+        obj = ListField(
+            name=tst.name,
+            default=children1,
+        )
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = {f2_name: f2_value}
+        tst.value = values2
+        tst.bits_data = bits_data2
+        tst.byte_data = byte_data2
+        tst.children = children2
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+        obj.value = {f3_name: f3_value}
+        tst.value = values3
+        tst.bits_data = bits_data3
+        tst.byte_data = byte_data3
+        tst.children = children3
+        ParseFieldList_tests(
+            obj=obj,
+            tst=tst,
+        )
+
+    def test_ParseFieldList_set_value_dict_type_error(self) -> None:
+        f1_value = 2
+        f1_data = int.to_bytes(f1_value, length=1, byteorder="big", signed=False)
+        f1_bits = bitarray()
+        f1_bits.frombytes(f1_data)
+        f1_name = "f1"
+        f1 = UInt8Field(name=f1_name, default=f1_value)
+        bits_data1 = bitarray()
+        bits_data1.frombytes(f1_data)
+        children1: dict[str, BaseField] = dict({f1_name: f1})
+        obj = ListField(
+            name="test",
+            default=children1,
+        )
+        with pytest.raises(ValueError):
+            obj.value = {"x": "doesn't work"}
+        with pytest.raises(TypeError):
+            obj.value = {"a": 0, "b": 1, "c": "doesn't work"}
 
     def test_ParseFieldList_remove(self) -> None:
         name = "test"

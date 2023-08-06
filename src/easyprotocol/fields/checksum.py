@@ -6,6 +6,10 @@ import math
 from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Calculator, Configuration
+from crc import Crc8 as Crc8  # noqa
+from crc import Crc16 as Crc16  # noqa
+from crc import Crc32 as Crc32  # noqa
+from crc import Crc64 as Crc64  # noqa
 
 from easyprotocol.base.base import DEFAULT_ENDIANNESS, BaseField, endianT
 from easyprotocol.base.utils import dataT, input_to_bitarray

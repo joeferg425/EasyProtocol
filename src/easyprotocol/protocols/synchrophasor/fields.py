@@ -94,6 +94,7 @@ class FieldNameEnum(str, Enum):
     TimeQuality = "TimeQuality"
     TimeQualityFlags = "TimeQualityFlags"
     TimeQualityCode = "TimeQualityCode"
+    Resolution = "Resolution"
 
 
 class FrameType(EnumField[FrameTypeEnum]):
@@ -386,6 +387,106 @@ class CoordinateFormatEnum(IntEnum):
     RECTANGULAR = 1
 
 
+class CoordinateFormat(EnumField[CoordinateFormatEnum]):
+    """Coordinate format field."""
+
+    def __init__(
+        self,
+        default: CoordinateFormatEnum = CoordinateFormatEnum.POLAR,
+        data: dataT = None,
+    ) -> None:
+        """Create coordinate format field.
+
+        Args:
+            default: Defaults to CoordinateFormatEnum.POLAR.
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.CoordinateFormat.value,
+            bit_count=1,
+            enum_type=CoordinateFormatEnum,
+            default=default,
+            data=data,
+            endian=DEFAULT_ENDIANNESS,
+            string_format="{}",
+        )
+
+
+class PhasorFormat(EnumField[NumberFormatEnum]):
+    """Phasor format field."""
+
+    def __init__(
+        self,
+        default: NumberFormatEnum = NumberFormatEnum.FLOAT,
+        data: dataT = None,
+    ) -> None:
+        """Create phasor format field.
+
+        Args:
+            default: Defaults to CoordinateFormatEnum.POLAR.
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.PhasorFormat.value,
+            bit_count=1,
+            enum_type=NumberFormatEnum,
+            default=default,
+            data=data,
+            endian=DEFAULT_ENDIANNESS,
+            string_format="{}",
+        )
+
+
+class AnalogFormat(EnumField[NumberFormatEnum]):
+    """Analog format field."""
+
+    def __init__(
+        self,
+        default: NumberFormatEnum = NumberFormatEnum.FLOAT,
+        data: dataT = None,
+    ) -> None:
+        """Create analog format field.
+
+        Args:
+            default: Defaults to CoordinateFormatEnum.POLAR.
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.AnalogFormat.value,
+            bit_count=1,
+            enum_type=NumberFormatEnum,
+            default=default,
+            data=data,
+            endian=DEFAULT_ENDIANNESS,
+            string_format="{}",
+        )
+
+
+class FrequencyFormat(EnumField[NumberFormatEnum]):
+    """Frequency format field."""
+
+    def __init__(
+        self,
+        default: NumberFormatEnum = NumberFormatEnum.FLOAT,
+        data: dataT = None,
+    ) -> None:
+        """Create frequency format field.
+
+        Args:
+            default: Defaults to CoordinateFormatEnum.POLAR.
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=FieldNameEnum.FrequencyFormat.value,
+            bit_count=1,
+            enum_type=NumberFormatEnum,
+            default=default,
+            data=data,
+            endian=DEFAULT_ENDIANNESS,
+            string_format="{}",
+        )
+
+
 class Format(DictField):
     """Number and coordinate format field."""
 
@@ -405,30 +506,10 @@ class Format(DictField):
                     name=FieldNameEnum.FormatExtra1.value,
                     bit_count=8,
                 ),
-                EnumField(
-                    name=FieldNameEnum.CoordinateFormat.value,
-                    bit_count=1,
-                    enum_type=CoordinateFormatEnum,
-                    default=CoordinateFormatEnum.POLAR,
-                ),
-                EnumField(
-                    name=FieldNameEnum.PhasorFormat.value,
-                    bit_count=1,
-                    enum_type=NumberFormatEnum,
-                    default=NumberFormatEnum.FLOAT,
-                ),
-                EnumField(
-                    name=FieldNameEnum.AnalogFormat.value,
-                    bit_count=1,
-                    enum_type=NumberFormatEnum,
-                    default=NumberFormatEnum.FLOAT,
-                ),
-                EnumField(
-                    name=FieldNameEnum.FrequencyFormat.value,
-                    bit_count=1,
-                    enum_type=NumberFormatEnum,
-                    default=NumberFormatEnum.FLOAT,
-                ),
+                CoordinateFormat(),
+                PhasorFormat(),
+                AnalogFormat(),
+                FrequencyFormat(),
                 UIntField(
                     name=FieldNameEnum.FormatExtra2.value,
                     bit_count=4,
@@ -438,40 +519,68 @@ class Format(DictField):
         )
 
     @property
-    def frequencies(self) -> NumberFormatEnum:
+    def frequencies(self) -> FrequencyFormat:
         """Get frequency format.
 
         Returns:
             frequency format
         """
-        return cast(NumberFormatEnum, self[FieldNameEnum.FrequencyFormat.value].value)
+        return cast("FrequencyFormat", self[FieldNameEnum.FrequencyFormat.value])
+
+    @frequencies.setter
+    def frequencies(self, value: FrequencyFormat | NumberFormatEnum) -> None:
+        if isinstance(value, FrequencyFormat):
+            self.frequencies = value
+        else:
+            self.frequencies.value = value
 
     @property
-    def analogs(self) -> NumberFormatEnum:
+    def analogs(self) -> AnalogFormat:
         """Get analog format.
 
         Returns:
             analog format
         """
-        return cast(NumberFormatEnum, self[FieldNameEnum.AnalogFormat.value].value)
+        return cast("AnalogFormat", self[FieldNameEnum.AnalogFormat.value])
+
+    @analogs.setter
+    def analogs(self, value: AnalogFormat | NumberFormatEnum) -> None:
+        if isinstance(value, AnalogFormat):
+            self.analogs = value
+        else:
+            self.analogs.value = value
 
     @property
-    def phasors(self) -> NumberFormatEnum:
+    def phasors(self) -> PhasorFormat:
         """Get phasor format.
 
         Returns:
             phasor format
         """
-        return cast(NumberFormatEnum, self[FieldNameEnum.PhasorFormat.value].value)
+        return cast(PhasorFormat, self[FieldNameEnum.PhasorFormat.value])
+
+    @phasors.setter
+    def phasors(self, value: PhasorFormat | NumberFormatEnum) -> None:
+        if isinstance(value, PhasorFormat):
+            self.phasors = value
+        else:
+            self.phasors.value = value
 
     @property
-    def coordinates(self) -> CoordinateFormatEnum:
+    def coordinates(self) -> CoordinateFormat:
         """Get coordinate format.
 
         Returns:
             coordinate format
         """
-        return cast(CoordinateFormatEnum, self[FieldNameEnum.CoordinateFormat.value].value)
+        return cast("CoordinateFormat", self[FieldNameEnum.CoordinateFormat.value])
+
+    @coordinates.setter
+    def coordinates(self, value: CoordinateFormatEnum | CoordinateFormat) -> None:
+        if isinstance(value, CoordinateFormat):
+            self.coordinates = value
+        else:
+            self.coordinates.value = value
 
 
 class StringFixedLengthField(StringField):
@@ -593,9 +702,9 @@ class FixedLengthStringArray(
         """
         bit_data = input_to_bitarray(data=data)
         if isinstance(self._count, int):
-            count = self._fixed_string_length * self._count
+            count = self._count
         else:
-            count = self._fixed_string_length * self._count.value
+            count = self._count.value
         for i in range(count):
             f = self._array_item_class(
                 name=f"#{i}",

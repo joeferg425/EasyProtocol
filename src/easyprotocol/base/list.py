@@ -121,26 +121,49 @@ class ListFieldGeneric(
 
         Args:
             value: the new list of fields to assign to this field
+
+        Raises:
+            TypeError: if the value assigned is not supported
         """
+        c: dict[str, Any] = {}
+        keys = list(self.children.keys())
         if isinstance(value, dict):
             values = list(value.values())
             for index in range(len(value)):
                 item = values[index]
                 if index < len(self._children):
-                    self[index] = item
-                    item.set_parent(self)
+                    if isinstance(item, BaseField):
+                        self[index].parent = None
+                        c[item.name] = item
+                        item.set_parent(self)
+                    else:
+                        c[keys[index]] = self.children[keys[index]]
+                        c[keys[index]].value = item
                 else:
-                    self._children[item.name] = item
-                    item.set_parent(self)
-        if isinstance(value, Sequence):
+                    if isinstance(item, BaseField):
+                        c[item.name] = item
+                        item.set_parent(self)
+                    else:
+                        raise TypeError(f"Cannot insert value of type {type(item)} without an associated key")
+        elif isinstance(value, Sequence):
             for index in range(len(value)):
                 item = value[index]
                 if index < len(self._children):
-                    self[index] = item
-                    item.set_parent(self)
+                    if isinstance(item, BaseField):
+                        self[index].parent = None
+                        c[item.name] = item
+                        item.set_parent(self)
+                    else:
+                        c[keys[index]] = self.children[keys[index]]
+                        c[keys[index]].value = item
                 else:
-                    self._children[item.name] = item
-                    item.set_parent(self)
+                    if isinstance(item, BaseField):
+                        c[item.name] = item
+                        item.set_parent(self)
+                    else:
+                        raise TypeError(f"Cannot insert value of type {type(item)} without an associated key")
+        self.children.clear()
+        self.children.update(c)
 
     def get_bits_lsb(self) -> bitarray:
         """Get the bits of this field in least-significant-bit first format.

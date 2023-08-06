@@ -4,6 +4,10 @@ from easyprotocol.base.utils import hex as hex  # noqa
 from easyprotocol.base.utils import input_to_bitarray as input_to_bitarray  # noqa
 from easyprotocol.fields.array import ArrayFieldGeneric as ArrayFieldGeneric  # noqa
 from easyprotocol.fields.checksum import ChecksumField as ChecksumField  # noqa
+from easyprotocol.fields.checksum import Crc8 as Crc8  # noqa
+from easyprotocol.fields.checksum import Crc16 as Crc16  # noqa
+from easyprotocol.fields.checksum import Crc32 as Crc32  # noqa
+from easyprotocol.fields.checksum import Crc64 as Crc64  # noqa
 from easyprotocol.fields.date_time import DateTimeField as DateTimeField  # noqa
 from easyprotocol.fields.enum import Enum8Field as Enum8Field  # noqa
 from easyprotocol.fields.enum import Enum16Field as Enum16Field  # noqa

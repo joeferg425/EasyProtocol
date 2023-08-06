@@ -189,6 +189,10 @@ class TestSynchrophasor:
         phasor_name2 = "VALPM"
         phasor_name3 = "VBLPM"
         phasor_name4 = "VCLPM"
+        phasor_convert1 = 1 * (10**-5)
+        phasor_convert2 = 1 * (10**-5)
+        phasor_convert3 = 1 * (10**-5)
+        phasor_convert4 = 1 * (10**-5)
         nominal_frequency = NominalFrequencyEnum.FiftyHertz
         config_count = 89
         data_rate = 50
@@ -224,7 +228,14 @@ class TestSynchrophasor:
         assert phname2 == phasor_name2
         assert phname3 == phasor_name3
         assert phname4 == phasor_name4
-        assert pmu_config.phasorUnits
+        phcvrt1 = pmu_config.phasorUnits[0]
+        phcvrt2 = pmu_config.phasorUnits[1]
+        phcvrt3 = pmu_config.phasorUnits[2]
+        phcvrt4 = pmu_config.phasorUnits[3]
+        assert phcvrt1 == phasor_convert1
+        assert phcvrt2 == phasor_convert2
+        assert phcvrt3 == phasor_convert3
+        assert phcvrt4 == phasor_convert4
         assert not pmu_config.analogUnits
         assert not pmu_config.digitalUnits
         assert pmu_config.nominalFrequency.value == nominal_frequency

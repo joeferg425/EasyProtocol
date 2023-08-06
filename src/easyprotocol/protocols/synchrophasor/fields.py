@@ -9,21 +9,27 @@ from bitarray import bitarray
 from bitarray.util import int2ba
 from crc import Configuration
 
-from easyprotocol.base import DEFAULT_ENDIANNESS, BaseField, dataT, input_to_bitarray
-from easyprotocol.base.dict import DictField
+from easyprotocol.base import (
+    DEFAULT_ENDIANNESS,
+    BaseField,
+    DictField,
+    dataT,
+    input_to_bitarray,
+)
 from easyprotocol.fields import (
     ArrayFieldGeneric,
     BoolField,
     ChecksumField,
+    EnumField,
     FlagsField,
     Float32Field,
+    Int32Field,
     StringField,
     UInt8Field,
     UInt16Field,
     UIntField,
+    UIntFieldGeneric,
 )
-from easyprotocol.fields.enum import EnumField
-from easyprotocol.fields.unsigned_int import UIntFieldGeneric
 
 
 class FrameTypeEnum(IntEnum):
@@ -1040,6 +1046,45 @@ class Command(EnumField[CommandEnum]):
         )
 
 
+class ConversionFactor(Int32Field):
+    """Conversion Factor."""
+
+    def __init__(
+        self,
+        name: str,
+        default: float = 0.0,
+        data: dataT = None,
+    ) -> None:
+        """Create conversion factor.
+
+        Args:
+            name: name of field
+            default: Defaults to 0.
+            data: Defaults to None.
+        """
+        super().__init__(
+            name=name,
+            default=default / 10**-5,  # pyright:ignore[reportGeneralTypeIssues]
+            data=data,
+        )
+
+    def set_value(self, value: float) -> None:
+        """Set the value of this field.
+
+        Args:
+            value: the new value to assign to this field
+        """
+        super().set_value(value / 10**-5)  # pyright:ignore[reportGeneralTypeIssues]
+
+    def get_value(self) -> float:  # pyright:ignore[reportIncompatibleMethodOverride]
+        """Get the parsed value of this class.
+
+        Returns:
+            the parsed value of this class
+        """
+        return super().get_value() * 10**-5
+
+
 class PhasorUnits(ArrayFieldGeneric[float]):
     """Phasor Units."""
 
@@ -1057,7 +1102,7 @@ class PhasorUnits(ArrayFieldGeneric[float]):
         super().__init__(
             name=FieldNameEnum.PhasorUnit.value,
             count=count,
-            array_item_class=Float32Field,
+            array_item_class=ConversionFactor,
             array_item_default=0.0,
             default=None,
             data=data,
@@ -1081,7 +1126,7 @@ class AnalogUnits(ArrayFieldGeneric[float]):
         super().__init__(
             name=FieldNameEnum.AnalogUnit.value,
             count=count,
-            array_item_class=Float32Field,
+            array_item_class=ConversionFactor,
             array_item_default=0.0,
             default=None,
             data=data,
@@ -1105,7 +1150,7 @@ class DigitalUnits(ArrayFieldGeneric[float]):
         super().__init__(
             name=FieldNameEnum.DigitalUnit.value,
             count=count,
-            array_item_class=Float32Field,
+            array_item_class=ConversionFactor,
             array_item_default=0.0,
             default=None,
             data=data,

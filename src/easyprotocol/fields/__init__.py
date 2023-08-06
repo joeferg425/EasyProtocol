@@ -35,6 +35,7 @@ from easyprotocol.fields.signed_int import Int16Field as Int16Field  # noqa
 from easyprotocol.fields.signed_int import Int24Field as Int24Field  # noqa
 from easyprotocol.fields.signed_int import Int32Field as Int32Field  # noqa
 from easyprotocol.fields.signed_int import Int64Field as Int64Field  # noqa
+from easyprotocol.fields.signed_int import IntField as IntField  # noqa
 from easyprotocol.fields.signed_int import IntFieldGeneric as IntFieldGeneric  # noqa
 from easyprotocol.fields.string import ByteField as ByteField  # noqa
 from easyprotocol.fields.string import BytesField as BytesField  # noqa
@@ -49,3 +50,6 @@ from easyprotocol.fields.unsigned_int import UInt24Field as UInt24Field  # noqa
 from easyprotocol.fields.unsigned_int import UInt32Field as UInt32Field  # noqa
 from easyprotocol.fields.unsigned_int import UInt64Field as UInt64Field  # noqa
 from easyprotocol.fields.unsigned_int import UIntField as UIntField  # noqa
+from easyprotocol.fields.unsigned_int import (  # noqa
+    UIntFieldGeneric as UIntFieldGeneric,
+)
